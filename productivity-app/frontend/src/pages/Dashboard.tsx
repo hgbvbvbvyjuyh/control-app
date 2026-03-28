@@ -1,0 +1,329 @@
+import { useEffect, useMemo } from 'react';
+import { useGoalStore } from '../stores/goalStore';
+import { useSessionStore } from '../stores/sessionStore';
+import { useJournalStore } from '../stores/journalStore';
+import { useFailureStore } from '../stores/failureStore';
+import { motion } from 'framer-motion';
+import { dashboardPeriodStats, buildDashboardHistories } from '../utils/aggregation';
+import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
+import { Info } from 'lucide-react';
+import { PROGRESS_CALC_TOOLTIP } from '../constants/progressCalendarMeta';
+import {
+  ResponsiveContainer,
+  RadialBarChart,
+  RadialBar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+  CartesianGrid,
+  AreaChart,
+  Area,
+  Cell,
+} from 'recharts';
+
+export const Dashboard = () => {
+  const { goals, load: loadGoals } = useGoalStore();
+  const { sessions, load: loadSessions } = useSessionStore();
+  const { entries, load: loadJournals } = useJournalStore();
+  const { failures, load: loadFailures } = useFailureStore();
+
+  useEffect(() => {
+    loadGoals();
+    loadSessions();
+    loadJournals();
+    loadFailures();
+  }, []);
+
+  const periodStyles = [
+    {
+      title: 'Daily',
+      sub: 'Portfolio today (your time zone)',
+      bgGrad: 'from-blue-600 to-cyan-400',
+      barStart: '#2563eb',
+      barEnd: '#22d3ee',
+    },
+    {
+      title: 'Weekly',
+      sub: 'Overall · 7-day average (inactive days = 0%)',
+      bgGrad: 'from-purple-600 to-pink-400',
+      barStart: '#9333ea',
+      barEnd: '#fb7185',
+    },
+    {
+      title: 'Monthly',
+      sub: 'Overall · weeks with activity',
+      bgGrad: 'from-cyan-500 to-emerald-400',
+      barStart: '#06b6d4',
+      barEnd: '#34d399',
+    },
+    {
+      title: 'Yearly',
+      sub: 'Overall · months with activity',
+      bgGrad: 'from-emerald-500 to-teal-400',
+      barStart: '#10b981',
+      barEnd: '#2dd4bf',
+    },
+  ];
+
+  const periodData = useMemo(() => {
+    const dayMs = 86400000;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const zone = getBrowserIanaTimeZone();
+    const stats = dashboardPeriodStats(goals, sessions, zone);
+    const { dailyHistory, weeklyHistory, monthlyHistory, yearlyHistory } =
+      buildDashboardHistories(goals, sessions, today, dayMs, zone);
+
+    const subLabelFor = (
+      type: 'daily' | 'weekly' | 'monthly' | 'yearly',
+      pct: number,
+      count: number,
+      hasData: boolean
+    ) => {
+      if (!hasData) {
+        if (type === 'daily') return 'No completed sessions today';
+        if (type === 'weekly')
+          return 'No activity this week · overall progress N/A';
+        if (type === 'monthly')
+          return 'No active weeks this month · overall N/A';
+        return 'No active months this year · overall N/A';
+      }
+      if (type === 'daily')
+        return `${pct}% · ${count} completed session(s) today (all daily goals)`;
+      if (type === 'weekly')
+        return `${pct}% · ${count} day(s) had sessions · week avg uses all 7 days (empty = 0%)`;
+      if (type === 'monthly')
+        return `${pct}% · averaged over ${count} week(s) with activity`;
+      return `${pct}% · averaged over ${count} month(s) with activity`;
+    };
+
+    return periodStyles.map((style, i) => {
+      const type = (['daily', 'weekly', 'monthly', 'yearly'] as const)[i];
+      const { pct, count, hasData } = stats[type];
+      let history: { name: string; value: number; hasData: boolean }[] = [];
+      if (type === 'daily') history = dailyHistory;
+      else if (type === 'weekly') history = weeklyHistory;
+      else if (type === 'monthly') history = monthlyHistory;
+      else if (type === 'yearly') history = yearlyHistory;
+
+      return {
+        ...style,
+        pct,
+        count,
+        hasData,
+        subLabel: subLabelFor(type, pct, count, hasData),
+        history,
+      };
+    });
+  }, [goals, sessions]);
+
+  const dailyPct = periodData[0].pct;
+  const dailyHasData = periodData[0].hasData;
+  const weeklyPct = periodData[1].pct;
+  const monthlyPct = periodData[2].pct;
+  const yearlyPct = periodData[3].pct;
+
+  const radialData = [
+    { name: 'Progress', value: dailyHasData ? dailyPct : 0, fill: 'url(#radialGrad)' },
+  ];
+
+  const weeklyTrend = useMemo(() => {
+    const periods = ['Daily', 'Weekly', 'Monthly', 'Yearly'] as const;
+    return periods.map((p, i) => ({
+      name: p,
+      progress: periodData[i].hasData ? periodData[i].pct : 0,
+      hasData: periodData[i].hasData,
+    }));
+  }, [periodData]);
+
+  return (
+    <div className="flex flex-col h-full max-w-7xl mx-auto w-full gap-1.5 overflow-y-auto no-scrollbar font-sans text-slate-100 p-1.5 lg:overflow-hidden max-h-screen">
+      
+      {/* Top Quotes Row */}
+      <div className="flex flex-col md:flex-row gap-1.5 shrink-0">
+        <div className="flex-1 rounded-2xl bg-[#13151A] border border-white/5 p-2 px-3 flex items-start gap-4 shadow-xl">
+          <span className="text-yellow-500 text-base font-serif leading-none mt-1">"</span>
+          <p className="text-[10px] font-medium text-slate-400 italic">Discipline is choosing between what you want now and what you want most.</p>
+        </div>
+        <div className="flex-1 rounded-2xl bg-[#13151A] border border-white/5 p-2 px-3 flex items-start gap-4 shadow-xl">
+          <span className="text-yellow-500 text-base font-serif leading-none mt-1">"</span>
+          <p className="text-[10px] font-medium text-slate-400 italic">Small progress is still progress.</p>
+        </div>
+      </div>
+
+      {/* Title */}
+      <div className="shrink-0 flex items-center gap-2">
+        <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-sm font-black tracking-widest leading-none uppercase text-slate-400">Dashboard</h1>
+            <button
+              type="button"
+              className="shrink-0 rounded p-0.5 text-slate-500 hover:text-cyan-400/90 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500"
+              title={PROGRESS_CALC_TOOLTIP}
+              aria-label="How portfolio progress is calculated"
+            >
+              <Info className="w-3.5 h-3.5" strokeWidth={2} aria-hidden />
+            </button>
+          </div>
+          <p className="text-[9px] text-slate-500 mt-0.5 max-w-xl">
+            Calendar &amp; sessions use your device time zone (sent to the server for matching progress).
+          </p>
+        </div>
+      </div>
+
+      {/* Main Grid: Horizontal Row of 4 Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 shrink-0">
+        {periodData.map((p, i) => (
+          <motion.div
+            key={p.title}
+            whileHover={{ scale: 1.01, y: -1 }}
+            className="flex flex-col rounded-2xl bg-[#13151A] border border-white/5 overflow-hidden shadow-2xl transition-all duration-300 relative group h-32"
+            style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-t ${p.bgGrad} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+            
+            <div className="p-3 flex flex-col h-full justify-between relative z-10">
+              <div>
+                <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">{p.title}</h3>
+                <p className="text-[9px] text-slate-500 mb-0.5">{p.sub}</p>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span
+                    className={`text-xl font-bold tracking-tight inline-block leading-none ${
+                      p.hasData ? 'text-white' : 'text-slate-500'
+                    }`}
+                  >
+                    {p.hasData ? `${p.pct}%` : '—'}
+                  </span>
+                </div>
+                <p className="text-[8px] font-semibold text-slate-600 mt-1">{p.subLabel}</p>
+              </div>
+              
+              <div className="absolute bottom-0 left-0 right-0 h-10 px-4 pb-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
+                    <defs>
+                      <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={p.barStart} />
+                        <stop offset="100%" stopColor={p.barEnd} />
+                      </linearGradient>
+                    </defs>
+                    <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                      {p.history.map((h, hi) => (
+                        <Cell
+                          key={hi}
+                          fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.06)'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Bottom Area: Large trend chart + Circle Chart side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-1 lg:min-h-[260px] items-stretch mt-0.5 pb-1">
+        {/* Weekly Trend as a smooth AreaChart taking 2 columns */}
+        <div className="lg:col-span-2 rounded-2xl bg-[#13151A] border border-white/5 p-5 flex flex-col relative overflow-hidden shadow-2xl h-full">
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-900/10 to-transparent opacity-50" />
+          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-4 relative z-10 shrink-0">Activity Trend</h3>
+          <div className="flex-1 relative z-10 w-full min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklyTrend} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" vertical={true} horizontal={false} />
+                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                <YAxis 
+                  stroke="#475569" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  domain={[0, 100]}
+                  ticks={[0, 25, 50, 75, 100]}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <Tooltip
+                  contentStyle={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f8fafc' }}
+                  cursor={{ stroke: 'rgba(255,255,255,0.1)' }}
+                  formatter={(value, _name, item) => {
+                    const payload = item?.payload as { hasData?: boolean } | undefined;
+                    if (payload && payload['hasData'] === false) return ['No data', 'Progress'];
+                    return [`${value}%`, 'Progress'];
+                  }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="progress" 
+                  stroke="#8b5cf6" 
+                  strokeWidth={3} 
+                  fill="url(#areaGrad)" 
+                  dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: '#c4b5fd', strokeWidth: 0 }} 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Goals Overview right panel */}
+        <div className="lg:col-span-1 border border-white/5 p-5 flex flex-col shadow-2xl relative overflow-hidden bg-[#13151A] rounded-2xl h-full">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 to-transparent opacity-50" />
+          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest relative z-10 shrink-0">Goals Overview</h3>
+          
+          {/* Centered Circle */}
+          <div className="flex-1 relative z-10 flex items-center justify-center py-2 min-h-0">
+            <div className="w-full relative flex items-center justify-center max-h-[160px] h-full flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
+                  <defs>
+                    <linearGradient id="radialGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                  <RadialBar dataKey="value" background={{ fill: 'rgba(255,255,255,0.05)' }} cornerRadius={12} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none drop-shadow-md">
+                <p
+                  className={`text-2xl font-black tracking-tighter sm:text-3xl leading-none ${
+                    dailyHasData ? 'text-white' : 'text-slate-500'
+                  }`}
+                >
+                  {dailyHasData ? `${dailyPct}%` : '—'}
+                </p>
+                <p className="text-[8px] text-cyan-400 font-bold tracking-widest uppercase mt-0.5">Daily · portfolio</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Evenly Spaced Stats */}
+          <div className="grid grid-cols-2 gap-2 relative z-10 w-full shrink-0 mt-auto">
+            {[
+              { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
+              { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
+              { label: 'Journals', value: entries.length, color: 'text-purple-400' },
+              { label: 'Failures', value: failures.length, color: 'text-rose-400' }
+            ].map(stat => (
+              <div key={stat.label} className="p-2 sm:p-3 rounded-xl bg-[#1D1F25] border border-white/[0.05] flex flex-col items-center justify-center text-center hover:bg-white/[0.05] transition-all">
+                <span className={`text-base sm:text-lg font-bold ${stat.color} leading-none`}>{stat.value}</span>
+                <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
