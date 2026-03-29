@@ -94,6 +94,7 @@ export const Goals = () => {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>(undefined);
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
+  const [showFrameworkData, setShowFrameworkData] = useState(false);
 
   useEffect(() => {
     loadGoals();
@@ -319,18 +320,29 @@ export const Goals = () => {
 
               {/* Framework Data */}
               <div className="bg-background/50 rounded-xl border border-secondary/20 p-4">
-                <h4 className="text-xs font-semibold text-accent mb-3 uppercase tracking-wider">Framework Data</h4>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  {selectedFw?.keys.map(k => (
-                    <div key={k.key}>
-                      <span className="text-secondary block text-xs mb-0.5">{k.label}</span>
-                      <span className="font-medium">{selectedGoal.data[k.key] || '—'}</span>
-                    </div>
-                  ))}
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-xs font-semibold text-accent uppercase tracking-wider mb-0">Framework Data</h4>
+                  <button 
+                    onClick={() => setShowFrameworkData(!showFrameworkData)}
+                    className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded"
+                  >
+                    {showFrameworkData ? 'Hide Details' : 'Show Details'}
+                  </button>
                 </div>
+                {showFrameworkData && (
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {selectedFw?.keys.map(k => (
+                      <div key={k.key}>
+                        <span className="text-secondary block text-xs mb-0.5">{k.label}</span>
+                        <span className="font-medium">{selectedGoal.data[k.key] || '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Session History */}
+              {selectedGoal.goalType === 'daily' && (
               <div>
                 <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Session History</h3>
                 {goalSessions.length === 0 && (
@@ -390,6 +402,7 @@ export const Goals = () => {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* Goal Journaling */}
               <GoalJournal goalId={selectedGoal.id!} />
