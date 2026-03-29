@@ -25,8 +25,8 @@ import {
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
-  const { entries: _entries, load: loadJournals } = useJournalStore();
-  const { failures: _failures, load: loadFailures } = useFailureStore();
+  const { load: loadJournals } = useJournalStore();
+  const { load: loadFailures } = useFailureStore();
 
   useEffect(() => {
     loadGoals();
