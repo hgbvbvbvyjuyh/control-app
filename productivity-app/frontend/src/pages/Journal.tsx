@@ -298,29 +298,6 @@ export const Journal = () => {
 /* SUB-COMPONENTS            */
 /* ========================= */
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6 flex flex-col gap-5">
-      <h3 className="text-[10px] font-black text-accent uppercase tracking-[0.2em] leading-none">{title}</h3>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-}
-
-function Question({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-xs font-bold text-secondary/70">{label}</label>
-      <textarea
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none transition-all placeholder:text-secondary/20"
-        rows={2}
-      />
-    </div>
-  );
-}
-
 function GoalCard({ entry, title, type }: { entry: any; title: string; type: string }) {
   const categoryColors: Record<string, string> = {
     spirituality: "bg-blue-500/20 text-blue-400 border-blue-500/30",
