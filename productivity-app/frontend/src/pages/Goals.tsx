@@ -123,7 +123,7 @@ export const Goals = () => {
   const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 h-full max-w-7xl mx-auto">
+    <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 h-full max-w-7xl mx-auto">
       <AnimatePresence>{showFwModal && <FrameworkModal open onClose={() => setShowFwModal(false)} />}</AnimatePresence>
       <AnimatePresence>{showGoalModal && (
         <GoalModal 
@@ -136,7 +136,7 @@ export const Goals = () => {
       )}</AnimatePresence>
 
       {!activeCategory ? (
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           <h1 className="text-3xl font-bold mb-8">Goals</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((cat) => {
@@ -171,7 +171,7 @@ export const Goals = () => {
       ) : (
         <>
           {/* Goal List */}
-          <div className="w-full md:w-1/3 flex flex-col gap-3 overflow-y-auto no-scrollbar pb-6">
+          <div className="w-full md:w-1/3 flex flex-col gap-3 overflow-y-auto no-scrollbar min-h-0">
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
                 onClick={() => { setActiveCategory(null); select(undefined as any); }}
@@ -193,7 +193,9 @@ export const Goals = () => {
             </div>
 
             {goals.filter(g => g.goalType === activeCategory).length === 0 && (
-              <p className="text-secondary text-sm text-center mt-10">No {activeCategory} goals yet. Add one to get started.</p>
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-secondary text-sm text-center">No {activeCategory} goals yet. Add one to get started.</p>
+              </div>
             )}
 
             {goals.filter(g => g.goalType === activeCategory).map((goal, i) => (
