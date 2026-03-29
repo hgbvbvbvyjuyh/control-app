@@ -76,32 +76,9 @@ export const Dashboard = () => {
     const { dailyHistory, weeklyHistory, monthlyHistory, yearlyHistory } =
       buildDashboardHistories(goals, sessions, today, dayMs, zone);
 
-    const subLabelFor = (
-      type: 'daily' | 'weekly' | 'monthly' | 'yearly',
-      pct: number,
-      count: number,
-      hasData: boolean
-    ) => {
-      if (!hasData) {
-        if (type === 'daily') return 'No completed sessions today';
-        if (type === 'weekly')
-          return 'No activity this week · overall progress N/A';
-        if (type === 'monthly')
-          return 'No active weeks this month · overall N/A';
-        return 'No active months this year · overall N/A';
-      }
-      if (type === 'daily')
-        return `${pct}% · ${count} completed session(s) today (all daily goals)`;
-      if (type === 'weekly')
-        return `${pct}% · ${count} day(s) had sessions · week avg uses all 7 days (empty = 0%)`;
-      if (type === 'monthly')
-        return `${pct}% · averaged over ${count} week(s) with activity`;
-      return `${pct}% · averaged over ${count} month(s) with activity`;
-    };
-
     return periodStyles.map((style, i) => {
       const type = (['daily', 'weekly', 'monthly', 'yearly'] as const)[i];
-      const { pct, count, hasData } = stats[type];
+      const { pct, hasData } = stats[type];
       let history: { name: string; value: number; hasData: boolean }[] = [];
       if (type === 'daily') history = dailyHistory;
       else if (type === 'weekly') history = weeklyHistory;
@@ -111,9 +88,7 @@ export const Dashboard = () => {
       return {
         ...style,
         pct,
-        count,
         hasData,
-        subLabel: subLabelFor(type, pct, count, hasData),
         history,
       };
     });
@@ -183,19 +158,18 @@ export const Dashboard = () => {
             <div className={`absolute inset-0 bg-gradient-to-t ${p.bgGrad} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
             
             <div className="p-3 flex flex-col h-full justify-between relative z-10">
-              <div>
-                <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">{p.title}</h3>
-                <p className="text-[9px] text-slate-500 mb-0.5">{p.sub}</p>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <span
-                    className={`text-xl font-bold tracking-tight inline-block leading-none ${
-                      p.hasData ? 'text-white' : 'text-slate-500'
-                    }`}
-                  >
-                    {p.hasData ? `${p.pct}%` : '—'}
-                  </span>
-                </div>
-                <p className="text-[8px] font-semibold text-slate-600 mt-1">{p.subLabel}</p>
+              <div className="flex flex-col items-center justify-center text-center flex-1 min-h-0 pt-0.5 pb-11">
+                <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">
+                  {p.title}
+                </h3>
+                <span
+                  className={`text-2xl font-bold leading-none mt-1 ${
+                    p.hasData ? 'text-white' : 'text-slate-500'
+                  }`}
+                >
+                  {p.hasData ? `${p.pct}%` : '—'}
+                </span>
+                <p className="text-xs text-slate-400 mt-1 leading-tight px-0.5">{p.sub}</p>
               </div>
               
               <div className="absolute bottom-0 left-0 right-0 h-10 px-4 pb-2">
