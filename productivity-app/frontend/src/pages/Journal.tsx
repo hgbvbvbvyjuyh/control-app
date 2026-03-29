@@ -79,36 +79,26 @@ export const Journal = () => {
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
       {/* MAIN CATEGORY SELECTION */}
-      <div className="flex items-center gap-8 mb-12 shrink-0 border-b border-[#1E293B]">
+      <div className="flex items-center gap-4 mb-12 shrink-0">
         <button 
           onClick={() => setMainTab('daily')}
-          className={`pb-3 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 relative group ${
+          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border ${
             mainTab === 'daily' 
-              ? 'text-white' 
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'bg-accent/10 border-accent text-white shadow-[0_0_20px_rgba(34,211,238,0.15)]' 
+              : 'bg-secondary/5 border-secondary/10 text-gray-500 hover:border-secondary/30 hover:text-gray-300'
           }`}
         >
-          <span className="relative z-10">1. Daily Journal</span>
-          {mainTab === 'daily' ? (
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] rounded-full transition-all duration-300" />
-          ) : (
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400/0 group-hover:bg-cyan-400/20 rounded-full transition-all duration-300" />
-          )}
+          1. Daily Journal
         </button>
         <button 
           onClick={() => setMainTab('goals')}
-          className={`pb-3 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 relative group ${
+          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border ${
             mainTab === 'goals' 
-              ? 'text-white' 
-              : 'text-gray-500 hover:text-gray-300'
+              ? 'bg-accent/10 border-accent text-white shadow-[0_0_20px_rgba(34,211,238,0.15)]' 
+              : 'bg-secondary/5 border-secondary/10 text-gray-500 hover:border-secondary/30 hover:text-gray-300'
           }`}
         >
-          <span className="relative z-10">2. Goals</span>
-          {mainTab === 'goals' ? (
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] rounded-full transition-all duration-300" />
-          ) : (
-            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400/0 group-hover:bg-cyan-400/20 rounded-full transition-all duration-300" />
-          )}
+          2. Goals
         </button>
       </div>
 
