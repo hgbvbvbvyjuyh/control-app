@@ -137,8 +137,8 @@ export const Layout = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10">
-        <div className="w-full">
+      <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10 flex flex-col">
+        <div className="w-full flex-1 flex flex-col min-h-0">
           <Outlet />
         </div>
       </main>

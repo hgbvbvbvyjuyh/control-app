@@ -105,7 +105,7 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="flex flex-col min-h-screen w-full p-3 md:p-4 gap-3 font-sans text-slate-100">
+    <div className="flex flex-col flex-1 h-full w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100 overflow-hidden">
       {/* Top Quotes Row */}
       <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-2">
         <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-lg">
