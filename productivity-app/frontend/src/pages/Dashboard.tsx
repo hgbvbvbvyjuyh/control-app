@@ -107,17 +107,16 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="flex flex-col max-w-7xl mx-auto w-full gap-4 font-sans text-slate-100 px-3 py-2 md:px-4 md:py-3">
-      
+    <div className="mx-auto w-full max-w-7xl space-y-4 overflow-hidden px-3 py-2 font-sans text-slate-100 md:px-4 md:py-3">
       {/* Top Quotes Row */}
-      <div className="flex flex-col md:flex-row gap-1.5 shrink-0">
-        <div className="flex-1 rounded-2xl bg-[#13151A] border border-white/5 p-2 px-3 flex items-start gap-4 shadow-xl">
-          <span className="text-yellow-500 text-base font-serif leading-none mt-1">"</span>
-          <p className="text-[10px] font-medium text-slate-400 italic">Discipline is choosing between what you want now and what you want most.</p>
+      <div className="grid shrink-0 grid-cols-1 gap-1.5 md:grid-cols-2">
+        <div className="flex items-start gap-4 rounded-2xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-xl">
+          <span className="mt-1 font-serif text-base leading-none text-yellow-500">"</span>
+          <p className="text-[10px] font-medium italic text-slate-400">Discipline is choosing between what you want now and what you want most.</p>
         </div>
-        <div className="flex-1 rounded-2xl bg-[#13151A] border border-white/5 p-2 px-3 flex items-start gap-4 shadow-xl">
-          <span className="text-yellow-500 text-base font-serif leading-none mt-1">"</span>
-          <p className="text-[10px] font-medium text-slate-400 italic">Small progress is still progress.</p>
+        <div className="flex items-start gap-4 rounded-2xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-xl">
+          <span className="mt-1 font-serif text-base leading-none text-yellow-500">"</span>
+          <p className="text-[10px] font-medium italic text-slate-400">Small progress is still progress.</p>
         </div>
       </div>
 
@@ -142,16 +141,16 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Grid: Horizontal Row of 4 Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 shrink-0 items-start">
+      {/* Summary cards — items-start prevents row stretch */}
+      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="flex flex-col rounded-2xl bg-[#13151A] border border-white/5 shadow-2xl transition-all duration-300 group p-4 self-start w-full hover:border-white/10"
+            className="group flex w-full flex-col justify-start rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl transition-all duration-300 hover:border-white/10"
             style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
           >
-            <div className="flex flex-col items-center justify-center text-center gap-0.5">
+            <div className="flex flex-col items-center justify-start gap-0.5 text-center">
               <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">
                 {p.title}
               </h3>
@@ -188,12 +187,12 @@ export const Dashboard = () => {
         ))}
       </div>
 
-      {/* Bottom: Activity Trend + Goals Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full items-start shrink-0 min-w-0">
+      {/* Activity Trend + Goals Overview */}
+      <div className="grid w-full min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-3">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 flex flex-col rounded-2xl bg-[#13151A] border border-white/5 p-4 shadow-2xl w-full min-w-0 shrink-0">
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Activity Trend</h3>
-          <div className="w-full h-[220px] shrink-0 mt-1.5">
+        <div className="flex w-full min-w-0 shrink-0 flex-col rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2">
+          <h3 className="shrink-0 text-[12px] font-bold uppercase tracking-widest text-slate-400">Activity Trend</h3>
+          <div className="h-[200px] w-full shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                 <defs>
@@ -237,7 +236,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Goals Overview — 1/3 width on large screens */}
-        <div className="lg:col-span-1 flex flex-col border border-white/5 p-4 shadow-2xl bg-[#13151A] rounded-2xl w-full min-w-0 shrink-0">
+        <div className="flex w-full min-w-0 shrink-0 flex-col rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-1">
           <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Goals Overview</h3>
           
           {/* Centered Circle */}
