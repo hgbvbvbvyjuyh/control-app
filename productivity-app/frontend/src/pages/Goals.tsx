@@ -20,17 +20,25 @@ const GoalJournal = ({ goalId }: { goalId: string }) => {
   const { entries, load, add, remove } = useJournalStore();
   const { confirm } = useConfirmStore();
   const [open, setOpen] = useState(false);
-  const [text, setText] = useState('');
+  const [answers, setAnswers] = useState({
+    completed: '',
+    mistakes: '',
+    improvement: ''
+  });
 
   useEffect(() => { load(); }, []);
 
   const goalEntries = entries.filter(e => e.goalId === goalId);
 
   const handleAdd = async () => {
-    if (!text.trim()) return;
+    if (!answers.completed.trim() && !answers.mistakes.trim() && !answers.improvement.trim()) return;
     const today = new Date().toISOString().split('T')[0];
-    await add('daily', today, { reflection: text.trim() }, goalId);
-    setText('');
+    await add('daily', today, { 
+      goals: answers.completed.trim(),
+      problems: answers.mistakes.trim(),
+      ideas: answers.improvement.trim()
+    }, goalId);
+    setAnswers({ completed: '', mistakes: '', improvement: '' });
     setOpen(false);
   };
 
@@ -44,15 +52,35 @@ const GoalJournal = ({ goalId }: { goalId: string }) => {
       </div>
 
       {open && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-3">
-          <textarea
-            rows={3}
-            value={text}
-            onChange={e => setText(e.target.value)}
-            placeholder="What are you reflecting on for this goal?"
-            className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
-          />
-          <button onClick={handleAdd} className="mt-2 bg-accent text-background text-xs font-bold px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-shadow">
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-3 flex flex-col gap-3">
+          <div>
+            <label className="text-[10px] font-bold text-secondary uppercase mb-1 block">Did I complete my goals?</label>
+            <textarea
+              rows={2}
+              value={answers.completed}
+              onChange={e => setAnswers(prev => ({ ...prev, completed: e.target.value }))}
+              className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-secondary uppercase mb-1 block">What mistakes did I make?</label>
+            <textarea
+              rows={2}
+              value={answers.mistakes}
+              onChange={e => setAnswers(prev => ({ ...prev, mistakes: e.target.value }))}
+              className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-secondary uppercase mb-1 block">How can I improve next time?</label>
+            <textarea
+              rows={2}
+              value={answers.improvement}
+              onChange={e => setAnswers(prev => ({ ...prev, improvement: e.target.value }))}
+              className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
+            />
+          </div>
+          <button onClick={handleAdd} className="mt-1 bg-accent text-background text-xs font-bold px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-shadow w-fit">
             Save Entry
           </button>
         </motion.div>
@@ -64,8 +92,33 @@ const GoalJournal = ({ goalId }: { goalId: string }) => {
         )}
         {goalEntries.map(e => (
           <div key={e.id} className="bg-background/50 rounded-xl border border-secondary/20 p-3 group relative">
-            <span className="text-[10px] text-secondary/50 block mb-1">{e.date}</span>
-            <p className="text-sm">{e.content.reflection || ''}</p>
+            <span className="text-[10px] text-secondary/50 block mb-2">{e.date}</span>
+            <div className="space-y-3">
+              {e.content.goals && (
+                <div>
+                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Goals</p>
+                  <p className="text-sm text-text/80">{e.content.goals}</p>
+                </div>
+              )}
+              {e.content.problems && (
+                <div>
+                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Mistakes</p>
+                  <p className="text-sm text-text/80">{e.content.problems}</p>
+                </div>
+              )}
+              {e.content.ideas && (
+                <div>
+                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Improvements</p>
+                  <p className="text-sm text-text/80">{e.content.ideas}</p>
+                </div>
+              )}
+              {e.content.reflection && (
+                <div>
+                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Reflection</p>
+                  <p className="text-sm text-text/80">{e.content.reflection}</p>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => {
                 confirm(
