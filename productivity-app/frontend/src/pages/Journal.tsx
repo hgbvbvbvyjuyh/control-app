@@ -24,11 +24,11 @@ export const Journal = () => {
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
 
-  // Toggle states for Life Journal sections
-  const [openThinking, setOpenThinking] = useState(true);
-  const [openEmotions, setOpenEmotions] = useState(true);
-  const [openProblems, setOpenProblems] = useState(true);
-  const [openIdeas, setOpenIdeas] = useState(true);
+  // Toggle states for Life Journal sections (Default: Collapsed)
+  const [openThinking, setOpenThinking] = useState(false);
+  const [openEmotions, setOpenEmotions] = useState(false);
+  const [openProblems, setOpenProblems] = useState(false);
+  const [openIdeas, setOpenIdeas] = useState(false);
 
   useEffect(() => {
     loadJournals();
