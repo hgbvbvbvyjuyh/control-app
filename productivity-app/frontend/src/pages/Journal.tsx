@@ -24,6 +24,12 @@ export const Journal = () => {
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
 
+  // Toggle states for Life Journal sections
+  const [openThinking, setOpenThinking] = useState(true);
+  const [openEmotions, setOpenEmotions] = useState(true);
+  const [openProblems, setOpenProblems] = useState(true);
+  const [openIdeas, setOpenIdeas] = useState(true);
+
   useEffect(() => {
     loadJournals();
     loadGoals();
@@ -115,30 +121,42 @@ export const Journal = () => {
           <div className="bg-[#0B1220] border border-[#1E293B] rounded-2xl p-6 space-y-6 shadow-sm">
             {/* 1. THINKING */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-cyan-400 tracking-wide uppercase">
-                1. Thinking
-              </h3>
-              <textarea
-                placeholder="What did I learn today?"
-                value={thinking.learn}
-                onChange={e => setThinking(prev => ({ ...prev, learn: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
-                rows={2}
-              />
-              <textarea
-                placeholder="What mistakes did I make?"
-                value={thinking.mistakes}
-                onChange={e => setThinking(prev => ({ ...prev, mistakes: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
-                rows={2}
-              />
-              <textarea
-                placeholder="What did I do today?"
-                value={thinking.did}
-                onChange={e => setThinking(prev => ({ ...prev, did: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
-                rows={2}
-              />
+              <div 
+                onClick={() => setOpenThinking(!openThinking)} 
+                className="flex justify-between items-center cursor-pointer group"
+              >
+                <h3 className="text-sm font-semibold text-cyan-400 tracking-wide uppercase group-hover:text-cyan-300 transition-colors">
+                  1. Thinking
+                </h3>
+                <span className="text-gray-500 text-xs transition-transform duration-200">
+                  {openThinking ? "▼" : "▶"}
+                </span>
+              </div>
+              {openThinking && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <textarea
+                    placeholder="What did I learn today?"
+                    value={thinking.learn}
+                    onChange={e => setThinking(prev => ({ ...prev, learn: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
+                    rows={2}
+                  />
+                  <textarea
+                    placeholder="What mistakes did I make?"
+                    value={thinking.mistakes}
+                    onChange={e => setThinking(prev => ({ ...prev, mistakes: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
+                    rows={2}
+                  />
+                  <textarea
+                    placeholder="What did I do today?"
+                    value={thinking.did}
+                    onChange={e => setThinking(prev => ({ ...prev, did: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
+                    rows={2}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Divider */}
@@ -146,30 +164,42 @@ export const Journal = () => {
 
             {/* 2. EMOTIONS */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-pink-400 tracking-wide uppercase">
-                2. Emotions
-              </h3>
-              <textarea
-                placeholder="What did I feel?"
-                value={emotions.feel}
-                onChange={e => setEmotions(prev => ({ ...prev, feel: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
-                rows={2}
-              />
-              <textarea
-                placeholder="Why did I feel this?"
-                value={emotions.why}
-                onChange={e => setEmotions(prev => ({ ...prev, why: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
-                rows={2}
-              />
-              <textarea
-                placeholder="What will I do next time?"
-                value={emotions.next}
-                onChange={e => setEmotions(prev => ({ ...prev, next: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
-                rows={2}
-              />
+              <div 
+                onClick={() => setOpenEmotions(!openEmotions)} 
+                className="flex justify-between items-center cursor-pointer group"
+              >
+                <h3 className="text-sm font-semibold text-pink-400 tracking-wide uppercase group-hover:text-pink-300 transition-colors">
+                  2. Emotions
+                </h3>
+                <span className="text-gray-500 text-xs transition-transform duration-200">
+                  {openEmotions ? "▼" : "▶"}
+                </span>
+              </div>
+              {openEmotions && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <textarea
+                    placeholder="What did I feel?"
+                    value={emotions.feel}
+                    onChange={e => setEmotions(prev => ({ ...prev, feel: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
+                    rows={2}
+                  />
+                  <textarea
+                    placeholder="Why did I feel this?"
+                    value={emotions.why}
+                    onChange={e => setEmotions(prev => ({ ...prev, why: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
+                    rows={2}
+                  />
+                  <textarea
+                    placeholder="What will I do next time?"
+                    value={emotions.next}
+                    onChange={e => setEmotions(prev => ({ ...prev, next: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
+                    rows={2}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Divider */}
@@ -177,23 +207,35 @@ export const Journal = () => {
 
             {/* 3. PROBLEMS */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-yellow-400 tracking-wide uppercase">
-                3. Problems
-              </h3>
-              <textarea
-                placeholder="What problems did I face?"
-                value={problems.problems}
-                onChange={e => setProblems(prev => ({ ...prev, problems: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none transition-all"
-                rows={2}
-              />
-              <textarea
-                placeholder="Possible solutions"
-                value={problems.solutions}
-                onChange={e => setProblems(prev => ({ ...prev, solutions: e.target.value }))}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none transition-all"
-                rows={2}
-              />
+              <div 
+                onClick={() => setOpenProblems(!openProblems)} 
+                className="flex justify-between items-center cursor-pointer group"
+              >
+                <h3 className="text-sm font-semibold text-yellow-400 tracking-wide uppercase group-hover:text-yellow-300 transition-colors">
+                  3. Problems
+                </h3>
+                <span className="text-gray-500 text-xs transition-transform duration-200">
+                  {openProblems ? "▼" : "▶"}
+                </span>
+              </div>
+              {openProblems && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <textarea
+                    placeholder="What problems did I face?"
+                    value={problems.problems}
+                    onChange={e => setProblems(prev => ({ ...prev, problems: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none transition-all"
+                    rows={2}
+                  />
+                  <textarea
+                    placeholder="Possible solutions"
+                    value={problems.solutions}
+                    onChange={e => setProblems(prev => ({ ...prev, solutions: e.target.value }))}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none transition-all"
+                    rows={2}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Divider */}
@@ -201,16 +243,28 @@ export const Journal = () => {
 
             {/* 4. IDEAS */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-green-400 tracking-wide uppercase">
-                4. Ideas
-              </h3>
-              <textarea
-                placeholder="Any ideas or thoughts"
-                value={ideas}
-                onChange={e => setIdeas(e.target.value)}
-                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none transition-all"
-                rows={2}
-              />
+              <div 
+                onClick={() => setOpenIdeas(!openIdeas)} 
+                className="flex justify-between items-center cursor-pointer group"
+              >
+                <h3 className="text-sm font-semibold text-green-400 tracking-wide uppercase group-hover:text-green-300 transition-colors">
+                  4. Ideas
+                </h3>
+                <span className="text-gray-500 text-xs transition-transform duration-200">
+                  {openIdeas ? "▼" : "▶"}
+                </span>
+              </div>
+              {openIdeas && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <textarea
+                    placeholder="Any ideas or thoughts"
+                    value={ideas}
+                    onChange={e => setIdeas(e.target.value)}
+                    className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none transition-all"
+                    rows={2}
+                  />
+                </div>
+              )}
             </div>
 
             <button 
