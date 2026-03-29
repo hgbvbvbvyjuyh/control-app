@@ -279,7 +279,7 @@ export const Dashboard = () => {
           
           {/* Centered Circle */}
           <div className="flex-1 relative z-10 flex items-center justify-center py-2 min-h-0">
-            <div className="w-full relative flex items-center justify-center max-h-[160px] h-full flex-1">
+            <div className="relative w-32 h-32 shrink-0 mx-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
                   <defs>
@@ -291,15 +291,17 @@ export const Dashboard = () => {
                   <RadialBar dataKey="value" background={{ fill: 'rgba(255,255,255,0.05)' }} cornerRadius={12} />
                 </RadialBarChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none drop-shadow-md">
-                <p
-                  className={`text-2xl font-black tracking-tighter sm:text-3xl leading-none ${
-                    dailyHasData ? 'text-white' : 'text-slate-500'
-                  }`}
-                >
-                  {dailyHasData ? `${dailyPct}%` : '—'}
-                </p>
-                <p className="text-[8px] text-cyan-400 font-bold tracking-widest uppercase mt-0.5">Daily · portfolio</p>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex flex-col items-center text-center">
+                  <span
+                    className={`text-lg font-bold leading-none ${
+                      dailyHasData ? 'text-white drop-shadow-md' : 'text-slate-500'
+                    }`}
+                  >
+                    {dailyHasData ? `${dailyPct}%` : '—'}
+                  </span>
+                  <p className="text-[8px] text-cyan-400 font-bold tracking-widest uppercase mt-0.5">Daily · portfolio</p>
+                </div>
               </div>
             </div>
           </div>
