@@ -106,7 +106,7 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="flex flex-col min-h-screen w-full px-4 py-4 space-y-4 font-sans text-slate-100">
+    <div className="min-h-screen flex flex-col overflow-hidden w-full px-4 py-3 space-y-2 font-sans text-slate-100">
       {/* Top Quotes Row */}
       <div className="grid shrink-0 grid-cols-1 gap-1.5 md:grid-cols-2">
         <div className="flex items-start gap-4 rounded-2xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-xl">
@@ -140,23 +140,23 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="p-4 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col flex-1"
+            className="p-3 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col flex-1"
           >
             <div className="flex flex-col">
-              <h3 className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                 {p.title}
               </h3>
-              <span className="text-[26px] font-bold text-white mt-1 drop-shadow-sm leading-none">
+              <span className="text-xl font-bold text-white mt-1 drop-shadow-sm leading-none">
                 {p.hasData ? `${p.pct}%` : '—'}
               </span>
-              <p className="text-[10px] text-slate-500 mt-1.5 leading-tight opacity-80">{p.sub}</p>
+              <p className="text-[10px] text-slate-500 mt-1 leading-tight opacity-80">{p.sub}</p>
             </div>
-            <div className="h-10 w-full mt-auto pt-4 shrink-0">
+            <div className="h-8 w-full mt-auto pt-2 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
                   <defs>
@@ -181,10 +181,10 @@ export const Dashboard = () => {
       </div>
 
       {/* Activity Trend + Daily Progress */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-stretch">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-3 mt-2 items-stretch">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
-          <div className="h-full w-full flex-1 min-h-[220px]">
+        <div className="lg:col-span-2 p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
+          <div className="w-full h-full flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -225,16 +225,16 @@ export const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="text-center mt-auto pt-4 text-[10px] font-semibold uppercase tracking-widest text-slate-400 shrink-0">
+          <div className="text-center mt-auto pt-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400 shrink-0">
             Activity Trend
           </div>
         </div>
 
         {/* Daily Progress Circle & Stats — 1/3 width on large screens */}
-        <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-between h-full">
+        <div className="lg:col-span-1 p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-between h-full">
           
           {/* Centered Circle */}
-          <div className="relative w-[130px] h-[130px] flex items-center justify-center mx-auto mt-4 shrink-0">
+          <div className="relative w-[120px] h-[120px] flex items-center justify-center mx-auto mt-2 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
                 <defs>
@@ -256,16 +256,16 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-4 w-full shrink-0">
+          <div className="grid grid-cols-2 gap-2 mt-3 w-full shrink-0">
             {[
               { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
               { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
               { label: 'Journals', value: entries.length, color: 'text-purple-400' },
               { label: 'Failures', value: failures.length, color: 'text-rose-400' }
             ].map(stat => (
-              <div key={stat.label} className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 flex flex-col items-center justify-center text-center">
-                <span className={`text-xl font-bold ${stat.color} drop-shadow-md leading-none`}>{stat.value}</span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">{stat.label}</span>
+              <div key={stat.label} className="p-2 rounded-xl bg-slate-800/40 border border-slate-700/50 flex flex-col items-center justify-center text-center">
+                <span className={`text-lg font-bold ${stat.color} drop-shadow-md leading-none`}>{stat.value}</span>
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">{stat.label}</span>
               </div>
             ))}
           </div>
