@@ -17,16 +17,22 @@
     margin: 0;
     padding: 0;
   }
+  /* Single scroll surface: <main> in Layout. Prevents body/#root growing past viewport. */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
   }
   #root {
-    min-height: 100vh;
+    height: 100%;
+    min-height: 0;
   }
 }
 

@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, Archive } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -20,6 +21,38 @@ const navItems = [
 export const Layout = () => {
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
+
+  // #region agent log
+  useLayoutEffect(() => {
+    const endpoint =
+      'http://127.0.0.1:7360/ingest/1a627f68-9d52-4e9b-a3ff-9d87cb60833e';
+    const mainEl = document.querySelector('main');
+    const data = {
+      docElClientH: document.documentElement.clientHeight,
+      bodyScrollH: document.body.scrollHeight,
+      innerH: window.innerHeight,
+      mainClientH: mainEl?.clientHeight ?? null,
+      mainScrollH: mainEl?.scrollHeight ?? null,
+      rootH: document.getElementById('root')?.clientHeight ?? null,
+    };
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '1034ba',
+      },
+      body: JSON.stringify({
+        sessionId: '1034ba',
+        hypothesisId: 'F',
+        location: 'Layout.tsx:scrollChain',
+        message: 'post single-scroll-surface css',
+        data,
+        timestamp: Date.now(),
+        runId: 'verify-layout',
+      }),
+    }).catch(() => {});
+  }, []);
+  // #endregion
 
   const handleExport = async () => {
     try {
@@ -68,7 +101,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#020617] text-text font-sans selection:bg-accent/30 selection:text-white overflow-hidden">
+    <div className="flex h-full min-h-0 w-full overflow-hidden bg-[#020617] font-sans text-text selection:bg-accent/30 selection:text-white">
       <ConfirmModal />
       <ToastContainer />
       
@@ -104,8 +137,10 @@ export const Layout = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 h-screen overflow-y-auto no-scrollbar z-10 p-4 md:p-10 pb-24 md:pb-10 relative">
-        <Outlet />
+      <main className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 pb-24 no-scrollbar md:p-10 md:pb-10">
+        <div className="min-h-0 w-full min-w-0">
+          <Outlet />
+        </div>
       </main>
 
       {/* Mobile Bottom Navigation */}
