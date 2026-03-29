@@ -191,10 +191,10 @@ export const Dashboard = () => {
       <div className="grid w-full min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-3">
         {/* Activity Trend — 2/3 width on large screens */}
         <div className="flex w-full min-w-0 shrink-0 flex-col rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2">
-          <h3 className="shrink-0 text-[12px] font-bold uppercase tracking-widest text-slate-400">Activity Trend</h3>
-          <div className="h-[200px] w-full shrink-0">
+          <h3 className="mb-2 shrink-0 text-sm font-semibold text-slate-400">Activity Trend</h3>
+          <div className="h-[200px] w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+              <AreaChart data={weeklyTrend} margin={{ top: 24, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.5} />
@@ -211,6 +211,7 @@ export const Dashboard = () => {
                   domain={[0, 100]}
                   ticks={[0, 25, 50, 75, 100]}
                   tickFormatter={(v) => `${v}%`}
+                  tickMargin={8}
                 />
                 <Tooltip
                   contentStyle={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f8fafc' }}
