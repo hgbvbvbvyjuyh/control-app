@@ -40,28 +40,24 @@ export const Dashboard = () => {
     {
       title: 'Daily',
       sub: 'Portfolio today (your time zone)',
-      bgGrad: 'from-blue-600 to-cyan-400',
       barStart: '#2563eb',
       barEnd: '#22d3ee',
     },
     {
       title: 'Weekly',
       sub: 'Overall · 7-day average (inactive days = 0%)',
-      bgGrad: 'from-purple-600 to-pink-400',
       barStart: '#9333ea',
       barEnd: '#fb7185',
     },
     {
       title: 'Monthly',
       sub: 'Overall · weeks with activity',
-      bgGrad: 'from-cyan-500 to-emerald-400',
       barStart: '#06b6d4',
       barEnd: '#34d399',
     },
     {
       title: 'Yearly',
       sub: 'Overall · months with activity',
-      bgGrad: 'from-emerald-500 to-teal-400',
       barStart: '#10b981',
       barEnd: '#2dd4bf',
     },
@@ -111,7 +107,7 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="flex flex-col h-full max-w-7xl mx-auto w-full gap-1.5 overflow-y-auto no-scrollbar font-sans text-slate-100 p-1.5 min-h-0 max-h-screen">
+    <div className="flex flex-col max-w-7xl mx-auto w-full gap-3 md:gap-4 font-sans text-slate-100 px-3 py-3 md:px-4 md:py-4">
       
       {/* Top Quotes Row */}
       <div className="flex flex-col md:flex-row gap-1.5 shrink-0">
@@ -152,57 +148,52 @@ export const Dashboard = () => {
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="flex flex-col rounded-2xl bg-[#13151A] border border-white/5 overflow-hidden shadow-2xl transition-all duration-300 relative group h-32"
+            className="flex flex-col rounded-2xl bg-[#13151A] border border-white/5 overflow-hidden shadow-2xl transition-all duration-300 group p-4 hover:border-white/10"
             style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
           >
-            <div className={`absolute inset-0 bg-gradient-to-t ${p.bgGrad} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-            
-            <div className="p-3 flex flex-col h-full justify-between relative z-10">
-              <div className="flex flex-col items-center justify-center text-center flex-1 min-h-0 pt-0.5 pb-11">
-                <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">
-                  {p.title}
-                </h3>
-                <span
-                  className={`text-2xl font-bold leading-none mt-1 ${
-                    p.hasData ? 'text-white' : 'text-slate-500'
-                  }`}
-                >
-                  {p.hasData ? `${p.pct}%` : '—'}
-                </span>
-                <p className="text-xs text-slate-400 mt-1 leading-tight px-0.5">{p.sub}</p>
-              </div>
-              
-              <div className="absolute bottom-0 left-0 right-0 h-10 px-4 pb-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
-                    <defs>
-                      <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={p.barStart} />
-                        <stop offset="100%" stopColor={p.barEnd} />
-                      </linearGradient>
-                    </defs>
-                    <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                      {p.history.map((h, hi) => (
-                        <Cell
-                          key={hi}
-                          fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.06)'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="flex flex-col items-center justify-center text-center gap-0.5">
+              <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">
+                {p.title}
+              </h3>
+              <span
+                className={`text-2xl font-bold leading-none ${
+                  p.hasData ? 'text-white' : 'text-slate-500'
+                }`}
+              >
+                {p.hasData ? `${p.pct}%` : '—'}
+              </span>
+              <p className="text-xs text-slate-400 leading-tight px-0.5">{p.sub}</p>
+            </div>
+            <div className="h-10 w-full mt-2 shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
+                  <defs>
+                    <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={p.barStart} />
+                      <stop offset="100%" stopColor={p.barEnd} />
+                    </linearGradient>
+                  </defs>
+                  <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                    {p.history.map((h, hi) => (
+                      <Cell
+                        key={hi}
+                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.06)'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Bottom Area: Large trend chart + Goals Overview — grid keeps columns from overlapping */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 w-full items-stretch mt-0.5 pb-1 shrink-0 min-w-0">
+      {/* Bottom: Activity Trend + Goals Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 w-full items-start shrink-0 min-w-0">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 flex flex-col rounded-2xl bg-[#13151A] border border-white/5 p-5 shadow-2xl w-full min-w-0 min-h-0">
+        <div className="lg:col-span-2 flex flex-col rounded-2xl bg-[#13151A] border border-white/5 p-4 shadow-2xl w-full min-w-0">
           <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Activity Trend</h3>
-          <div className="mt-4 w-full h-[280px] sm:h-[300px] shrink-0">
+          <div className="mt-2 w-full h-[240px] shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                 <defs>
@@ -246,11 +237,11 @@ export const Dashboard = () => {
         </div>
 
         {/* Goals Overview — 1/3 width on large screens */}
-        <div className="lg:col-span-1 flex flex-col border border-white/5 p-5 shadow-2xl bg-[#13151A] rounded-2xl w-full min-w-0 min-h-0">
+        <div className="lg:col-span-1 flex flex-col border border-white/5 p-4 shadow-2xl bg-[#13151A] rounded-2xl w-full min-w-0">
           <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Goals Overview</h3>
           
           {/* Centered Circle */}
-          <div className="flex-1 flex items-center justify-center py-4 min-h-[200px]">
+          <div className="flex items-center justify-center py-3">
             <div className="relative w-32 h-32 shrink-0 mx-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
@@ -279,7 +270,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Evenly Spaced Stats */}
-          <div className="grid grid-cols-2 gap-2 w-full shrink-0 mt-auto pt-2">
+          <div className="grid grid-cols-2 gap-2 w-full shrink-0 pt-2">
             {[
               { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
               { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
