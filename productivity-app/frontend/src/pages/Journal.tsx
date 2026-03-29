@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useJournalStore } from "../stores/journalStore";
 import { useGoalStore } from "../stores/goalStore";
