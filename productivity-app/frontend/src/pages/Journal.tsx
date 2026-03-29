@@ -11,15 +11,18 @@ export const Journal = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { showToast } = useToastStore();
 
+  // Main Page Category: 1. Daily Journal | 2. Goals
+  const [mainTab, setMainTab] = useState<'daily' | 'goals'>('daily');
+
   // Life Journal state
   const [thinking, setThinking] = useState({ learn: '', mistakes: '', did: '' });
   const [emotions, setEmotions] = useState({ feel: '', why: '', next: '' });
   const [problems, setProblems] = useState({ problems: '', solutions: '' });
   const [ideas, setIdeas] = useState('');
 
-  // Analytics state
-  const [analyticsTimeframe, setAnalyticsTimeframe] = useState("Daily");
-  const [analyticsCategory, setAnalyticsCategory] = useState("all");
+  // Goals Section state (Filtering)
+  const [timeframe, setTimeframe] = useState("Daily");
+  const [category, setCategory] = useState("all");
 
   useEffect(() => {
     loadJournals();
@@ -45,14 +48,14 @@ export const Journal = () => {
     showToast('Life Journal saved');
   };
 
-  // Filter for Daily Goal Journals (A2)
-  const dailyGoalJournals = entries.filter(e => e.type === 'daily' && e.goalId);
+  // 1. DAILY JOURNAL: Life Journal Only (No Goals)
+  const lifeJournalEntries = entries.filter(e => !e.goalId);
 
-  // Filter for Analytics (B)
-  const analyticsGoalJournals = entries.filter(e => {
+  // 2. GOALS SECTION: Filtered by timeframe and category
+  const filteredGoalEntries = entries.filter(e => {
     if (!e.goalId) return false;
-    const matchesTimeframe = e.type.toLowerCase() === analyticsTimeframe.toLowerCase();
-    const matchesCategory = analyticsCategory === 'all' || e.category === analyticsCategory;
+    const matchesTimeframe = e.type.toLowerCase() === timeframe.toLowerCase();
+    const matchesCategory = category === 'all' || e.category === category;
     return matchesTimeframe && matchesCategory;
   });
 
@@ -63,223 +66,151 @@ export const Journal = () => {
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
-      <div className="mb-10">
-        <h1 className="text-4xl font-black mb-2 tracking-tight">Journal</h1>
-        <p className="text-secondary/60 text-sm">Main Life Journal and Goal summaries.</p>
+      {/* MAIN CATEGORY SELECTION */}
+      <div className="flex items-center gap-10 mb-12 shrink-0 border-b border-secondary/10">
+        <button 
+          onClick={() => setMainTab('daily')}
+          className={`pb-4 text-3xl font-black transition-all relative ${mainTab === 'daily' ? 'text-text' : 'text-secondary/20 hover:text-secondary'}`}
+        >
+          1. Daily Journal
+          {mainTab === 'daily' && <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-accent rounded-full" />}
+        </button>
+        <button 
+          onClick={() => setMainTab('goals')}
+          className={`pb-4 text-3xl font-black transition-all relative ${mainTab === 'goals' ? 'text-text' : 'text-secondary/20 hover:text-secondary'}`}
+        >
+          2. Goals
+          {mainTab === 'goals' && <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-accent rounded-full" />}
+        </button>
       </div>
 
-      <div className="space-y-16">
-        {/* (A) 📘 DAILY JOURNAL (MAIN) */}
-        <section className="space-y-10">
-          <div className="border-b border-secondary/10 pb-4">
-            <h2 className="text-2xl font-black flex items-center gap-3">
-              <span className="text-3xl">📘</span> (A) DAILY JOURNAL
-            </h2>
+      {mainTab === 'daily' ? (
+        /* ========================= */
+        /* SECTION 1: DAILY JOURNAL  */
+        /* (Life Journal Only)       */
+        /* ========================= */
+        <div className="space-y-12 animate-in fade-in duration-500">
+          <div className="max-w-3xl space-y-10">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🧠</span>
+              <h2 className="text-2xl font-bold">A1. Life Journal</h2>
+            </div>
+            
+            <div className="space-y-8">
+              <Section title="1. Thinking">
+                <Question label="What did I learn?" value={thinking.learn} onChange={v => setThinking(prev => ({ ...prev, learn: v }))} />
+                <Question label="Mistakes?" value={thinking.mistakes} onChange={v => setThinking(prev => ({ ...prev, mistakes: v }))} />
+                <Question label="What I did?" value={thinking.did} onChange={v => setThinking(prev => ({ ...prev, did: v }))} />
+              </Section>
+
+              <Section title="2. Emotions">
+                <Question label="What did I feel?" value={emotions.feel} onChange={v => setEmotions(prev => ({ ...prev, feel: v }))} />
+                <Question label="Why?" value={emotions.why} onChange={v => setEmotions(prev => ({ ...prev, why: v }))} />
+                <Question label="Next time?" value={emotions.next} onChange={v => setEmotions(prev => ({ ...prev, next: v }))} />
+              </Section>
+
+              <Section title="3. Problems">
+                <Question label="Problems" value={problems.problems} onChange={v => setProblems(prev => ({ ...prev, problems: v }))} />
+                <Question label="Solutions" value={problems.solutions} onChange={v => setProblems(prev => ({ ...prev, solutions: v }))} />
+              </Section>
+
+              <Section title="4. Ideas">
+                <Question label="Thoughts / ideas" value={ideas} onChange={setIdeas} />
+              </Section>
+
+              <button 
+                onClick={handleSaveLifeJournal}
+                className="w-full bg-accent hover:bg-accent/80 text-background font-black py-5 rounded-2xl transition-all shadow-xl shadow-accent/20 uppercase tracking-[0.2em] text-sm"
+              >
+                Save Life Journal
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-            {/* A1. 🧠 LIFE JOURNAL (MANUAL INPUT) */}
-            <div className="lg:col-span-2 space-y-8">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🧠</span>
-                <h3 className="text-lg font-bold">A1. Life Journal</h3>
-              </div>
-              
-              <div className="space-y-6">
-                <Section title="1. Thinking">
-                  <Question 
-                    label="What did I learn?" 
-                    value={thinking.learn} 
-                    onChange={v => setThinking(prev => ({ ...prev, learn: v }))} 
-                  />
-                  <Question 
-                    label="Mistakes?" 
-                    value={thinking.mistakes} 
-                    onChange={v => setThinking(prev => ({ ...prev, mistakes: v }))} 
-                  />
-                  <Question 
-                    label="What I did?" 
-                    value={thinking.did} 
-                    onChange={v => setThinking(prev => ({ ...prev, did: v }))} 
-                  />
-                </Section>
-
-                <Section title="2. Emotions">
-                  <Question 
-                    label="What did I feel?" 
-                    value={emotions.feel} 
-                    onChange={v => setEmotions(prev => ({ ...prev, feel: v }))} 
-                  />
-                  <Question 
-                    label="Why?" 
-                    value={emotions.why} 
-                    onChange={v => setEmotions(prev => ({ ...prev, why: v }))} 
-                  />
-                  <Question 
-                    label="Next time?" 
-                    value={emotions.next} 
-                    onChange={v => setEmotions(prev => ({ ...prev, next: v }))} 
-                  />
-                </Section>
-
-                <Section title="3. Problems">
-                  <Question 
-                    label="Problems" 
-                    value={problems.problems} 
-                    onChange={v => setProblems(prev => ({ ...prev, problems: v }))} 
-                  />
-                  <Question 
-                    label="Solutions" 
-                    value={problems.solutions} 
-                    onChange={v => setProblems(prev => ({ ...prev, solutions: v }))} 
-                  />
-                </Section>
-
-                <Section title="4. Ideas">
-                  <Question 
-                    label="Thoughts / ideas" 
-                    value={ideas} 
-                    onChange={setIdeas} 
-                  />
-                </Section>
-
-                <button 
-                  onClick={handleSaveLifeJournal}
-                  className="w-full bg-accent hover:bg-accent/80 text-background font-bold py-4 rounded-2xl transition-all shadow-lg shadow-accent/20 text-sm uppercase tracking-widest"
-                >
-                  Save Daily Life Journal
-                </button>
-              </div>
-
-              {/* RECENT LIFE ENTRIES */}
-              <div className="pt-8">
-                <h4 className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] mb-4 opacity-50">Recent Life Entries</h4>
-                <div className="space-y-4">
-                  {entries.filter(e => !e.goalId).slice(0, 3).map(e => (
-                    <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6">
-                      <span className="text-[10px] font-bold text-secondary uppercase mb-4 block opacity-50">{e.date}</span>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {e.content.thinking && (
-                          <div className="space-y-2">
-                            <h5 className="text-[10px] font-bold text-accent uppercase">Thinking</h5>
-                            <p className="text-xs text-secondary italic">Learned: {e.content.thinking.learn || '—'}</p>
-                            <p className="text-xs text-secondary italic">Mistakes: {e.content.thinking.mistakes || '—'}</p>
-                            <p className="text-xs text-secondary italic">Did: {e.content.thinking.did || '—'}</p>
-                          </div>
-                        )}
-                        {e.content.emotions_life && (
-                          <div className="space-y-2">
-                            <h5 className="text-[10px] font-bold text-accent uppercase">Emotions</h5>
-                            <p className="text-xs text-secondary italic">Feel: {e.content.emotions_life.feel || '—'}</p>
-                            <p className="text-xs text-secondary italic">Why: {e.content.emotions_life.why || '—'}</p>
-                            <p className="text-xs text-secondary italic">Next: {e.content.emotions_life.next || '—'}</p>
-                          </div>
-                        )}
+          {/* RECENT LIFE ENTRIES */}
+          <div className="pt-10 border-t border-secondary/10">
+            <h3 className="text-[10px] font-black text-secondary uppercase tracking-[0.3em] mb-6 opacity-40">Recent Life Reflections</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {lifeJournalEntries.slice(0, 4).map(e => (
+                <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-3xl p-8 hover:bg-secondary/10 transition-colors">
+                  <span className="text-[10px] font-bold text-secondary uppercase mb-6 block opacity-40">{e.date}</span>
+                  <div className="space-y-6">
+                    {e.content.thinking && (
+                      <div>
+                        <h5 className="text-[9px] font-black text-accent uppercase tracking-widest mb-2">Thinking</h5>
+                        <p className="text-xs text-secondary italic leading-relaxed">{e.content.thinking.learn || e.content.thinking.mistakes || e.content.thinking.did}</p>
                       </div>
-                    </div>
+                    )}
+                    {e.content.emotions_life && (
+                      <div>
+                        <h5 className="text-[9px] font-black text-accent uppercase tracking-widest mb-2">Emotions</h5>
+                        <p className="text-xs text-secondary italic leading-relaxed">{e.content.emotions_life.feel || e.content.emotions_life.why}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* ========================= */
+        /* SECTION 2: GOALS          */
+        /* (Goal History & Filters)  */
+        /* ========================= */
+        <div className="space-y-12 animate-in fade-in duration-500">
+          <div className="flex flex-col gap-8">
+            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+              {/* TIMEFRAME SELECTION */}
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] opacity-50">1. Timeframe</label>
+                <div className="flex gap-1 border border-secondary/10 bg-secondary/5 p-1 rounded-xl">
+                  {analyticsTabs.map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setTimeframe(tab)}
+                      className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${timeframe === tab ? "bg-secondary/20 text-text shadow-inner" : "text-secondary hover:text-text"}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* CATEGORY SELECTION */}
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] opacity-50">2. Category</label>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                  {analyticsCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setCategory(cat)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${category === cat ? "bg-accent/20 border-accent text-accent" : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"}`}
+                    >
+                      {cat}
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* A2. 🎯 GOALS JOURNAL (AUTO ATTACHED) */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">🎯</span>
-                <h3 className="text-lg font-bold">A2. Daily Goals Journal</h3>
-              </div>
-              
-              <div className="space-y-4">
-                {dailyGoalJournals.length === 0 ? (
-                  <div className="bg-secondary/5 border border-secondary/20 border-dashed rounded-2xl p-10 text-center">
-                    <p className="text-secondary text-xs italic">No daily goal entries yet.<br/>(Saved from Goals Page)</p>
-                  </div>
-                ) : (
-                  dailyGoalJournals.map(e => {
-                    const info = getGoalInfo(e.goalId!);
-                    return (
-                      <GoalCard 
-                        key={e.id} 
-                        entry={e} 
-                        title={info.title}
-                        type={info.type}
-                      />
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* (B) 📊 GOALS ANALYTICS SECTION */}
-        <section className="mt-20 pt-12 border-t border-secondary/10 space-y-10">
-          <div className="border-b border-secondary/10 pb-4">
-            <h2 className="text-2xl font-black flex items-center gap-3">
-              <span className="text-3xl">📊</span> (B) GOALS ANALYTICS
-            </h2>
           </div>
 
-          <div className="space-y-8">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* 🕒 TIMEFRAME TABS (LOCAL ONLY) */}
-              <div className="flex gap-1 border border-secondary/10 bg-secondary/5 p-1 rounded-xl w-max">
-                {analyticsTabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setAnalyticsTimeframe(tab)}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      analyticsTimeframe === tab
-                        ? "bg-secondary/20 text-text shadow-sm"
-                        : "text-secondary hover:text-text hover:bg-secondary/10"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+          {/* GOAL ENTRIES GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGoalEntries.length === 0 ? (
+              <div className="md:col-span-2 lg:col-span-3 py-40 text-center border-2 border-dashed border-secondary/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4">
+                <span className="text-4xl opacity-20">🎯</span>
+                <p className="text-sm italic text-secondary/40">No goal journals found for this selection.<br/>Create them in the Goals section.</p>
               </div>
-
-              {/* 🧩 CATEGORY FILTER */}
-              <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                {analyticsCategories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setAnalyticsCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-                      analyticsCategory === cat
-                        ? "bg-accent/20 border-accent text-accent"
-                        : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 📊 GOAL JOURNAL LIST */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {analyticsGoalJournals.length === 0 ? (
-                <div className="md:col-span-2 lg:col-span-3 py-20 text-center opacity-40">
-                  <p className="text-sm italic">No entries found for this filter.</p>
-                </div>
-              ) : (
-                analyticsGoalJournals.map(e => {
-                  const info = getGoalInfo(e.goalId!);
-                  return (
-                    <GoalCard 
-                      key={e.id} 
-                      entry={e} 
-                      title={info.title}
-                      type={info.type}
-                    />
-                  );
-                })
-              )}
-            </div>
+            ) : (
+              filteredGoalEntries.map(e => {
+                const info = getGoalInfo(e.goalId!);
+                return <GoalCard key={e.id} entry={e} title={info.title} type={info.type} />;
+              })
+            )}
           </div>
-        </section>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
