@@ -189,8 +189,7 @@ export const Dashboard = () => {
       {/* Activity Trend + Goals Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="flex flex-col h-full rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2">
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0 mb-4">Activity Trend</h3>
+        <div className="flex flex-col h-full rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2 justify-center">
           <div className="w-full h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 30, right: 10, left: 0, bottom: 0 }}>
@@ -233,6 +232,9 @@ export const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+          <h3 className="mt-2 text-xs font-bold uppercase tracking-widest text-center text-slate-400">
+            Activity Trend
+          </h3>
         </div>
 
         {/* Goals Overview — 1/3 width on large screens */}
