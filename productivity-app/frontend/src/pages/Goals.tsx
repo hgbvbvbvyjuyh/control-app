@@ -280,18 +280,19 @@ export const Goals = () => {
                   <strong>overall portfolio</strong> progress (identical on every goal). Current calendar week uses a{' '}
                   <strong>7-day average</strong> (days without completed sessions count as 0%). Metrics follow your device time zone.
                 </p>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="flex justify-center items-center py-4">
                   {(() => {
                     const results = calculateGoalProgress(selectedGoal, goals, sessions);
                     return ([selectedGoal.goalType || 'daily'] as const).map((period) => {
                       const { pct, count, hasData } = results[period];
-                      const color = !hasData
+                      const colorClass = !hasData
                         ? 'text-secondary/40'
                         : pct >= 75
                           ? 'text-success'
                           : pct >= 40
                             ? 'text-accent'
                             : 'text-secondary';
+                            
                       const detail =
                         period === 'daily' && hasData
                           ? `${Math.round((pct / 100) * count)}/${count} achieved`
@@ -304,13 +305,45 @@ export const Goals = () => {
                                 : period === 'monthly'
                                   ? `${count} active week(s) · overall`
                                   : `${count} active month(s) · overall`;
+                      
+                      const radius = 60;
+                      const circumference = 2 * Math.PI * radius;
+                      const strokeDashoffset = circumference - ((hasData ? pct : 0) / 100) * circumference;
+
                       return (
-                        <div key={period} className="bg-background/50 rounded-xl border border-secondary/20 p-3 text-center">
-                          <span className="text-[10px] uppercase tracking-wider text-secondary block capitalize">{period}</span>
-                          <span className={`text-2xl font-black block mt-1 ${color}`}>
-                            {hasData ? `${pct}%` : '—'}
-                          </span>
-                          <span className="text-[10px] text-secondary/50">{detail}</span>
+                        <div key={period} className="flex flex-col items-center">
+                          <div className="relative flex items-center justify-center mb-4">
+                            <svg width="160" height="160" className="-rotate-90 transform">
+                              <circle
+                                cx="80"
+                                cy="80"
+                                r={radius}
+                                className="stroke-secondary/20"
+                                strokeWidth="12"
+                                fill="none"
+                              />
+                              <motion.circle
+                                cx="80"
+                                cy="80"
+                                r={radius}
+                                className={`stroke-current ${colorClass}`}
+                                strokeWidth="12"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeDasharray={circumference}
+                                initial={{ strokeDashoffset: circumference }}
+                                animate={{ strokeDashoffset }}
+                                transition={{ duration: 1.5, ease: "easeOut" }}
+                              />
+                            </svg>
+                            <div className="absolute flex flex-col items-center justify-center">
+                              <span className="text-[10px] uppercase tracking-wider text-secondary mb-1">{period}</span>
+                              <span className={`text-4xl font-black ${colorClass}`}>
+                                {hasData ? `${pct}%` : '—'}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-xs text-secondary/70 bg-background/50 px-3 py-1.5 rounded-full border border-secondary/20">{detail}</span>
                         </div>
                       );
                     });
