@@ -147,18 +147,16 @@ export const Dashboard = () => {
             whileHover={{ scale: 1.01, y: -1 }}
             className="p-4 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col flex-1"
           >
-            <div className="flex flex-col gap-0.5">
-              <h3 className="text-xs uppercase tracking-wide text-slate-400">
+            <div className="flex flex-col">
+              <h3 className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
                 {p.title}
               </h3>
-              <p className="text-xs text-slate-500 mt-1 leading-tight">{p.sub}</p>
-              <span
-                className={`text-2xl font-bold text-white mt-1`}
-              >
+              <span className="text-[26px] font-bold text-white mt-1 drop-shadow-sm leading-none">
                 {p.hasData ? `${p.pct}%` : '—'}
               </span>
+              <p className="text-[10px] text-slate-500 mt-1.5 leading-tight opacity-80">{p.sub}</p>
             </div>
-            <div className="h-10 w-full mt-2 shrink-0">
+            <div className="h-10 w-full mt-auto pt-4 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
                   <defs>
@@ -171,7 +169,7 @@ export const Dashboard = () => {
                     {p.history.map((h, hi) => (
                       <Cell
                         key={hi}
-                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.06)'}
+                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.1) '}
                       />
                     ))}
                   </Bar>
@@ -185,8 +183,8 @@ export const Dashboard = () => {
       {/* Activity Trend + Daily Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-stretch">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
-          <div className="w-full h-[220px]">
+        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-end">
+          <div className="w-full flex-1 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -227,7 +225,7 @@ export const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="text-center mt-2 text-xs uppercase tracking-widest text-slate-400">
+          <div className="text-center mt-auto pt-4 text-[10px] font-semibold uppercase tracking-widest text-slate-400 shrink-0">
             Activity Trend
           </div>
         </div>
@@ -236,7 +234,7 @@ export const Dashboard = () => {
         <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col items-center justify-center">
           
           {/* Centered Circle */}
-          <div className="relative w-32 h-32 flex items-center justify-center">
+          <div className="relative w-[130px] h-[130px] flex items-center justify-center m-auto">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
                 <defs>
