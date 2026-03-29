@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useJournalStore } from "../stores/journalStore";
 import { useGoalStore } from "../stores/goalStore";
 import { useToastStore } from "../stores/toastStore";
-import { motion } from "framer-motion";
 
 const analyticsTabs = ["Daily", "Weekly", "Monthly", "Yearly"];
 const analyticsCategories = ["all", "spirituality", "finance", "health", "relation"];
