@@ -1,9 +1,25 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+import { useJournalStore } from "../stores/journalStore";
 
 const tabs = ["Daily", "Weekly", "Monthly", "Yearly"];
+const categories = ["all", "spirituality", "finance", "health", "relation"];
 
 export const Journal = () => {
   const [activeTab, setActiveTab] = useState("Daily");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const { entries, load } = useJournalStore();
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filteredEntries = entries.filter((e) => {
+    const matchesTab = e.type.toLowerCase() === activeTab.toLowerCase();
+    const matchesCategory =
+      selectedCategory === "all" || e.category === selectedCategory;
+    return matchesTab && matchesCategory;
+  });
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-4xl mx-auto">
@@ -15,29 +31,124 @@ export const Journal = () => {
         </button>
       </div>
 
-      {/* TABS */}
-      <div className="flex gap-2 border border-secondary/10 bg-secondary/5 mb-6 shrink-0 p-1 rounded-xl w-max">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab
-                ? "bg-secondary/20 text-text shadow-sm"
-                : "text-secondary hover:text-text hover:bg-secondary/10"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="flex flex-col gap-4 mb-6 shrink-0">
+        {/* TABS */}
+        <div className="flex gap-2 border border-secondary/10 bg-secondary/5 p-1 rounded-xl w-max">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                activeTab === tab
+                  ? "bg-secondary/20 text-text shadow-sm"
+                  : "text-secondary hover:text-text hover:bg-secondary/10"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* CATEGORY FILTERS */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
+                selectedCategory === cat
+                  ? "bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(6,182,212,0.2)]"
+                  : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* CONTENT */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-8 min-h-0">
-        {activeTab === "Daily" && <DailyJournal />}
-        {activeTab !== "Daily" && (
-          <div className="flex items-center justify-center h-full text-secondary text-sm">
-            No entries yet.
+        {filteredEntries.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            {filteredEntries.map((entry) => (
+              <div
+                key={entry.id}
+                className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <span className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-1">
+                      {entry.date}
+                    </span>
+                    {entry.category && (
+                      <span
+                        className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
+                          entry.category === "spirituality"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : entry.category === "finance"
+                            ? "bg-yellow-500/20 text-yellow-500"
+                            : entry.category === "relation"
+                            ? "bg-pink-500/20 text-pink-400"
+                            : "bg-green-500/20 text-green-400"
+                        }`}
+                      >
+                        {entry.category}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {entry.content.goals && (
+                    <div>
+                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
+                        Goals
+                      </h4>
+                      <p className="text-sm text-text/80 leading-relaxed">
+                        {entry.content.goals}
+                      </p>
+                    </div>
+                  )}
+                  {entry.content.problems && (
+                    <div>
+                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
+                        Mistakes / Problems
+                      </h4>
+                      <p className="text-sm text-text/80 leading-relaxed">
+                        {entry.content.problems}
+                      </p>
+                    </div>
+                  )}
+                  {entry.content.ideas && (
+                    <div>
+                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
+                        Improvements / Ideas
+                      </h4>
+                      <p className="text-sm text-text/80 leading-relaxed">
+                        {entry.content.ideas}
+                      </p>
+                    </div>
+                  )}
+                  {entry.content.reflection && (
+                    <div>
+                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
+                        Reflection
+                      </h4>
+                      <p className="text-sm text-text/80 leading-relaxed">
+                        {entry.content.reflection}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : activeTab === "Daily" && filteredEntries.length === 0 && selectedCategory === "all" ? (
+          <DailyJournal />
+        ) : (
+          <div className="flex items-center justify-center h-64 text-secondary text-sm italic">
+            No entries found for this category and timeframe.
           </div>
         )}
       </div>
