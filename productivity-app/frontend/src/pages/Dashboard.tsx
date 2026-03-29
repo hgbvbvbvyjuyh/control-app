@@ -17,7 +17,6 @@ import {
   Tooltip,
   BarChart,
   Bar,
-  CartesianGrid,
   AreaChart,
   Area,
   Cell,
@@ -26,8 +25,8 @@ import {
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
-  const { entries, load: loadJournals } = useJournalStore();
-  const { failures, load: loadFailures } = useFailureStore();
+  const { entries: _entries, load: loadJournals } = useJournalStore();
+  const { failures: _failures, load: loadFailures } = useFailureStore();
 
   useEffect(() => {
     loadGoals();
