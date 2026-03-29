@@ -7,7 +7,7 @@ interface JournalStore {
   loading: boolean;
   load: () => Promise<void>;
   loadByType: (type: JournalEntry['type']) => Promise<JournalEntry[]>;
-  add: (type: JournalEntry['type'], date: string, content: JournalEntry['content'], goalId?: string) => Promise<JournalEntry>;
+  add: (type: JournalEntry['type'], date: string, content: JournalEntry['content'], goalId?: string, category?: JournalEntry['category']) => Promise<JournalEntry>;
   update: (id: string, content: JournalEntry['content']) => Promise<void>;
   remove: (id: string) => Promise<void>;
 }
@@ -31,8 +31,8 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
     return api.get<JournalEntry[]>(`/journals?type=${type}`);
   },
 
-  add: async (type, date, content, goalId) => {
-    const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId });
+  add: async (type, date, content, goalId, category) => {
+    const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId, category });
     set({ entries: [created, ...get().entries] });
     return created;
   },

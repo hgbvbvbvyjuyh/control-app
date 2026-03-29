@@ -16,7 +16,7 @@ import { calculateGoalProgress } from '../utils/aggregation';
 
 
 // ---- Goal Journal sub-component ----
-const GoalJournal = ({ goalId }: { goalId: string }) => {
+const GoalJournal = ({ goalId, goalType, goalCategory }: { goalId: string, goalType: string, goalCategory: string }) => {
   const { entries, load, add, remove } = useJournalStore();
   const { confirm } = useConfirmStore();
   const [open, setOpen] = useState(false);
@@ -33,11 +33,11 @@ const GoalJournal = ({ goalId }: { goalId: string }) => {
   const handleAdd = async () => {
     if (!answers.completed.trim() && !answers.mistakes.trim() && !answers.improvement.trim()) return;
     const today = new Date().toISOString().split('T')[0];
-    await add('daily', today, { 
+    await add(goalType as any, today, { 
       goals: answers.completed.trim(),
       problems: answers.mistakes.trim(),
       ideas: answers.improvement.trim()
-    }, goalId);
+    }, goalId, goalCategory as any);
     setAnswers({ completed: '', mistakes: '', improvement: '' });
     setOpen(false);
   };
@@ -513,7 +513,11 @@ export const Goals = () => {
               )}
 
               {/* Goal Journaling */}
-              <GoalJournal goalId={selectedGoal.id!} />
+              <GoalJournal 
+                goalId={selectedGoal.id!} 
+                goalType={selectedGoal.goalType} 
+                goalCategory={selectedGoal.category || 'health'} 
+              />
 
             </div>
           </div>
