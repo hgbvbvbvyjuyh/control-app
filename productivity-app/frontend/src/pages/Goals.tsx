@@ -123,7 +123,7 @@ export const Goals = () => {
   const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 h-full max-w-7xl mx-auto">
+    <div className="flex flex-1 min-h-0 h-full flex-col md:flex-row gap-6 w-full max-w-7xl mx-auto">
       <AnimatePresence>{showFwModal && <FrameworkModal open onClose={() => setShowFwModal(false)} />}</AnimatePresence>
       <AnimatePresence>{showGoalModal && (
         <GoalModal 
@@ -171,7 +171,7 @@ export const Goals = () => {
       ) : (
         <>
           {/* Goal List */}
-          <div className="w-full md:w-1/3 flex flex-col gap-3 overflow-y-auto no-scrollbar h-full">
+          <div className="flex-1 h-full flex flex-col gap-3 overflow-y-auto no-scrollbar">
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
                 onClick={() => { setActiveCategory(null); select(undefined as any); }}
@@ -235,7 +235,7 @@ export const Goals = () => {
           </div>
 
           {/* Goal Detail Panel */}
-          <div className="hidden md:flex flex-col flex-1 bg-secondary/5 rounded-2xl border border-secondary/20 overflow-y-auto no-scrollbar relative">
+          <div className="hidden md:flex flex-1 h-full flex-col bg-secondary/5 rounded-2xl border border-secondary/20 overflow-y-auto no-scrollbar relative">
             {!selectedGoal ? (
               <div className="flex-1 flex items-center justify-center text-secondary/50 text-lg h-full">Select a goal to view details</div>
             ) : (
