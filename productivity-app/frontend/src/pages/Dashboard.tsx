@@ -107,7 +107,7 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="flex flex-col max-w-7xl mx-auto w-full gap-3 md:gap-4 font-sans text-slate-100 px-3 py-3 md:px-4 md:py-4">
+    <div className="flex flex-col max-w-7xl mx-auto w-full gap-4 font-sans text-slate-100 px-3 py-2 md:px-4 md:py-3">
       
       {/* Top Quotes Row */}
       <div className="flex flex-col md:flex-row gap-1.5 shrink-0">
@@ -143,12 +143,12 @@ export const Dashboard = () => {
       </div>
 
       {/* Main Grid: Horizontal Row of 4 Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 shrink-0 items-start">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="flex flex-col rounded-2xl bg-[#13151A] border border-white/5 overflow-hidden shadow-2xl transition-all duration-300 group p-4 hover:border-white/10"
+            className="flex flex-col rounded-2xl bg-[#13151A] border border-white/5 shadow-2xl transition-all duration-300 group p-4 self-start w-full hover:border-white/10"
             style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
           >
             <div className="flex flex-col items-center justify-center text-center gap-0.5">
@@ -189,13 +189,13 @@ export const Dashboard = () => {
       </div>
 
       {/* Bottom: Activity Trend + Goals Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 w-full items-start shrink-0 min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full items-start shrink-0 min-w-0">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 flex flex-col rounded-2xl bg-[#13151A] border border-white/5 p-4 shadow-2xl w-full min-w-0">
+        <div className="lg:col-span-2 flex flex-col rounded-2xl bg-[#13151A] border border-white/5 p-4 shadow-2xl w-full min-w-0 shrink-0">
           <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Activity Trend</h3>
-          <div className="mt-2 w-full h-[240px] shrink-0">
+          <div className="w-full h-[220px] shrink-0 mt-1.5">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyTrend} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+              <AreaChart data={weeklyTrend} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.5} />
@@ -237,7 +237,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Goals Overview — 1/3 width on large screens */}
-        <div className="lg:col-span-1 flex flex-col border border-white/5 p-4 shadow-2xl bg-[#13151A] rounded-2xl w-full min-w-0">
+        <div className="lg:col-span-1 flex flex-col border border-white/5 p-4 shadow-2xl bg-[#13151A] rounded-2xl w-full min-w-0 shrink-0">
           <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Goals Overview</h3>
           
           {/* Centered Circle */}
