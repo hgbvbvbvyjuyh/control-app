@@ -171,7 +171,7 @@ export const Goals = () => {
       ) : (
         <>
           {/* Goal List */}
-          <div className="w-full md:w-1/3 flex flex-col gap-3 overflow-y-auto no-scrollbar min-h-0">
+          <div className="w-full md:w-1/3 flex flex-col gap-3 overflow-y-auto no-scrollbar h-full">
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
                 onClick={() => { setActiveCategory(null); select(undefined as any); }}
@@ -193,7 +193,7 @@ export const Goals = () => {
             </div>
 
             {goals.filter(g => g.goalType === activeCategory).length === 0 && (
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex flex-1 items-center justify-center h-full">
                 <p className="text-secondary text-sm text-center">No {activeCategory} goals yet. Add one to get started.</p>
               </div>
             )}
