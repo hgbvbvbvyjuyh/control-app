@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../stores/sessionStore';
 import { useGoalStore } from '../stores/goalStore';
@@ -48,6 +48,10 @@ export const Session = () => {
   const [elapsed, setElapsed] = useState(0);
   const [isFocusMode, setIsFocusMode] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Persistent audio instance — created once, reused on every alarm
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Ref-mirror of alarmSound so the setInterval closure always reads the latest value
+  const alarmSoundRef = useRef<string>('none');
 
 
   // New features state
@@ -55,6 +59,9 @@ export const Session = () => {
     [{ key: 'focus', value: '' }, { key: 'method', value: '' }]
   );
   const [alarmSound, setAlarmSound] = useState<string>('none');
+
+  // Keep ref in sync so the interval closure never captures a stale value
+  useEffect(() => { alarmSoundRef.current = alarmSound; }, [alarmSound]);
   const [workDuration, setWorkDuration] = useState<number>(25);
   const [restDuration, setRestDuration] = useState<number>(5);
   const [alarmTriggered, setAlarmTriggered] = useState(false);
@@ -78,7 +85,7 @@ export const Session = () => {
         if (activeSession.workTime && activeSession.workTime > 0) {
           const totalSeconds = activeSession.workTime * 60;
           if (newElapsed >= totalSeconds && !alarmTriggered) {
-            playAlarm();
+            playSound();
             setAlarmTriggered(true);
           }
         }
@@ -90,16 +97,45 @@ export const Session = () => {
     };
   }, [activeSession, alarmTriggered, alarmSound]);
 
-  const playAlarm = () => {
-    if (alarmSound !== 'none' && SOUNDS[alarmSound]) {
-      const audio = new Audio(SOUNDS[alarmSound]);
-      audio.play().catch(e => console.warn('Could not play alarm sound:', e));
+  // Unlock audio context on first user gesture so autoplay works later
+  const unlockAudio = useCallback(() => {
+    if (audioRef.current) return; // already unlocked
+    const sound = alarmSoundRef.current;
+    const src = SOUNDS[sound] || SOUNDS['aggressive1']; // any valid src to init
+    const audio = new Audio(src);
+    audio.volume = 0;
+    audio.play().then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 1;
+      audioRef.current = audio;
+    }).catch(() => {
+      // Unlock failed — audio will be attempted again when alarm fires
+    });
+  }, []);
+
+  const playSound = useCallback(() => {
+    const sound = alarmSoundRef.current;
+    if (sound === 'none' || !SOUNDS[sound]) return;
+
+    // Update src if sound choice changed
+    if (!audioRef.current) {
+      audioRef.current = new Audio(SOUNDS[sound]);
+    } else {
+      audioRef.current.src = SOUNDS[sound];
     }
-  };
+
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(() => console.log('Sound failed'));
+  }, []);
 
   const handleStart = async () => {
     if (!goalId) return;
-    
+
+    // Unlock audio on this user gesture so the alarm can play later
+    unlockAudio();
+
     // Convert inputs to record
     const data: Record<string, string> = {};
     frameworkInputs.forEach(input => {
@@ -416,10 +452,7 @@ export const Session = () => {
 
       <div className="flex gap-4">
         <button
-          onClick={() => {
-            playAlarm();
-            setShowEndForm(true);
-          }}
+          onClick={() => setShowEndForm(true)}
           className="bg-accent text-background px-10 py-4 rounded-2xl font-black text-base hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all uppercase tracking-widest"
         >
           End Session
