@@ -101,7 +101,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full overflow-hidden bg-[#020617] font-sans text-text selection:bg-accent/30 selection:text-white">
+    <div className="flex min-h-screen w-full bg-[#020617] bg-cover bg-center bg-no-repeat font-sans text-text selection:bg-accent/30 selection:text-white">
       <ConfirmModal />
       <ToastContainer />
       
@@ -137,8 +137,8 @@ export const Layout = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 pb-24 no-scrollbar md:p-10 md:pb-10">
-        <div className="min-h-0 w-full min-w-0">
+      <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10">
+        <div className="w-full">
           <Outlet />
         </div>
       </main>
