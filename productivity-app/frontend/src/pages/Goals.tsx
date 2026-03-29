@@ -336,7 +336,7 @@ export const Goals = () => {
                                 transition={{ duration: 1.5, ease: "easeOut" }}
                               />
                             </svg>
-                            <div className="absolute flex flex-col items-center justify-center">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
                               <span className="text-[10px] uppercase tracking-wider text-secondary mb-1">{period}</span>
                               <span className={`text-3xl font-black tracking-tight ${colorClass}`}>
                                 {hasData ? `${pct}%` : '—'}
