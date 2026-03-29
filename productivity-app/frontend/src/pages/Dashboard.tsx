@@ -26,8 +26,8 @@ import {
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
-  const { entries: _entries, load: loadJournals } = useJournalStore();
-  const { failures: _failures, load: loadFailures } = useFailureStore();
+  const { entries, load: loadJournals } = useJournalStore();
+  const { failures, load: loadFailures } = useFailureStore();
 
   useEffect(() => {
     loadGoals();
@@ -146,16 +146,18 @@ export const Dashboard = () => {
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="p-4 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-between h-full"
+            className="p-4 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col flex-1"
           >
-            <div>
-              <h3 className="text-xs uppercase tracking-wide text-slate-400">{p.title}</h3>
-              <div className="mt-2">
-                <span className="text-2xl font-bold text-white">
-                  {p.hasData ? `${p.pct}%` : '—'}
-                </span>
-                <p className="text-xs text-slate-500 mt-1 leading-tight">{p.sub}</p>
-              </div>
+            <div className="flex flex-col gap-0.5">
+              <h3 className="text-xs uppercase tracking-wide text-slate-400">
+                {p.title}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-tight">{p.sub}</p>
+              <span
+                className={`text-2xl font-bold text-white mt-1`}
+              >
+                {p.hasData ? `${p.pct}%` : '—'}
+              </span>
             </div>
             <div className="h-10 w-full mt-2 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -181,10 +183,10 @@ export const Dashboard = () => {
         ))}
       </div>
 
-      {/* Activity Trend + Goals Overview */}
+      {/* Activity Trend + Daily Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-stretch">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col shadow-lg shadow-black/20 h-full justify-between">
+        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
           <div className="w-full h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
@@ -194,7 +196,6 @@ export const Dashboard = () => {
                     <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" vertical={true} horizontal={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} dy={10} />
                 <YAxis 
                   stroke="#475569" 
@@ -232,27 +233,29 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Goals Overview — 1/3 width on large screens */}
-        <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col items-center justify-center shadow-lg shadow-black/20 h-full">
+        {/* Daily Progress Circle — 1/3 width on large screens */}
+        <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col items-center justify-center">
+          
+          {/* Centered Circle */}
           <div className="relative w-32 h-32 flex items-center justify-center">
-            <div className="absolute inset-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
-                  <defs>
-                    <linearGradient id="radialGrad" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#06b6d4" />
-                      <stop offset="100%" stopColor="#3b82f6" />
-                    </linearGradient>
-                  </defs>
-                  <RadialBar dataKey="value" background={{ fill: 'rgba(255,255,255,0.05)' }} cornerRadius={12} />
-                </RadialBarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-col items-center justify-center z-10 text-center">
-              <span className="text-2xl font-bold text-white">
-                {dailyHasData ? `${dailyPct}%` : '—'}
-              </span>
-              <span className="text-xs text-slate-400 mt-1">Daily</span>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
+                <defs>
+                  <linearGradient id="radialGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#3b82f6" />
+                  </linearGradient>
+                </defs>
+                <RadialBar dataKey="value" background={{ fill: 'rgba(255,255,255,0.05)' }} cornerRadius={12} />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="flex flex-col items-center justify-center text-center">
+                <span className="text-2xl font-bold text-white drop-shadow-md">
+                  {dailyHasData ? `${dailyPct}%` : '0%'}
+                </span>
+                <span className="text-xs text-slate-400 mt-1 leading-none">Daily</span>
+              </div>
             </div>
           </div>
         </div>
