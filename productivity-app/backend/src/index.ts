@@ -24,6 +24,10 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', clientTimezoneMiddleware);
 
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // ---- Health Check ----
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
