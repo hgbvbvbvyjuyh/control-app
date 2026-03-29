@@ -40,8 +40,8 @@ export interface JournalEntry {
   id?: number;
   type: 'daily' | 'weekly' | 'monthly' | 'yearly';
   date: string;         // ISO date string
-  goalId?: number;
-  category?: string;
+  goalId?: string;
+  category?: 'spirituality' | 'finance' | 'health' | 'relation';
   content: {
     goals?: string;
     reflection?: string;

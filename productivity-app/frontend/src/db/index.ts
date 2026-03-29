@@ -49,6 +49,7 @@ export interface JournalEntry {
   type: 'daily' | 'weekly' | 'monthly' | 'yearly';
   date: string;        // ISO date string for the day/week/month/year
   goalId?: string;     // optional: for goal-specific journaling
+  category?: 'spirituality' | 'finance' | 'health' | 'relation';
   content: {
     goals?: string;
     reflection?: string;
