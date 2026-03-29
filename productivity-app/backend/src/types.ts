@@ -9,11 +9,11 @@ export interface Framework {
 }
 
 export interface Goal {
-  id?: number;
-  frameworkId: number;
+  id?: string;
+  frameworkId: string;
   goalType: 'yearly' | 'monthly' | 'weekly' | 'daily';
   category?: 'spirituality' | 'finance' | 'health' | 'relation';
-  parentId?: number | null;
+  parentId?: string | null;
   isIndependent: boolean;
   data: Record<string, string>;
   progress: number;      // 0–100, auto-calculated

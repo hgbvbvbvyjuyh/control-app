@@ -12,10 +12,19 @@ function parseGoal(row: Record<string, unknown>): Goal {
     hasDataCol === undefined || hasDataCol === null
       ? true
       : Boolean(Number(hasDataCol));
-  return {
-    data: JSON.parse(row['data'] as string),
-    category: (row['category'] as any) || 'health',
+
+      return {
+    id: String(row['id']),
+    frameworkId: String(row['frameworkId']),
+    goalType: row['goalType'] as Goal['goalType'],
+    parentId: row['parentId'] ? String(row['parentId']) : null,
     isIndependent: Boolean(row['isIndependent']),
+    category: (row['category'] as Goal['category']) || 'health',
+    data: JSON.parse(row['data'] as string),
+    progress: Number(row['progress']),
+    status: row['status'] as Goal['status'],
+    createdAt: Number(row['createdAt']),
+    updatedAt: Number(row['updatedAt']),
     progressHasData,
   } as Goal;
 }
