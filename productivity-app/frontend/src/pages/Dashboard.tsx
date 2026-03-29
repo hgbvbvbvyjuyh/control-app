@@ -264,15 +264,15 @@ export const Dashboard = () => {
                 </RadialBarChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center justify-center text-center">
                   <span
-                    className={`text-lg font-bold leading-none ${
+                    className={`text-xl font-bold leading-none ${
                       dailyHasData ? 'text-white drop-shadow-md' : 'text-slate-500'
                     }`}
                   >
                     {dailyHasData ? `${dailyPct}%` : '—'}
                   </span>
-                  <p className="text-[8px] text-cyan-400 font-bold tracking-widest uppercase mt-0.5">Daily · portfolio</p>
+                  <span className="text-xs text-slate-400 mt-1 leading-none">Daily</span>
                 </div>
               </div>
             </div>
