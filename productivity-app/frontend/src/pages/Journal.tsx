@@ -22,7 +22,7 @@ export const Journal = () => {
 
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState("spirituality");
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -34,6 +34,12 @@ export const Journal = () => {
     loadJournals();
     loadGoals();
   }, []);
+
+  const handleTimeframeChange = (newTimeframe: string) => {
+    setTimeframe(newTimeframe);
+    // Reset category when timeframe changes (Optional: first item)
+    setCategory("spirituality");
+  };
 
   const handleSaveLifeJournal = async () => {
     if (!thinking.learn && !thinking.mistakes && !thinking.did && !emotions.feel && !emotions.why && !emotions.next && !problems.problems && !problems.solutions && !ideas) {
@@ -61,7 +67,7 @@ export const Journal = () => {
   const filteredGoalEntries = entries.filter(e => {
     if (!e.goalId) return false;
     const matchesTimeframe = e.type.toLowerCase() === timeframe.toLowerCase();
-    const matchesCategory = category === 'all' || e.category === category;
+    const matchesCategory = e.category === category;
     return matchesTimeframe && matchesCategory;
   });
 
@@ -308,15 +314,15 @@ export const Journal = () => {
         /* ========================= */
         <div className="space-y-12 animate-in fade-in duration-500">
           <div className="flex flex-col gap-8">
-            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
-              {/* TIMEFRAME SELECTION */}
+            <div className="flex flex-col gap-8">
+              {/* 1. TIMEFRAME TABS (PRIMARY) */}
               <div className="flex flex-col gap-3">
                 <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] opacity-50">1. Timeframe</label>
-                <div className="flex gap-1 border border-secondary/10 bg-secondary/5 p-1 rounded-xl">
+                <div className="flex gap-1 border border-secondary/10 bg-secondary/5 p-1 rounded-xl w-max">
                   {analyticsTabs.map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setTimeframe(tab)}
+                      onClick={() => handleTimeframeChange(tab)}
                       className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${timeframe === tab ? "bg-secondary/20 text-text shadow-inner" : "text-secondary hover:text-text"}`}
                     >
                       {tab}
@@ -325,15 +331,15 @@ export const Journal = () => {
                 </div>
               </div>
 
-              {/* CATEGORY SELECTION */}
-              <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] opacity-50">2. Category</label>
+              {/* 2. CATEGORY TABS (SECONDARY - BASED ON TIMEFRAME) */}
+              <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-left-4 duration-300">
+                <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] opacity-50">2. Category ({timeframe})</label>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  {analyticsCategories.map((cat) => (
+                  {analyticsCategories.filter(cat => cat !== 'all').map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
-                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${category === cat ? "bg-accent/20 border-accent text-accent" : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"}`}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${category === cat ? "bg-accent/20 border-accent text-accent shadow-[0_0_15px_rgba(6,182,212,0.2)]" : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"}`}
                     >
                       {cat}
                     </button>
@@ -343,12 +349,12 @@ export const Journal = () => {
             </div>
           </div>
 
-          {/* GOAL ENTRIES GRID */}
+          {/* FILTERED GOAL LIST */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredGoalEntries.length === 0 ? (
-              <div className="md:col-span-2 lg:col-span-3 py-40 text-center border-2 border-dashed border-secondary/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4">
+              <div className="md:col-span-2 lg:col-span-3 py-40 text-center border-2 border-dashed border-secondary/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 animate-in zoom-in-95 duration-300">
                 <span className="text-4xl opacity-20">🎯</span>
-                <p className="text-sm italic text-secondary/40">No goal journals found for this selection.<br/>Create them in the Goals section.</p>
+                <p className="text-sm italic text-secondary/40">No goal journals found for {timeframe} / {category}.<br/>Create them in the Goals section.</p>
               </div>
             ) : (
               filteredGoalEntries.map(e => {
