@@ -25,8 +25,8 @@ import {
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
-  const { load: loadJournals } = useJournalStore();
-  const { load: loadFailures } = useFailureStore();
+  const { entries, load: loadJournals } = useJournalStore();
+  const { failures, load: loadFailures } = useFailureStore();
 
   useEffect(() => {
     loadGoals();
@@ -106,7 +106,7 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="w-full px-4 py-4 space-y-4 font-sans text-slate-100">
+    <div className="flex flex-col min-h-screen w-full px-4 py-4 space-y-4 font-sans text-slate-100">
       {/* Top Quotes Row */}
       <div className="grid shrink-0 grid-cols-1 gap-1.5 md:grid-cols-2">
         <div className="flex items-start gap-4 rounded-2xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-xl">
@@ -181,10 +181,10 @@ export const Dashboard = () => {
       </div>
 
       {/* Activity Trend + Daily Progress */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-stretch">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-stretch">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-end">
-          <div className="w-full flex-1 h-[220px]">
+        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
+          <div className="h-full w-full flex-1 min-h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -230,11 +230,11 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Daily Progress Circle — 1/3 width on large screens */}
-        <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col items-center justify-center">
+        {/* Daily Progress Circle & Stats — 1/3 width on large screens */}
+        <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-between h-full">
           
           {/* Centered Circle */}
-          <div className="relative w-[130px] h-[130px] flex items-center justify-center m-auto">
+          <div className="relative w-[130px] h-[130px] flex items-center justify-center mx-auto mt-4 shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
                 <defs>
@@ -255,6 +255,21 @@ export const Dashboard = () => {
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-4 w-full shrink-0">
+            {[
+              { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
+              { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
+              { label: 'Journals', value: entries.length, color: 'text-purple-400' },
+              { label: 'Failures', value: failures.length, color: 'text-rose-400' }
+            ].map(stat => (
+              <div key={stat.label} className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 flex flex-col items-center justify-center text-center">
+                <span className={`text-xl font-bold ${stat.color} drop-shadow-md leading-none`}>{stat.value}</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 
