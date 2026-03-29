@@ -67,20 +67,36 @@ export const Journal = () => {
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
       {/* MAIN CATEGORY SELECTION */}
-      <div className="flex items-center gap-10 mb-12 shrink-0 border-b border-secondary/10">
+      <div className="flex items-center gap-8 mb-12 shrink-0 border-b border-[#1E293B]">
         <button 
           onClick={() => setMainTab('daily')}
-          className={`pb-4 text-3xl font-black transition-all relative ${mainTab === 'daily' ? 'text-text' : 'text-secondary/20 hover:text-secondary'}`}
+          className={`pb-3 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 relative group ${
+            mainTab === 'daily' 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
         >
-          1. Daily Journal
-          {mainTab === 'daily' && <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-accent rounded-full" />}
+          <span className="relative z-10">1. Daily Journal</span>
+          {mainTab === 'daily' ? (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] rounded-full transition-all duration-300" />
+          ) : (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400/0 group-hover:bg-cyan-400/20 rounded-full transition-all duration-300" />
+          )}
         </button>
         <button 
           onClick={() => setMainTab('goals')}
-          className={`pb-4 text-3xl font-black transition-all relative ${mainTab === 'goals' ? 'text-text' : 'text-secondary/20 hover:text-secondary'}`}
+          className={`pb-3 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 relative group ${
+            mainTab === 'goals' 
+              ? 'text-white' 
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
         >
-          2. Goals
-          {mainTab === 'goals' && <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-accent rounded-full" />}
+          <span className="relative z-10">2. Goals</span>
+          {mainTab === 'goals' ? (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] rounded-full transition-all duration-300" />
+          ) : (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400/0 group-hover:bg-cyan-400/20 rounded-full transition-all duration-300" />
+          )}
         </button>
       </div>
 
@@ -92,8 +108,7 @@ export const Journal = () => {
         <div className="space-y-6 animate-in fade-in duration-500">
           {/* Section Header */}
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🧠</span>
-            <h2 className="text-xl font-semibold text-white">A1. Life Journal</h2>
+            <h2 className="text-xl font-semibold text-white">Life Journal</h2>
           </div>
 
           {/* Card Container */}
