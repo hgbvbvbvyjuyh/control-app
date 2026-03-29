@@ -1,14 +1,15 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../stores/sessionStore';
 import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
 import { motion } from 'framer-motion';
 
-const SOUNDS: Record<string, string> = {
-  aggressive1: 'https://www.soundjay.com/buttons/beep-01a.mp3',
-  aggressive2: 'https://www.soundjay.com/buttons/beep-02.mp3',
-  soft: 'https://www.soundjay.com/buttons/button-20.mp3'
+// Web Audio API sound definitions — no network required, always works
+const SOUNDS: Record<string, { freq: number; type: OscillatorType; duration: number; label: string }> = {
+  buzz:  { freq: 440, type: 'square',   duration: 1.2, label: 'Buzz'  },
+  chime: { freq: 880, type: 'sine',     duration: 2.0, label: 'Chime' },
+  beep:  { freq: 660, type: 'triangle', duration: 0.8, label: 'Beep'  },
 };
 
 const TimerDisplay = ({ seconds, isCountdown }: { seconds: number; isCountdown: boolean }) => {
@@ -48,10 +49,12 @@ export const Session = () => {
   const [elapsed, setElapsed] = useState(0);
   const [isFocusMode, setIsFocusMode] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Persistent audio instance — created once, reused on every alarm
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  // Ref-mirror of alarmSound so the setInterval closure always reads the latest value
+  // AudioContext — created once on first user gesture
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  // Ref-mirror of alarmSound so the setInterval closure never has a stale value
   const alarmSoundRef = useRef<string>('none');
+  // Ref guard — prevents the alarm firing more than once per session
+  const alarmFiredRef = useRef(false);
 
 
   // New features state
@@ -60,7 +63,7 @@ export const Session = () => {
   );
   const [alarmSound, setAlarmSound] = useState<string>('none');
 
-  // Keep ref in sync so the interval closure never captures a stale value
+  // Keep ref in sync whenever the user changes the sound selection
   useEffect(() => { alarmSoundRef.current = alarmSound; }, [alarmSound]);
   const [workDuration, setWorkDuration] = useState<number>(25);
   const [restDuration, setRestDuration] = useState<number>(5);
@@ -75,66 +78,78 @@ export const Session = () => {
   }, []);
 
   useEffect(() => {
+    // Reset the alarm guard for each new session
+    alarmFiredRef.current = false;
+    setAlarmTriggered(false);
+
     if (activeSession && activeSession.status === 'active') {
       const startMs = activeSession.startTime;
       timerRef.current = setInterval(() => {
         const newElapsed = Math.floor((Date.now() - startMs) / 1000);
         setElapsed(newElapsed);
 
-        // Auto-alarm logic for countdown
+        // Auto-alarm: fire once when countdown reaches zero
         if (activeSession.workTime && activeSession.workTime > 0) {
           const totalSeconds = activeSession.workTime * 60;
-          if (newElapsed >= totalSeconds && !alarmTriggered) {
+          if (newElapsed >= totalSeconds && !alarmFiredRef.current) {
+            alarmFiredRef.current = true; // guard — ref change does NOT re-run this effect
+            setAlarmTriggered(true);       // UI only (red pulse)
             playSound();
-            setAlarmTriggered(true);
           }
         }
       }, 1000);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      setAlarmTriggered(false);
     };
-  }, [activeSession, alarmTriggered, alarmSound]);
+  }, [activeSession]); // ← only re-run when session changes, NOT on alarmTriggered
 
-  // Unlock audio context on first user gesture so autoplay works later
-  const unlockAudio = useCallback(() => {
-    if (audioRef.current) return; // already unlocked
-    const sound = alarmSoundRef.current;
-    const src = SOUNDS[sound] || SOUNDS['aggressive1']; // any valid src to init
-    const audio = new Audio(src);
-    audio.volume = 0;
-    audio.play().then(() => {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.volume = 1;
-      audioRef.current = audio;
-    }).catch(() => {
-      // Unlock failed — audio will be attempted again when alarm fires
-    });
-  }, []);
-
-  const playSound = useCallback(() => {
-    const sound = alarmSoundRef.current;
-    if (sound === 'none' || !SOUNDS[sound]) return;
-
-    // Update src if sound choice changed
-    if (!audioRef.current) {
-      audioRef.current = new Audio(SOUNDS[sound]);
-    } else {
-      audioRef.current.src = SOUNDS[sound];
+  // Create (or resume) the AudioContext on user gesture — required by browser autoplay policy
+  const initAudioCtx = () => {
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new AudioContext();
+    } else if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
     }
+  };
 
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => console.log('Sound failed'));
-  }, []);
+  // Play a tone via Web Audio API — zero network dependency, works 100% of the time
+  const playSound = () => {
+    const key = alarmSoundRef.current;
+    if (key === 'none' || !SOUNDS[key]) return;
+
+    const def = SOUNDS[key];
+    const ctx = audioCtxRef.current ?? new AudioContext();
+    audioCtxRef.current = ctx;
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => scheduleBeep(ctx, def));
+    } else {
+      scheduleBeep(ctx, def);
+    }
+  };
+
+  const scheduleBeep = (
+    ctx: AudioContext,
+    def: { freq: number; type: OscillatorType; duration: number }
+  ) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = def.type;
+    osc.frequency.value = def.freq;
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + def.duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + def.duration);
+  };
 
   const handleStart = async () => {
     if (!goalId) return;
 
-    // Unlock audio on this user gesture so the alarm can play later
-    unlockAudio();
+    // Initialize AudioContext on this user gesture — satisfies browser autoplay policy
+    initAudioCtx();
 
     // Convert inputs to record
     const data: Record<string, string> = {};
@@ -290,9 +305,9 @@ export const Session = () => {
 
               {/* Alarm Selection */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-3">System Alert (On End)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-3">Alarm Sound (On End)</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {['none', 'aggressive1', 'aggressive2', 'soft'].map(sound => (
+                  {(['none', 'buzz', 'chime', 'beep'] as const).map(sound => (
                     <button
                       key={sound}
                       onClick={() => setAlarmSound(sound)}
