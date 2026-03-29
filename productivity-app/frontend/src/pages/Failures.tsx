@@ -102,7 +102,7 @@ export const Failures = () => {
                       <select
                         value={type}
                         onChange={e => { setType(e.target.value as any); setLinkedId(''); }}
-                        className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text focus:outline-none focus:border-accent"
+                        className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text text-sm focus:outline-none focus:border-accent"
                       >
                         <option value="session">Session</option>
                         <option value="goal">Goal</option>
@@ -113,7 +113,7 @@ export const Failures = () => {
                       <select
                         value={linkedId}
                         onChange={e => setLinkedId(e.target.value)}
-                        className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text focus:outline-none focus:border-accent"
+                        className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text text-sm focus:outline-none focus:border-accent"
                       >
                         <option value="">Select...</option>
                         {type === 'session'
@@ -130,7 +130,7 @@ export const Failures = () => {
                     value={note}
                     onChange={e => setNote(e.target.value)}
                     placeholder="What happened?"
-                    className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text min-h-[80px] focus:outline-none focus:border-accent"
+                    className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text text-sm min-h-[80px] focus:outline-none focus:border-accent resize-none"
                   />
                 </div>
               </div>
@@ -168,7 +168,7 @@ export const Failures = () => {
                 <p className="text-sm text-secondary/80 mt-1">{f.note}</p>
                 <span className="text-[10px] text-secondary/50 mt-2 block">{new Date(f.createdAt).toLocaleString()}</span>
               </div>
-                <div className="flex items-center gap-1">
+                <div className="shrink-0 flex items-center gap-1">
                   <button
                     onClick={() => startEdit(f)}
                     className="text-accent/50 hover:text-accent p-2 transition-colors"

@@ -331,7 +331,7 @@ export const Session = () => {
                 placeholder="What went wrong?"
                 value={mistake}
                 onChange={e => setMistake(e.target.value)}
-                className="w-full bg-background border border-secondary/20 p-3 rounded-xl text-text focus:outline-none focus:ring-1 focus:ring-accent"
+                className="w-full bg-background border border-secondary/20 p-3 rounded-xl text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
 
@@ -342,7 +342,7 @@ export const Session = () => {
                 placeholder="How can you do better next time?"
                 value={improvementSuggestion}
                 onChange={e => setImprovementSuggestion(e.target.value)}
-                className="w-full bg-background border border-secondary/20 p-3 rounded-xl text-text focus:outline-none focus:ring-1 focus:ring-accent"
+                className="w-full bg-background border border-secondary/20 p-3 rounded-xl text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
 

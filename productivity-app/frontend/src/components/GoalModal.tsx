@@ -103,7 +103,7 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
           <select
             value={selectedFw}
             onChange={e => setSelectedFw(e.target.value)}
-            className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text mb-4 focus:outline-none focus:border-accent"
+            className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-sm text-text mb-4 focus:outline-none focus:border-accent"
           >
             <option value="">Select Framework</option>
             {frameworks.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -118,7 +118,7 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
             <input
               value={data[k.key] || ''}
               onChange={e => setData({ ...data, [k.key]: e.target.value })}
-              className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text focus:outline-none focus:border-accent"
+              className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-sm text-text focus:outline-none focus:border-accent"
               placeholder={k.label}
             />
           </div>

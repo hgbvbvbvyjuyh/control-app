@@ -103,8 +103,8 @@ export const Trash = () => {
   const isEmpty = Object.values(trash).every(arr => arr.length === 0);
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <header className="mb-10">
+    <div className="w-full max-w-6xl mx-auto">
+      <header className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <Archive size={32} className="text-accent" />
           <h1 className="text-3xl font-black text-white tracking-tight">Trash Bin</h1>

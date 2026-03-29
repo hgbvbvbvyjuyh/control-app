@@ -1,4 +1,3 @@
-import { useLayoutEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, Archive } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,38 +20,6 @@ const navItems = [
 export const Layout = () => {
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
-
-  // #region agent log
-  useLayoutEffect(() => {
-    const endpoint =
-      'http://127.0.0.1:7360/ingest/1a627f68-9d52-4e9b-a3ff-9d87cb60833e';
-    const mainEl = document.querySelector('main');
-    const data = {
-      docElClientH: document.documentElement.clientHeight,
-      bodyScrollH: document.body.scrollHeight,
-      innerH: window.innerHeight,
-      mainClientH: mainEl?.clientHeight ?? null,
-      mainScrollH: mainEl?.scrollHeight ?? null,
-      rootH: document.getElementById('root')?.clientHeight ?? null,
-    };
-    fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '1034ba',
-      },
-      body: JSON.stringify({
-        sessionId: '1034ba',
-        hypothesisId: 'F',
-        location: 'Layout.tsx:scrollChain',
-        message: 'post single-scroll-surface css',
-        data,
-        timestamp: Date.now(),
-        runId: 'verify-layout',
-      }),
-    }).catch(() => {});
-  }, []);
-  // #endregion
 
   const handleExport = async () => {
     try {
@@ -101,12 +68,12 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#020617] bg-cover bg-center bg-no-repeat font-sans text-text selection:bg-accent/30 selection:text-white">
+    <div className="flex flex-1 min-h-screen w-full bg-[#020617] bg-cover bg-center bg-no-repeat font-sans text-text selection:bg-accent/30 selection:text-white">
       <ConfirmModal />
       <ToastContainer />
       
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 border-r border-white/5 bg-background/40 backdrop-blur-xl flex-col pt-8 p-3 z-30">
+      <aside className="hidden md:flex w-64 shrink-0 border-r border-white/5 bg-background/40 backdrop-blur-xl flex-col pt-8 p-3 z-30">
         <h1 className="text-2xl font-black mb-10 px-4 text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary tracking-tight">Control.</h1>
         <div className="flex flex-col gap-2">
           {navItems.map((item) => (

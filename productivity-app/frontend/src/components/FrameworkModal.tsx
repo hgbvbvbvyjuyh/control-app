@@ -85,7 +85,7 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="Framework name"
-          className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text mb-4 focus:outline-none focus:border-accent"
+          className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-sm text-text mb-4 focus:outline-none focus:border-accent"
         />
         <h4 className="text-sm font-semibold text-accent mb-2 uppercase tracking-wider">Keys</h4>
         {keys.map((k, i) => (

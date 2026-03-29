@@ -112,16 +112,13 @@ export const Goals = () => {
       async () => {
         try {
           await removeGoal(id as any);
-          // showToast('Goal sent to Trash');
- // Assuming a toast helper exists or will be added
-          select(null as any);
+          select(undefined as any);
         } catch (err) {
           console.error(err);
         }
       }
     );
   };
-
 
   const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
 
@@ -175,9 +172,9 @@ export const Goals = () => {
         <>
           {/* Goal List */}
           <div className="w-full md:w-1/3 flex flex-col gap-3 overflow-y-auto no-scrollbar pb-6">
-            <div className="flex flex-col gap-4 mb-4">
+            <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
-                onClick={() => { setActiveCategory(null); select(null as any); }}
+                onClick={() => { setActiveCategory(null); select(undefined as any); }}
                 className="flex items-center gap-2 text-secondary hover:text-text transition-colors text-sm font-medium w-fit"
               >
                 <ChevronLeft size={16} /> Back to Categories
@@ -254,7 +251,7 @@ export const Goals = () => {
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => { setEditingGoal(selectedGoal); setShowGoalModal(true); }}
-                        className="bg-secondary/20 text-secondary hover:text-text px-4 py-2 rounded-xl transition-colors text-sm font-semibold"
+                        className="bg-secondary/20 text-secondary hover:text-text hover:bg-secondary/30 px-4 py-2 rounded-xl transition-colors text-sm font-semibold"
                       >
                         Edit
                       </button>
@@ -271,7 +268,6 @@ export const Goals = () => {
                 </div>
 
                 <div className="p-6 flex flex-col gap-6">
-    
 
               {/* Progress Cards — Daily / Weekly / Monthly / Yearly */}
               <div>

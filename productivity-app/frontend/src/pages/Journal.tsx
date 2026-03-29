@@ -58,7 +58,7 @@ export const Journal = () => {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto pb-10">
+    <div className="flex flex-col gap-5 w-full max-w-4xl mx-auto pb-8">
       <GoalModal open={showGoalModal} onClose={() => setShowGoalModal(false)} frameworkId={null} initialType={activeTab === 'daily' ? 'daily' : activeTab} />
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Journal</h1>
@@ -113,7 +113,7 @@ export const Journal = () => {
                     <textarea
                       value={formData[section] || ''}
                       onChange={e => setFormData({ ...formData, [section]: e.target.value })}
-                      className="w-full bg-background border border-secondary/30 rounded-lg p-3 text-text min-h-[80px] focus:outline-none focus:border-accent/80 focus:ring-1 focus:ring-accent/50 transition-shadow text-sm"
+                      className="w-full bg-background border border-secondary/30 rounded-lg p-3 text-text min-h-[80px] focus:outline-none focus:border-accent/80 focus:ring-1 focus:ring-accent/50 transition-shadow text-sm resize-none"
                       placeholder={`Write your ${section}...`}
                     />
                   </div>
