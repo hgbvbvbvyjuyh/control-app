@@ -283,7 +283,7 @@ export const Goals = () => {
                 <div className="grid grid-cols-4 gap-3">
                   {(() => {
                     const results = calculateGoalProgress(selectedGoal, goals, sessions);
-                    return (['daily', 'weekly', 'monthly', 'yearly'] as const).map((period) => {
+                    return ([selectedGoal.goalType || 'daily'] as const).map((period) => {
                       const { pct, count, hasData } = results[period];
                       const color = !hasData
                         ? 'text-secondary/40'
