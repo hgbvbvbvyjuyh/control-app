@@ -14,11 +14,6 @@ export interface AggregationResult {
   hasData: boolean;
 }
 
-function meanRound(vals: number[]): number {
-  if (vals.length === 0) return 0;
-  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
-}
-
 function buildGoalDayStats(
   sessions: Session[],
   dailyGoalIds: Set<string>,

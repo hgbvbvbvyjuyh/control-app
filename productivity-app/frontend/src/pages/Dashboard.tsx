@@ -121,9 +121,6 @@ export const Dashboard = () => {
 
   const dailyPct = periodData[0].pct;
   const dailyHasData = periodData[0].hasData;
-  const weeklyPct = periodData[1].pct;
-  const monthlyPct = periodData[2].pct;
-  const yearlyPct = periodData[3].pct;
 
   const radialData = [
     { name: 'Progress', value: dailyHasData ? dailyPct : 0, fill: 'url(#radialGrad)' },
