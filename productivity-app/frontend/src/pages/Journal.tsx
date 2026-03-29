@@ -89,42 +89,121 @@ export const Journal = () => {
         /* SECTION 1: DAILY JOURNAL  */
         /* (Life Journal Only)       */
         /* ========================= */
-        <div className="space-y-12 animate-in fade-in duration-500">
-          <div className="max-w-3xl space-y-10">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🧠</span>
-              <h2 className="text-2xl font-bold">A1. Life Journal</h2>
+        <div className="space-y-6 animate-in fade-in duration-500">
+          {/* Section Header */}
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🧠</span>
+            <h2 className="text-xl font-semibold text-white">A1. Life Journal</h2>
+          </div>
+
+          {/* Card Container */}
+          <div className="bg-[#0B1220] border border-[#1E293B] rounded-2xl p-6 space-y-6 shadow-sm">
+            {/* 1. THINKING */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-cyan-400 tracking-wide uppercase">
+                1. Thinking
+              </h3>
+              <textarea
+                placeholder="What did I learn today?"
+                value={thinking.learn}
+                onChange={e => setThinking(prev => ({ ...prev, learn: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
+                rows={2}
+              />
+              <textarea
+                placeholder="What mistakes did I make?"
+                value={thinking.mistakes}
+                onChange={e => setThinking(prev => ({ ...prev, mistakes: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
+                rows={2}
+              />
+              <textarea
+                placeholder="What did I do today?"
+                value={thinking.did}
+                onChange={e => setThinking(prev => ({ ...prev, did: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none transition-all"
+                rows={2}
+              />
             </div>
-            
-            <div className="space-y-8">
-              <Section title="1. Thinking">
-                <Question label="What did I learn?" value={thinking.learn} onChange={v => setThinking(prev => ({ ...prev, learn: v }))} />
-                <Question label="Mistakes?" value={thinking.mistakes} onChange={v => setThinking(prev => ({ ...prev, mistakes: v }))} />
-                <Question label="What I did?" value={thinking.did} onChange={v => setThinking(prev => ({ ...prev, did: v }))} />
-              </Section>
 
-              <Section title="2. Emotions">
-                <Question label="What did I feel?" value={emotions.feel} onChange={v => setEmotions(prev => ({ ...prev, feel: v }))} />
-                <Question label="Why?" value={emotions.why} onChange={v => setEmotions(prev => ({ ...prev, why: v }))} />
-                <Question label="Next time?" value={emotions.next} onChange={v => setEmotions(prev => ({ ...prev, next: v }))} />
-              </Section>
+            {/* Divider */}
+            <div className="border-t border-[#1E293B]" />
 
-              <Section title="3. Problems">
-                <Question label="Problems" value={problems.problems} onChange={v => setProblems(prev => ({ ...prev, problems: v }))} />
-                <Question label="Solutions" value={problems.solutions} onChange={v => setProblems(prev => ({ ...prev, solutions: v }))} />
-              </Section>
-
-              <Section title="4. Ideas">
-                <Question label="Thoughts / ideas" value={ideas} onChange={setIdeas} />
-              </Section>
-
-              <button 
-                onClick={handleSaveLifeJournal}
-                className="w-full bg-accent hover:bg-accent/80 text-background font-black py-5 rounded-2xl transition-all shadow-xl shadow-accent/20 uppercase tracking-[0.2em] text-sm"
-              >
-                Save Life Journal
-              </button>
+            {/* 2. EMOTIONS */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-pink-400 tracking-wide uppercase">
+                2. Emotions
+              </h3>
+              <textarea
+                placeholder="What did I feel?"
+                value={emotions.feel}
+                onChange={e => setEmotions(prev => ({ ...prev, feel: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
+                rows={2}
+              />
+              <textarea
+                placeholder="Why did I feel this?"
+                value={emotions.why}
+                onChange={e => setEmotions(prev => ({ ...prev, why: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
+                rows={2}
+              />
+              <textarea
+                placeholder="What will I do next time?"
+                value={emotions.next}
+                onChange={e => setEmotions(prev => ({ ...prev, next: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-pink-500 resize-none transition-all"
+                rows={2}
+              />
             </div>
+
+            {/* Divider */}
+            <div className="border-t border-[#1E293B]" />
+
+            {/* 3. PROBLEMS */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-yellow-400 tracking-wide uppercase">
+                3. Problems
+              </h3>
+              <textarea
+                placeholder="What problems did I face?"
+                value={problems.problems}
+                onChange={e => setProblems(prev => ({ ...prev, problems: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none transition-all"
+                rows={2}
+              />
+              <textarea
+                placeholder="Possible solutions"
+                value={problems.solutions}
+                onChange={e => setProblems(prev => ({ ...prev, solutions: e.target.value }))}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-yellow-500 resize-none transition-all"
+                rows={2}
+              />
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-[#1E293B]" />
+
+            {/* 4. IDEAS */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-green-400 tracking-wide uppercase">
+                4. Ideas
+              </h3>
+              <textarea
+                placeholder="Any ideas or thoughts"
+                value={ideas}
+                onChange={e => setIdeas(e.target.value)}
+                className="w-full bg-[#020617] border border-[#1E293B] rounded-xl p-3 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-green-500 resize-none transition-all"
+                rows={2}
+              />
+            </div>
+
+            <button 
+              onClick={handleSaveLifeJournal}
+              className="w-full bg-accent hover:bg-accent/80 text-background font-black py-5 rounded-2xl transition-all shadow-xl shadow-accent/20 uppercase tracking-[0.2em] text-sm mt-4"
+            >
+              Save Life Journal
+            </button>
           </div>
 
           {/* RECENT LIFE ENTRIES */}
