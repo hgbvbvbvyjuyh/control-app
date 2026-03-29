@@ -13,8 +13,8 @@ function parseGoal(row: Record<string, unknown>): Goal {
       ? true
       : Boolean(Number(hasDataCol));
   return {
-    ...row,
     data: JSON.parse(row['data'] as string),
+    category: (row['category'] as any) || 'health',
     isIndependent: Boolean(row['isIndependent']),
     progressHasData,
   } as Goal;
@@ -56,7 +56,7 @@ router.get('/:id/children', (req, res, next) => {
 router.post('/', (req, res, next) => {
   try {
     const body = req.body as Partial<Goal>;
-    const { frameworkId, data, goalType, parentId, isIndependent } = body;
+    const { frameworkId, data, goalType, parentId, isIndependent, category } = body;
     if (!frameworkId || !data) {
       res.status(400).json({ error: 'frameworkId and data are required' }); return;
     }
@@ -69,13 +69,14 @@ router.post('/', (req, res, next) => {
 
     const now = Date.now();
     const { lastInsertRowid } = run(
-      `INSERT INTO goals (frameworkId, goalType, parentId, isIndependent, data, progress, status, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, 0, 'active', ?, ?)`,
+      `INSERT INTO goals (frameworkId, goalType, parentId, isIndependent, category, data, progress, status, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, 0, 'active', ?, ?)`,
       [
         frameworkId,
         goalType || 'daily',
         parentId ?? null,
         isIndependent === false ? 0 : 1,
+        category || 'health',
         JSON.stringify(data),
         now, now,
       ]
@@ -96,6 +97,7 @@ router.put('/:id', (req, res, next) => {
     const updatedAt = Date.now();
     const data = body.data ? JSON.stringify(body.data) : (existing['data'] as string);
     const goalType = body.goalType ?? existing['goalType'];
+    const category = body.category ?? existing['category'];
     const parentId = body.parentId !== undefined ? body.parentId : existing['parentId'];
     const isIndependent = body.isIndependent !== undefined ? (body.isIndependent ? 1 : 0) : existing['isIndependent'];
     const status = body.status ?? existing['status'];
@@ -103,8 +105,8 @@ router.put('/:id', (req, res, next) => {
 
     run(
       `UPDATE goals SET data = ?, goalType = ?, parentId = ?, isIndependent = ?,
-       status = ?, progress = ?, updatedAt = ? WHERE id = ?`,
-      [data, goalType, parentId ?? null, isIndependent, status, progress, updatedAt, req.params['id']]
+       category = ?, status = ?, progress = ?, updatedAt = ? WHERE id = ?`,
+      [data, goalType, parentId ?? null, isIndependent, category || 'health', status, progress, updatedAt, req.params['id']]
     );
     recalcPortfolioProgress(Date.now(), getRecalcTimeZone());
     const updated = parseGoal(queryOne('SELECT * FROM goals WHERE id = ?', [req.params['id']])!);

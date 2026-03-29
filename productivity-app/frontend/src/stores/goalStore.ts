@@ -7,9 +7,9 @@ interface GoalStore {
   selectedGoalId: string | null;
   loading: boolean;
   load: () => Promise<void>;
-  add: (frameworkId: string, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean) => Promise<Goal>;
+  add: (frameworkId: string, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
   remove: (id: string) => Promise<void>;
-  update: (id: string, data: Record<string, string>, goalType?: Goal['goalType']) => Promise<void>;
+  update: (id: string, data: Record<string, string>, goalType?: Goal['goalType'], category?: Goal['category']) => Promise<void>;
   select: (id: string | null) => void;
   getByFramework: (frameworkId: string) => Goal[];
 }
@@ -30,8 +30,8 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     }
   },
 
-  add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true) => {
-    const created = await api.post<Goal>('/goals', { frameworkId, data, goalType, parentId, isIndependent });
+  add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true, category = 'health') => {
+    const created = await api.post<Goal>('/goals', { frameworkId, data, goalType, parentId, isIndependent, category });
     set({ goals: [created, ...get().goals] });
     return created;
   },
@@ -41,8 +41,8 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     set({ goals: get().goals.filter(g => String(g.id) !== String(id)) });
   },
 
-  update: async (id, data, goalType) => {
-    const updated = await api.put<Goal>(`/goals/${id}`, { data, goalType });
+  update: async (id, data, goalType, category) => {
+    const updated = await api.put<Goal>(`/goals/${id}`, { data, goalType, category });
     set({
       goals: get().goals.map(g =>
         String(g.id) === String(id) ? updated : g

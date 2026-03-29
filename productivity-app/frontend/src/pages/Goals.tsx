@@ -215,7 +215,17 @@ export const Goals = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] uppercase tracking-wider text-accent/70 font-semibold">{getFrameworkName(goal.frameworkId)}</span>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
+                            (goal.category || 'health') === 'spirituality' ? 'bg-blue-500/20 text-blue-400' :
+                            (goal.category || 'health') === 'finance' ? 'bg-yellow-500/20 text-yellow-500' :
+                            (goal.category || 'health') === 'relation' ? 'bg-pink-500/20 text-pink-400' :
+                            'bg-green-500/20 text-green-400'
+                          }`}>
+                            {goal.category || 'health'}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider text-accent/70 font-semibold leading-none">{getFrameworkName(goal.frameworkId)}</span>
+                        </div>
                         <h3 className="font-semibold text-lg mt-0.5">{Object.values(goal.data)[0] || 'Untitled'}</h3>
                       </div>
                       <button
@@ -247,6 +257,14 @@ export const Goals = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] uppercase tracking-wider text-accent font-bold bg-accent/10 px-2 py-0.5 rounded">{selectedGoal.goalType || 'daily'}</span>
+                        <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
+                            (selectedGoal.category || 'health') === 'spirituality' ? 'bg-blue-500/20 text-blue-400' :
+                            (selectedGoal.category || 'health') === 'finance' ? 'bg-yellow-500/20 text-yellow-500' :
+                            (selectedGoal.category || 'health') === 'relation' ? 'bg-pink-500/20 text-pink-400' :
+                            'bg-green-500/20 text-green-400'
+                          }`}>
+                            {selectedGoal.category || 'health'}
+                        </span>
                         <span className="text-[10px] text-secondary">{selectedFw?.name}</span>
                       </div>
                       <h2 className="text-2xl font-bold">{Object.values(selectedGoal.data)[0] || 'Untitled'}</h2>

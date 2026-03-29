@@ -87,6 +87,7 @@ export async function initDb() {
       goalType      TEXT    NOT NULL DEFAULT 'daily',
       parentId      INTEGER,
       isIndependent INTEGER NOT NULL DEFAULT 1,
+      category      TEXT    NOT NULL DEFAULT 'health',
       data          TEXT    NOT NULL DEFAULT '{}',
       progress      INTEGER NOT NULL DEFAULT 0,
       status        TEXT    NOT NULL DEFAULT 'active',
@@ -167,6 +168,7 @@ export async function initDb() {
   safeAlter('ALTER TABLE goals ADD COLUMN goalType TEXT NOT NULL DEFAULT \'daily\'');
   safeAlter('ALTER TABLE goals ADD COLUMN parentId INTEGER');
   safeAlter('ALTER TABLE goals ADD COLUMN isIndependent INTEGER NOT NULL DEFAULT 1');
+  safeAlter('ALTER TABLE goals ADD COLUMN category TEXT NOT NULL DEFAULT \'health\'');
   safeAlter('ALTER TABLE goals ADD COLUMN progress INTEGER NOT NULL DEFAULT 0');
   safeAlter('ALTER TABLE goals ADD COLUMN status TEXT NOT NULL DEFAULT \'active\'');
 

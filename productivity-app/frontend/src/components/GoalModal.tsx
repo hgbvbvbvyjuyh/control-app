@@ -19,6 +19,7 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
   const { showToast } = useToastStore();
   const [selectedFw, setSelectedFw] = useState(editingGoal?.frameworkId || frameworkId || '');
   const [goalType, setGoalType] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>(editingGoal?.goalType || initialType);
+  const [category, setCategory] = useState<Goal['category']>(editingGoal?.category || 'health');
   const [data, setData] = useState<Record<string, string>>(editingGoal?.data || {});
   const [error, setError] = useState('');
 
@@ -29,10 +30,12 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
       if (editingGoal) {
         setSelectedFw(editingGoal.frameworkId);
         setGoalType(editingGoal.goalType);
+        setCategory(editingGoal.category || 'health');
         setData(editingGoal.data);
       } else {
         setSelectedFw(frameworkId || '');
         setGoalType(initialType);
+        setCategory('health');
         setData({});
       }
     }
@@ -55,10 +58,10 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
     
     try {
       if (editingGoal) {
-        await update(editingGoal.id!, data, goalType);
+        await update(editingGoal.id!, data, goalType, category);
         showToast('Goal updated successfully');
       } else {
-        await add(selectedFw, data, goalType);
+        await add(selectedFw, data, goalType, null, true, category);
         showToast('New goal created');
       }
       onClose();
@@ -98,6 +101,26 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
             </div>
           </div>
         )}
+
+        <div className="mb-4">
+          <label className="text-xs text-secondary font-semibold uppercase tracking-wider block mb-2">Category</label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {(['health', 'finance', 'relation', 'spirituality'] as const).map(c => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors ${
+                  category === c 
+                    ? c === 'health' ? 'bg-green-500 text-black' 
+                      : c === 'finance' ? 'bg-yellow-500 text-black'
+                      : c === 'relation' ? 'bg-pink-500 text-white'
+                      : 'bg-blue-500 text-white'
+                    : 'bg-secondary/10 text-secondary hover:bg-secondary/20'
+                }`}
+              >{c}</button>
+            ))}
+          </div>
+        </div>
 
         {!frameworkId && (
           <select

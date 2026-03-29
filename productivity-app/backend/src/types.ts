@@ -12,6 +12,7 @@ export interface Goal {
   id?: number;
   frameworkId: number;
   goalType: 'yearly' | 'monthly' | 'weekly' | 'daily';
+  category?: 'spirituality' | 'finance' | 'health' | 'relation';
   parentId?: number | null;
   isIndependent: boolean;
   data: Record<string, string>;
