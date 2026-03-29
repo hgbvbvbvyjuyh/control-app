@@ -56,6 +56,11 @@ export interface JournalEntry {
     emotions?: string;
     problems?: string;
     ideas?: string;
+    // Life Journal fields
+    thinking?: { learn: string; mistakes: string; did: string };
+    emotions_life?: { feel: string; why: string; next: string };
+    problems_life?: { problems: string; solutions: string };
+    ideas_life?: string;
   };
   createdAt: number;
   updatedAt: number;

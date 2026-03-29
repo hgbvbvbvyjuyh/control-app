@@ -1,225 +1,335 @@
 
 import React, { useState, useEffect } from "react";
 import { useJournalStore } from "../stores/journalStore";
+import { useGoalStore } from "../stores/goalStore";
+import { useToastStore } from "../stores/toastStore";
+import { motion } from "framer-motion";
 
-const tabs = ["Daily", "Weekly", "Monthly", "Yearly"];
-const categories = ["all", "spirituality", "finance", "health", "relation"];
+const analyticsTabs = ["Daily", "Weekly", "Monthly", "Yearly"];
+const analyticsCategories = ["all", "spirituality", "finance", "health", "relation"];
 
 export const Journal = () => {
-  const [activeTab, setActiveTab] = useState("Daily");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const { entries, load } = useJournalStore();
+  const { entries, load: loadJournals, add: addJournal } = useJournalStore();
+  const { goals, load: loadGoals } = useGoalStore();
+  const { showToast } = useToastStore();
+
+  // Life Journal state
+  const [thinking, setThinking] = useState({ learn: '', mistakes: '', did: '' });
+  const [emotions, setEmotions] = useState({ feel: '', why: '', next: '' });
+  const [problems, setProblems] = useState({ problems: '', solutions: '' });
+  const [ideas, setIdeas] = useState('');
+
+  // Analytics state
+  const [analyticsTimeframe, setAnalyticsTimeframe] = useState("Daily");
+  const [analyticsCategory, setAnalyticsCategory] = useState("all");
 
   useEffect(() => {
-    load();
+    loadJournals();
+    loadGoals();
   }, []);
 
-  const filteredEntries = entries.filter((e) => {
-    const matchesTab = e.type.toLowerCase() === activeTab.toLowerCase();
-    const matchesCategory =
-      selectedCategory === "all" || e.category === selectedCategory;
-    return matchesTab && matchesCategory;
+  const handleSaveLifeJournal = async () => {
+    if (!thinking.learn && !thinking.mistakes && !thinking.did && !emotions.feel && !emotions.why && !emotions.next && !problems.problems && !problems.solutions && !ideas) {
+      showToast('Please fill at least one field');
+      return;
+    }
+    const today = new Date().toISOString().split('T')[0];
+    await addJournal('daily', today, {
+      thinking,
+      emotions_life: emotions,
+      problems_life: problems,
+      ideas_life: ideas
+    });
+    setThinking({ learn: '', mistakes: '', did: '' });
+    setEmotions({ feel: '', why: '', next: '' });
+    setProblems({ problems: '', solutions: '' });
+    setIdeas('');
+    showToast('Life Journal saved');
+  };
+
+  // Filter for Daily Goal Journals (A2)
+  const dailyGoalJournals = entries.filter(e => e.type === 'daily' && e.goalId);
+
+  // Filter for Analytics (B)
+  const analyticsGoalJournals = entries.filter(e => {
+    if (!e.goalId) return false;
+    const matchesTimeframe = e.type.toLowerCase() === analyticsTimeframe.toLowerCase();
+    const matchesCategory = analyticsCategory === 'all' || e.category === analyticsCategory;
+    return matchesTimeframe && matchesCategory;
   });
 
+  const getGoalTitle = (goalId: string) => {
+    const goal = goals.find(g => String(g.id) === String(goalId));
+    return goal ? Object.values(goal.data)[0] : 'Unknown Goal';
+  };
+
   return (
-    <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-4xl mx-auto">
-      {/* HEADER */}
-      <div className="flex items-center justify-between mb-8 shrink-0">
-        <h1 className="text-3xl font-bold">Journal</h1>
-        <button className="bg-accent hover:bg-accent/80 text-background px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-accent/20 transition-all">
-          + New Entry
-        </button>
+    <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
+      <div className="mb-10">
+        <h1 className="text-4xl font-black mb-2 tracking-tight">Journal</h1>
+        <p className="text-secondary/60 text-sm">Main Life Journal and Daily Goal summaries.</p>
       </div>
 
-      <div className="flex flex-col gap-4 mb-6 shrink-0">
-        {/* TABS */}
-        <div className="flex gap-2 border border-secondary/10 bg-secondary/5 p-1 rounded-xl w-max">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                activeTab === tab
-                  ? "bg-secondary/20 text-text shadow-sm"
-                  : "text-secondary hover:text-text hover:bg-secondary/10"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* LEFT: DAILY JOURNAL (MAIN) */}
+        <div className="lg:col-span-2 space-y-10">
+          {/* A1. LIFE JOURNAL */}
+          <section>
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-2xl">🧠</span>
+              <h2 className="text-xl font-bold">Daily Life Journal</h2>
+            </div>
+            
+            <div className="space-y-6">
+              <Section title="Thinking & Reflection">
+                <Question 
+                  label="What did I learn today?" 
+                  value={thinking.learn} 
+                  onChange={v => setThinking(prev => ({ ...prev, learn: v }))} 
+                />
+                <Question 
+                  label="What mistakes did I make?" 
+                  value={thinking.mistakes} 
+                  onChange={v => setThinking(prev => ({ ...prev, mistakes: v }))} 
+                />
+                <Question 
+                  label="What did I do today?" 
+                  value={thinking.did} 
+                  onChange={v => setThinking(prev => ({ ...prev, did: v }))} 
+                />
+              </Section>
 
-        {/* CATEGORY FILTERS */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
-                selectedCategory === cat
-                  ? "bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(6,182,212,0.2)]"
-                  : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+              <Section title="Emotions & Mental State">
+                <Question 
+                  label="What did I feel?" 
+                  value={emotions.feel} 
+                  onChange={v => setEmotions(prev => ({ ...prev, feel: v }))} 
+                />
+                <Question 
+                  label="Why did I feel this?" 
+                  value={emotions.why} 
+                  onChange={v => setEmotions(prev => ({ ...prev, why: v }))} 
+                />
+                <Question 
+                  label="What will I do next time?" 
+                  value={emotions.next} 
+                  onChange={v => setEmotions(prev => ({ ...prev, next: v }))} 
+                />
+              </Section>
 
-      {/* CONTENT */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-8 min-h-0">
-        {filteredEntries.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {filteredEntries.map((entry) => (
-              <div
-                key={entry.id}
-                className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6"
+              <Section title="Problems">
+                <Question 
+                  label="What problems did I face?" 
+                  value={problems.problems} 
+                  onChange={v => setProblems(prev => ({ ...prev, problems: v }))} 
+                />
+                <Question 
+                  label="Possible solutions" 
+                  value={problems.solutions} 
+                  onChange={v => setProblems(prev => ({ ...prev, solutions: v }))} 
+                />
+              </Section>
+
+              <Section title="Ideas & Insights">
+                <Question 
+                  label="Any ideas or thoughts?" 
+                  value={ideas} 
+                  onChange={setIdeas} 
+                />
+              </Section>
+
+              <button 
+                onClick={handleSaveLifeJournal}
+                className="w-full bg-accent hover:bg-accent/80 text-background font-bold py-3 rounded-2xl transition-all shadow-lg shadow-accent/20"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-1">
-                      {entry.date}
-                    </span>
-                    {entry.category && (
-                      <span
-                        className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
-                          entry.category === "spirituality"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : entry.category === "finance"
-                            ? "bg-yellow-500/20 text-yellow-500"
-                            : entry.category === "relation"
-                            ? "bg-pink-500/20 text-pink-400"
-                            : "bg-green-500/20 text-green-400"
-                        }`}
-                      >
-                        {entry.category}
-                      </span>
+                Save Daily Life Journal
+              </button>
+            </div>
+          </section>
+
+          {/* PREVIOUS LIFE ENTRIES */}
+          <section>
+            <h3 className="text-sm font-black text-secondary uppercase tracking-[0.2em] mb-4 opacity-50">Recent Life Entries</h3>
+            <div className="space-y-4">
+              {entries.filter(e => !e.goalId).slice(0, 5).map(e => (
+                <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6">
+                  <span className="text-[10px] font-bold text-secondary uppercase mb-4 block opacity-50">{e.date}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {e.content.thinking && (
+                      <div className="space-y-2">
+                        <h4 className="text-[10px] font-bold text-accent uppercase">Thinking</h4>
+                        <p className="text-xs text-secondary italic">Learned: {e.content.thinking.learn || '—'}</p>
+                        <p className="text-xs text-secondary italic">Mistakes: {e.content.thinking.mistakes || '—'}</p>
+                        <p className="text-xs text-secondary italic">Activity: {e.content.thinking.did || '—'}</p>
+                      </div>
+                    )}
+                    {e.content.emotions_life && (
+                      <div className="space-y-2">
+                        <h4 className="text-[10px] font-bold text-accent uppercase">Emotions</h4>
+                        <p className="text-xs text-secondary italic">Feel: {e.content.emotions_life.feel || '—'}</p>
+                        <p className="text-xs text-secondary italic">Why: {e.content.emotions_life.why || '—'}</p>
+                        <p className="text-xs text-secondary italic">Next: {e.content.emotions_life.next || '—'}</p>
+                      </div>
                     )}
                   </div>
                 </div>
+              ))}
+            </div>
+          </section>
+        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {entry.content.goals && (
-                    <div>
-                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
-                        Goals
-                      </h4>
-                      <p className="text-sm text-text/80 leading-relaxed">
-                        {entry.content.goals}
-                      </p>
-                    </div>
-                  )}
-                  {entry.content.problems && (
-                    <div>
-                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
-                        Mistakes / Problems
-                      </h4>
-                      <p className="text-sm text-text/80 leading-relaxed">
-                        {entry.content.problems}
-                      </p>
-                    </div>
-                  )}
-                  {entry.content.ideas && (
-                    <div>
-                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
-                        Improvements / Ideas
-                      </h4>
-                      <p className="text-sm text-text/80 leading-relaxed">
-                        {entry.content.ideas}
-                      </p>
-                    </div>
-                  )}
-                  {entry.content.reflection && (
-                    <div>
-                      <h4 className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">
-                        Reflection
-                      </h4>
-                      <p className="text-sm text-text/80 leading-relaxed">
-                        {entry.content.reflection}
-                      </p>
-                    </div>
-                  )}
+        {/* RIGHT: DAILY GOALS (A2) */}
+        <div className="space-y-10">
+          <section>
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-2xl">🎯</span>
+              <h2 className="text-xl font-bold">Daily Goal Journals</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {dailyGoalJournals.length === 0 ? (
+                <div className="bg-secondary/5 border border-secondary/20 border-dashed rounded-2xl p-8 text-center">
+                  <p className="text-secondary text-xs italic">No daily goal entries yet.</p>
                 </div>
-              </div>
+              ) : (
+                dailyGoalJournals.map(e => (
+                  <GoalCard 
+                    key={e.id} 
+                    entry={e} 
+                    title={getGoalTitle(e.goalId!)} 
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* B. GOALS ANALYTICS SECTION */}
+      <div className="mt-20 pt-12 border-t border-secondary/10">
+        <div className="mb-10">
+          <h2 className="text-3xl font-black mb-2 tracking-tight">Goals Analytics</h2>
+          <p className="text-secondary/60 text-sm">View and filter all historical goal performance journals.</p>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          {/* Timeframe Tabs */}
+          <div className="flex gap-1 border border-secondary/10 bg-secondary/5 p-1 rounded-xl w-max">
+            {analyticsTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setAnalyticsTimeframe(tab)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  analyticsTimeframe === tab
+                    ? "bg-secondary/20 text-text shadow-sm"
+                    : "text-secondary hover:text-text hover:bg-secondary/10"
+                }`}
+              >
+                {tab}
+              </button>
             ))}
           </div>
-        ) : activeTab === "Daily" && filteredEntries.length === 0 && selectedCategory === "all" ? (
-          <DailyJournal />
-        ) : (
-          <div className="flex items-center justify-center h-64 text-secondary text-sm italic">
-            No entries found for this category and timeframe.
+
+          {/* Category Filter */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {analyticsCategories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setAnalyticsCategory(cat)}
+                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                  analyticsCategory === cat
+                    ? "bg-accent/20 border-accent text-accent"
+                    : "bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/40"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+
+        {/* Analytics List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {analyticsGoalJournals.length === 0 ? (
+            <div className="md:col-span-2 lg:col-span-3 py-20 text-center opacity-40">
+              <p className="text-sm italic">No entries found for this filter.</p>
+            </div>
+          ) : (
+            analyticsGoalJournals.map(e => (
+              <GoalCard 
+                key={e.id} 
+                entry={e} 
+                title={getGoalTitle(e.goalId!)} 
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 /* ========================= */
-/* DAILY JOURNAL COMPONENT   */
+/* SUB-COMPONENTS            */
 /* ========================= */
 
-function DailyJournal() {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-6">
-      <Section title="🎯 Goals">
-        <Question label="Did I complete my goals?" />
-        <Question label="Why / why not?" />
-        <Question label="How can I improve?" />
-      </Section>
-
-      <Section title="🧠 Thinking & Reflection">
-        <Question label="What did I learn today?" />
-        <Question label="What mistakes did I make?" />
-        <Question label="What did I do today?" />
-      </Section>
-
-      <Section title="💭 Emotions & Mental State">
-        <Question label="Where did I get emotional and why?" />
-        <Question label="What did I do?" />
-        <Question label="Best logical response next time?" />
-      </Section>
-
-      <Section title="🚧 Problems">
-        <Question label="What problems did I face?" />
-        <Question label="What are the solutions?" />
-      </Section>
-
-      <Section title="💡 Ideas & Insights">
-        <Question label="Write any ideas or insights..." />
-      </Section>
+    <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6 flex flex-col gap-5">
+      <h3 className="text-[10px] font-black text-accent uppercase tracking-[0.2em] leading-none">{title}</h3>
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
 
-/* ========================= */
-/* REUSABLE COMPONENTS       */
-/* ========================= */
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-6 flex flex-col gap-4">
-      <h2 className="text-sm font-bold text-accent uppercase tracking-wider">{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-function Question({ label }: { label: string }) {
+function Question({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-xs font-semibold text-secondary">{label}</label>
+      <label className="text-xs font-bold text-secondary/70">{label}</label>
       <textarea
-        className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none transition-shadow"
-        rows={3}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none transition-all placeholder:text-secondary/20"
+        rows={2}
       />
+    </div>
+  );
+}
+
+function GoalCard({ entry, title }: { entry: any; title: string }) {
+  const categoryColors: Record<string, string> = {
+    spirituality: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    finance: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30",
+    health: "bg-green-500/20 text-green-400 border-green-500/30",
+    relation: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+  };
+
+  return (
+    <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 hover:border-secondary/40 transition-colors">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <span className="text-[10px] font-bold text-secondary uppercase mb-1 block opacity-50">{entry.date}</span>
+          <h4 className="font-bold text-sm mb-2">{title}</h4>
+          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${categoryColors[entry.category || 'health']}`}>
+            {entry.category || 'health'}
+          </span>
+        </div>
+      </div>
+      
+      <div className="space-y-3 pt-3 border-t border-secondary/10">
+        <div>
+          <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Did I Complete?</p>
+          <p className="text-xs text-text/80">{entry.content.goals || '—'}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Mistakes</p>
+          <p className="text-xs text-text/80">{entry.content.problems || '—'}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Improvement</p>
+          <p className="text-xs text-text/80">{entry.content.ideas || '—'}</p>
+        </div>
+      </div>
     </div>
   );
 }
