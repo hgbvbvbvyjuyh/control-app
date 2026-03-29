@@ -22,7 +22,7 @@ export const Journal = () => {
 
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
-  const [category, setCategory] = useState("spirituality");
+  const [category, setCategory] = useState("all");
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -38,7 +38,7 @@ export const Journal = () => {
   const handleTimeframeChange = (newTimeframe: string) => {
     setTimeframe(newTimeframe);
     // Reset category when timeframe changes (Optional: first item)
-    setCategory("spirituality");
+    setCategory("all");
   };
 
   const handleSaveLifeJournal = async () => {
@@ -67,7 +67,7 @@ export const Journal = () => {
   const filteredGoalEntries = entries.filter(e => {
     if (!e.goalId) return false;
     const matchesTimeframe = e.type.toLowerCase() === timeframe.toLowerCase();
-    const matchesCategory = e.category === category;
+    const matchesCategory = category === 'all' || e.category === category;
     return matchesTimeframe && matchesCategory;
   });
 
@@ -335,7 +335,7 @@ export const Journal = () => {
               <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-left-4 duration-300">
                 <label className="text-[10px] font-black text-secondary uppercase tracking-[0.2em] opacity-50">2. Category ({timeframe})</label>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  {analyticsCategories.filter(cat => cat !== 'all').map((cat) => (
+                  {analyticsCategories.map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
