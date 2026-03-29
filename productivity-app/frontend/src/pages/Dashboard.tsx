@@ -141,13 +141,12 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Summary cards — items-start prevents row stretch */}
-      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="group flex w-full flex-col p-4 items-center justify-center rounded-2xl border border-white/5 bg-[#13151A] shadow-2xl transition-all duration-300 hover:border-white/10"
+            className="group flex w-full h-full flex-col p-4 items-center justify-center rounded-2xl border border-white/5 bg-[#13151A] shadow-2xl transition-all duration-300 hover:border-white/10"
             style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
           >
             <div className="flex flex-col items-center justify-start gap-0.5 text-center">
@@ -161,7 +160,7 @@ export const Dashboard = () => {
               >
                 {p.hasData ? `${p.pct}%` : '—'}
               </span>
-              <p className="text-xs text-slate-400 leading-tight px-0.5">{p.sub}</p>
+              <p className="text-[10px] text-slate-400 leading-snug px-1">{p.sub}</p>
             </div>
             <div className="h-10 w-full mt-2 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -190,8 +189,8 @@ export const Dashboard = () => {
       {/* Activity Trend + Goals Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="flex flex-col rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2">
-          <h3 className="text-sm font-semibold mb-2 text-slate-400">Activity Trend</h3>
+        <div className="flex flex-col h-full rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2">
+          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0 mb-4">Activity Trend</h3>
           <div className="w-full h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 30, right: 10, left: 0, bottom: 0 }}>
@@ -237,11 +236,11 @@ export const Dashboard = () => {
         </div>
 
         {/* Goals Overview — 1/3 width on large screens */}
-        <div className="flex flex-col rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-1">
+        <div className="flex flex-col h-full rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-1">
           <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Goals Overview</h3>
           
           {/* Centered Circle */}
-          <div className="flex items-center justify-center py-3">
+          <div className="flex flex-1 items-center justify-center py-3 min-h-0">
             <div className="relative w-32 h-32 shrink-0 mx-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
@@ -270,7 +269,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Evenly Spaced Stats */}
-          <div className="grid grid-cols-2 gap-2 w-full shrink-0 pt-2">
+          <div className="grid grid-cols-2 gap-2 w-full shrink-0 pt-2 mt-auto">
             {[
               { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
               { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
