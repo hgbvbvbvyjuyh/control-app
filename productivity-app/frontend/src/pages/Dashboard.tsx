@@ -1,8 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useGoalStore } from '../stores/goalStore';
 import { useSessionStore } from '../stores/sessionStore';
-import { useJournalStore } from '../stores/journalStore';
-import { useFailureStore } from '../stores/failureStore';
 import { motion } from 'framer-motion';
 import { dashboardPeriodStats, buildDashboardHistories } from '../utils/aggregation';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
@@ -26,14 +24,10 @@ import {
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
-  const { entries, load: loadJournals } = useJournalStore();
-  const { failures, load: loadFailures } = useFailureStore();
 
   useEffect(() => {
     loadGoals();
     loadSessions();
-    loadJournals();
-    loadFailures();
   }, []);
 
   const periodStyles = [
