@@ -141,26 +141,21 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
             whileHover={{ scale: 1.01, y: -1 }}
-            className="group flex w-full h-full flex-col p-4 items-center justify-center rounded-2xl border border-white/5 bg-[#13151A] shadow-2xl transition-all duration-300 hover:border-white/10"
-            style={{ boxShadow: '0 10px 40px -10px rgba(0,0,0,0.5)' }}
+            className="p-4 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-between h-full"
           >
-            <div className="flex flex-col items-center justify-start gap-0.5 text-center">
-              <h3 className="text-[11px] font-semibold tracking-wide text-white uppercase opacity-80">
-                {p.title}
-              </h3>
-              <span
-                className={`text-2xl font-bold leading-none ${
-                  p.hasData ? 'text-white' : 'text-slate-500'
-                }`}
-              >
-                {p.hasData ? `${p.pct}%` : '—'}
-              </span>
-              <p className="text-[10px] text-slate-400 leading-snug px-1">{p.sub}</p>
+            <div>
+              <h3 className="text-xs uppercase tracking-wide text-slate-400">{p.title}</h3>
+              <div className="mt-2">
+                <span className="text-2xl font-bold text-white">
+                  {p.hasData ? `${p.pct}%` : '—'}
+                </span>
+                <p className="text-xs text-slate-500 mt-1 leading-tight">{p.sub}</p>
+              </div>
             </div>
             <div className="h-10 w-full mt-2 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -187,12 +182,12 @@ export const Dashboard = () => {
       </div>
 
       {/* Activity Trend + Goals Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-stretch">
         {/* Activity Trend — 2/3 width on large screens */}
-        <div className="flex flex-col h-full rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-2 justify-center">
-          <div className="w-full h-[200px]">
+        <div className="lg:col-span-2 p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col shadow-lg shadow-black/20 h-full justify-between">
+          <div className="w-full h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyTrend} margin={{ top: 30, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart data={weeklyTrend} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.5} />
@@ -232,18 +227,15 @@ export const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <h3 className="mt-2 text-xs font-bold uppercase tracking-widest text-center text-slate-400">
+          <div className="text-center mt-2 text-xs uppercase tracking-widest text-slate-400">
             Activity Trend
-          </h3>
+          </div>
         </div>
 
         {/* Goals Overview — 1/3 width on large screens */}
-        <div className="flex flex-col h-full rounded-2xl border border-white/5 bg-[#13151A] p-4 shadow-2xl lg:col-span-1">
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Goals Overview</h3>
-          
-          {/* Centered Circle */}
-          <div className="flex flex-1 items-center justify-center py-3 min-h-0">
-            <div className="relative w-32 h-32 shrink-0 mx-auto">
+        <div className="lg:col-span-1 p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-col items-center justify-center shadow-lg shadow-black/20 h-full">
+          <div className="relative w-32 h-32 flex items-center justify-center">
+            <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
                   <defs>
@@ -255,37 +247,17 @@ export const Dashboard = () => {
                   <RadialBar dataKey="value" background={{ fill: 'rgba(255,255,255,0.05)' }} cornerRadius={12} />
                 </RadialBarChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <span
-                    className={`text-xl font-bold leading-none ${
-                      dailyHasData ? 'text-white drop-shadow-md' : 'text-slate-500'
-                    }`}
-                  >
-                    {dailyHasData ? `${dailyPct}%` : '—'}
-                  </span>
-                  <span className="text-xs text-slate-400 mt-1 leading-none">Daily</span>
-                </div>
-              </div>
             </div>
-          </div>
-
-          {/* Evenly Spaced Stats */}
-          <div className="grid grid-cols-2 gap-2 w-full shrink-0 pt-2 mt-auto">
-            {[
-              { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
-              { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
-              { label: 'Journals', value: entries.length, color: 'text-purple-400' },
-              { label: 'Failures', value: failures.length, color: 'text-rose-400' }
-            ].map(stat => (
-              <div key={stat.label} className="p-2 sm:p-3 rounded-xl bg-[#1D1F25] border border-white/[0.05] flex flex-col items-center justify-center text-center hover:bg-white/[0.05] transition-all">
-                <span className={`text-base sm:text-lg font-bold ${stat.color} leading-none`}>{stat.value}</span>
-                <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">{stat.label}</span>
-              </div>
-            ))}
+            <div className="flex flex-col items-center justify-center z-10 text-center">
+              <span className="text-2xl font-bold text-white">
+                {dailyHasData ? `${dailyPct}%` : '—'}
+              </span>
+              <span className="text-xs text-slate-400 mt-1">Daily</span>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 };
