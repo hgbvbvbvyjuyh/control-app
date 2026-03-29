@@ -111,7 +111,7 @@ export const Dashboard = () => {
   }, [periodData]);
 
   return (
-    <div className="flex flex-col h-full max-w-7xl mx-auto w-full gap-1.5 overflow-y-auto no-scrollbar font-sans text-slate-100 p-1.5 lg:overflow-hidden max-h-screen">
+    <div className="flex flex-col h-full max-w-7xl mx-auto w-full gap-1.5 overflow-y-auto no-scrollbar font-sans text-slate-100 p-1.5 min-h-0 max-h-screen">
       
       {/* Top Quotes Row */}
       <div className="flex flex-col md:flex-row gap-1.5 shrink-0">
@@ -197,13 +197,12 @@ export const Dashboard = () => {
         ))}
       </div>
 
-      {/* Bottom Area: Large trend chart + Circle Chart side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 flex-1 lg:min-h-[260px] items-stretch mt-0.5 pb-1">
-        {/* Weekly Trend as a smooth AreaChart taking 2 columns */}
-        <div className="lg:col-span-2 rounded-2xl bg-[#13151A] border border-white/5 p-5 flex flex-col relative overflow-hidden shadow-2xl h-full">
-          <div className="absolute inset-0 bg-gradient-to-t from-blue-900/10 to-transparent opacity-50" />
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-4 relative z-10 shrink-0">Activity Trend</h3>
-          <div className="flex-1 relative z-10 w-full min-h-0">
+      {/* Bottom Area: Large trend chart + Goals Overview — grid keeps columns from overlapping */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 w-full items-stretch mt-0.5 pb-1 shrink-0 min-w-0">
+        {/* Activity Trend — 2/3 width on large screens */}
+        <div className="lg:col-span-2 flex flex-col rounded-2xl bg-[#13151A] border border-white/5 p-5 shadow-2xl w-full min-w-0 min-h-0">
+          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Activity Trend</h3>
+          <div className="mt-4 w-full h-[280px] sm:h-[300px] shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                 <defs>
@@ -246,13 +245,12 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Goals Overview right panel */}
-        <div className="lg:col-span-1 border border-white/5 p-5 flex flex-col shadow-2xl relative overflow-hidden bg-[#13151A] rounded-2xl h-full">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/10 to-transparent opacity-50" />
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest relative z-10 shrink-0">Goals Overview</h3>
+        {/* Goals Overview — 1/3 width on large screens */}
+        <div className="lg:col-span-1 flex flex-col border border-white/5 p-5 shadow-2xl bg-[#13151A] rounded-2xl w-full min-w-0 min-h-0">
+          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Goals Overview</h3>
           
           {/* Centered Circle */}
-          <div className="flex-1 relative z-10 flex items-center justify-center py-2 min-h-0">
+          <div className="flex-1 flex items-center justify-center py-4 min-h-[200px]">
             <div className="relative w-32 h-32 shrink-0 mx-auto">
               <ResponsiveContainer width="100%" height="100%">
                 <RadialBarChart cx="50%" cy="50%" innerRadius="80%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
@@ -281,7 +279,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Evenly Spaced Stats */}
-          <div className="grid grid-cols-2 gap-2 relative z-10 w-full shrink-0 mt-auto">
+          <div className="grid grid-cols-2 gap-2 w-full shrink-0 mt-auto pt-2">
             {[
               { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
               { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
