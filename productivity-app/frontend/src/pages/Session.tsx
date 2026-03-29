@@ -5,12 +5,7 @@ import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
 import { motion } from 'framer-motion';
 
-// Web Audio API sound definitions — no network required, always works
-const SOUNDS: Record<string, { freq: number; type: OscillatorType; duration: number; label: string }> = {
-  buzz:  { freq: 440, type: 'square',   duration: 1.2, label: 'Buzz'  },
-  chime: { freq: 880, type: 'sine',     duration: 2.0, label: 'Chime' },
-  beep:  { freq: 660, type: 'triangle', duration: 0.8, label: 'Beep'  },
-};
+
 
 const TimerDisplay = ({ seconds, isCountdown }: { seconds: number; isCountdown: boolean }) => {
   const formatTime = (s: number): string => {
@@ -55,6 +50,8 @@ export const Session = () => {
   const alarmSoundRef = useRef<string>('none');
   // Ref guard — prevents the alarm firing more than once per session
   const alarmFiredRef = useRef(false);
+  // Ref to hold the stop function for the continuously looping alarm
+  const stopAlarmRef = useRef<(() => void) | null>(null);
 
 
   // New features state
@@ -81,6 +78,7 @@ export const Session = () => {
     // Reset the alarm guard for each new session
     alarmFiredRef.current = false;
     setAlarmTriggered(false);
+    if (stopAlarmRef.current) stopAlarmRef.current();
 
     if (activeSession && activeSession.status === 'active') {
       const startMs = activeSession.startTime;
@@ -101,6 +99,7 @@ export const Session = () => {
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (stopAlarmRef.current) stopAlarmRef.current();
     };
   }, [activeSession]); // ← only re-run when session changes, NOT on alarmTriggered
 
@@ -113,36 +112,96 @@ export const Session = () => {
     }
   };
 
-  // Play a tone via Web Audio API — zero network dependency, works 100% of the time
+  const stopAlarm = () => {
+    if (stopAlarmRef.current) {
+      stopAlarmRef.current();
+      stopAlarmRef.current = null;
+    }
+    setAlarmTriggered(false);
+  };
+
+  // Play a continuous tone via Web Audio API until stopped
   const playSound = () => {
     const key = alarmSoundRef.current;
-    if (key === 'none' || !SOUNDS[key]) return;
+    if (key === 'none') return;
 
-    const def = SOUNDS[key];
     const ctx = audioCtxRef.current ?? new AudioContext();
     audioCtxRef.current = ctx;
 
     if (ctx.state === 'suspended') {
-      ctx.resume().then(() => scheduleBeep(ctx, def));
+      ctx.resume().then(() => startContinuousSound(ctx, key));
     } else {
-      scheduleBeep(ctx, def);
+      startContinuousSound(ctx, key);
     }
   };
 
-  const scheduleBeep = (
-    ctx: AudioContext,
-    def: { freq: number; type: OscillatorType; duration: number }
-  ) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = def.type;
-    osc.frequency.value = def.freq;
-    gain.gain.setValueAtTime(0.4, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + def.duration);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + def.duration);
+  const startContinuousSound = (ctx: AudioContext, type: string) => {
+    if (stopAlarmRef.current) stopAlarmRef.current(); // Stop any existing
+    
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.5;
+    masterGain.connect(ctx.destination);
+    
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    const nodesToStop: { stop: () => void; disconnect: () => void }[] = [];
+
+    if (type === 'nuke') {
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      const lfo = ctx.createOscillator();
+      lfo.type = 'square';
+      lfo.frequency.setValueAtTime(4, ctx.currentTime); 
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(50, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      osc.connect(masterGain);
+      osc.start(); lfo.start();
+      nodesToStop.push(osc, lfo);
+    } else if (type === 'sirens') {
+      const osc = ctx.createOscillator();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      const lfo = ctx.createOscillator();
+      lfo.type = 'square';
+      lfo.frequency.setValueAtTime(1, ctx.currentTime); 
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(200, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      osc.connect(masterGain);
+      osc.start(); lfo.start();
+      nodesToStop.push(osc, lfo);
+    } else if (type === 'chimes') {
+      let noteIdx = 0;
+      const notes = [880, 1108, 1318];
+      const playChime = () => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = notes[noteIdx % notes.length];
+        noteIdx++;
+        osc.connect(gain);
+        gain.connect(masterGain);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 1.5);
+      };
+      playChime();
+      intervalId = setInterval(playChime, 600);
+    }
+
+    stopAlarmRef.current = () => {
+      masterGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      setTimeout(() => {
+        nodesToStop.forEach(n => { try { n.stop(); n.disconnect(); } catch (e) {} });
+        if (intervalId) clearInterval(intervalId);
+        masterGain.disconnect();
+      }, 150);
+    };
   };
 
   const handleStart = async () => {
@@ -307,7 +366,7 @@ export const Session = () => {
               <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-3">Alarm Sound (On End)</label>
                 <div className="grid grid-cols-4 gap-2">
-                  {(['none', 'buzz', 'chime', 'beep'] as const).map(sound => (
+                  {(['none', 'chimes', 'sirens', 'nuke'] as const).map(sound => (
                     <button
                       key={sound}
                       onClick={() => setAlarmSound(sound)}
@@ -465,16 +524,31 @@ export const Session = () => {
         </div>
       )}
 
+      {alarmTriggered && displaySeconds === 0 ? (
+        <button
+          onClick={stopAlarm}
+          className="mb-8 bg-rose-500 text-white px-12 py-6 rounded-3xl font-black text-2xl hover:bg-rose-600 shadow-[0_0_40px_rgba(244,63,94,0.6)] hover:shadow-[0_0_60px_rgba(244,63,94,0.8)] transition-all uppercase tracking-widest animate-pulse"
+        >
+          Turn Off Alarm
+        </button>
+      ) : null}
+
       <div className="flex gap-4">
         <button
-          onClick={() => setShowEndForm(true)}
+          onClick={() => {
+            stopAlarm();
+            setShowEndForm(true);
+          }}
           className="bg-accent text-background px-10 py-4 rounded-2xl font-black text-base hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all uppercase tracking-widest"
         >
           End Session
         </button>
         {!isFocusMode && (
           <button
-            onClick={handleSkip}
+            onClick={() => {
+              stopAlarm();
+              handleSkip();
+            }}
             className="bg-white/5 border border-white/10 text-slate-400 px-8 py-4 rounded-2xl font-black text-base hover:bg-white/10 transition-all uppercase tracking-widest"
           >
             Skip
