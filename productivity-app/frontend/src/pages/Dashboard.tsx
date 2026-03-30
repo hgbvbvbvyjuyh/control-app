@@ -232,14 +232,14 @@ export const Dashboard = () => {
         </div>
 
         {/* Daily Radial — 1/3 width on large screens */}
-        <div className="flex flex-col gap-3 h-full">
-          <div className="flex-1 p-3 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center relative overflow-hidden min-h-[200px]">
-            <div className="absolute top-3 left-4">
+        <div className="flex flex-col gap-3 h-full min-h-0">
+          <div className="flex-1 p-2 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center relative overflow-hidden min-h-0">
+            <div className="absolute top-3 left-4 z-10">
               <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Today</h3>
             </div>
-            <div className="flex-1 w-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" barSize={10} data={radialData} startAngle={90} endAngle={-270}>
+                <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" barSize={8} data={radialData} startAngle={90} endAngle={-270}>
                   <defs>
                     <linearGradient id="radialGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#3b82f6" />
@@ -251,13 +251,13 @@ export const Dashboard = () => {
               </ResponsiveContainer>
               <div className="absolute flex flex-col items-center justify-center">
                 <span className="text-3xl font-black text-white drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">{dailyHasData ? dailyPct : 0}%</span>
-                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Daily Target</span>
+                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Daily Target</span>
               </div>
             </div>
           </div>
 
           {/* 2x2 Summary Grid */}
-          <div className="grid grid-cols-2 gap-3 shrink-0">
+          <div className="grid grid-cols-2 gap-2 shrink-0">
             {[
               { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
               { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
@@ -270,11 +270,11 @@ export const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
                 whileHover={{ scale: 1.02, y: -2, boxShadow: '0 15px 30px -10px rgba(0,0,0,0.5)' }}
-                className="p-3 py-4 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 flex flex-col items-center justify-center text-center shadow-lg relative group overflow-hidden"
+                className="p-2 py-3 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 flex flex-col items-center justify-center text-center shadow-lg relative group overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                <span className={`text-xl font-bold ${stat.color} drop-shadow-sm`}>{stat.value}</span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">{stat.label}</span>
+                <span className={`text-lg font-bold ${stat.color} drop-shadow-sm leading-none`}>{stat.value}</span>
+                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5 leading-none">{stat.label}</span>
               </motion.div>
             ))}
           </div>
