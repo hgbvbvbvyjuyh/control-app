@@ -73,8 +73,23 @@ export const Layout = () => {
       <ConfirmModal />
       <ToastContainer />
       
-      {/* Sidebar — h-full fills the flex-row container */}
-      <aside className="hidden md:flex h-full w-64 shrink-0 border-r border-white/5 bg-surface/40 backdrop-blur-2xl flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)]">
+      <aside 
+        className="hidden md:flex h-full w-64 shrink-0 flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)] relative"
+        // FIX 1: Added `relative` positioning to the sidebar.
+        // This makes it a positioning context for the pseudo-element we're about to add.
+        // The original layout classes (`h-full`, `flex-col`, etc.) are kept intact.
+      >
+        {/* 
+          FIX 2: A `::before` pseudo-element is used to create a dedicated visual layer.
+          - `content-['']` is required for pseudo-elements to render.
+          - `absolute inset-0` makes it fill the entire `aside` container, from top to bottom.
+          - `bg-surface/40 backdrop-blur-2xl` are moved here from the `aside` tag. This ensures the background and blur cover the full height, eliminating any visual gaps.
+          - `border-r border-white/5` is also moved here to keep the visual border consistent.
+          - `-z-10` places this visual layer behind the sidebar's actual content.
+        */}
+        <div className="absolute inset-0 bg-surface/40 backdrop-blur-2xl border-r border-white/5 -z-10" />
+
+        {/* All content below remains unchanged, but now sits on top of the consistent background layer. */}
         <motion.h1 
           initial={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
           animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
@@ -126,7 +141,6 @@ export const Layout = () => {
           ))}
         </motion.div>
 
-        {/* Bottom Actions */}
         <div className="mt-auto flex flex-col gap-1 pt-6 border-t border-white/10 mb-4">
           <motion.button whileHover={{ scale: 1.02, x: 2 }} whileTap={{ scale: 0.98 }} onClick={handleExport} className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-secondary hover:text-white p-3 transition-colors rounded-xl hover:bg-white/5">
             <Download size={14} /> Export Plan
@@ -137,7 +151,6 @@ export const Layout = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <main className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col bg-transparent">
         <AnimatePresence mode="wait">
           <motion.div
@@ -153,7 +166,6 @@ export const Layout = () => {
         </AnimatePresence>
       </main>
 
-      {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full h-20 bg-background/80 backdrop-blur-2xl border-t border-white/5 z-50 flex justify-around items-center px-4">
         {navItems.map((item) => (
           <NavLink
