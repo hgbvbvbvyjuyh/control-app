@@ -81,15 +81,17 @@ export const Layout = () => {
         - `shrink-0` prevents it from shrinking if the content is too wide.
         - It has no `absolute` or `fixed` positioning, so it remains in the normal document flow.
       */}
-      <aside className="hidden md:flex h-full w-64 shrink-0 flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)] bg-surface/40 backdrop-blur-2xl border-r border-white/5">
-        <motion.h1 
-          initial={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="text-2xl font-black mb-10 px-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent tracking-tighter drop-shadow-sm"
+      <aside className="hidden md:flex h-full w-60 shrink-0 flex-col pt-10 p-5 z-30 bg-[#0B0F1A] border-r border-white/5">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-3 mb-12 px-2"
         >
-          Control.
-        </motion.h1>
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+            <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-white">Focus OS</h1>
+        </motion.div>
         <motion.div 
           initial="hidden"
           animate="visible"
@@ -147,8 +149,9 @@ export const Layout = () => {
         FIX 3: The main content area is also a direct child of the flex container.
         - `flex-1` allows it to take up all the remaining horizontal space next to the sidebar.
       */}
-      <main className="relative z-10 flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col bg-transparent p-6 md:p-12">
-        <AnimatePresence mode="wait">
+      <main className="relative z-10 flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col bg-[#0F172A] p-8 lg:p-10">
+        <div className="max-w-[1600px] mx-auto w-full h-full flex flex-col">
+          <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10, filter: 'blur(8px)', scale: 0.99 }}
@@ -160,6 +163,7 @@ export const Layout = () => {
             <Outlet />
           </motion.div>
         </AnimatePresence>
+        </div>
       </main>
 
       {/* Mobile Bottom Navigation */}
