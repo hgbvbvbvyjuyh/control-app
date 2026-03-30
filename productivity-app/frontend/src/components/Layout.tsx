@@ -69,7 +69,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-[#0F172A] font-sans text-text selection:bg-accent/30 selection:text-white overflow-hidden">
+    <div className="flex h-screen max-h-screen w-full bg-[#0F172A] font-sans text-text selection:bg-accent/30 selection:text-white overflow-hidden">
       <ConfirmModal />
       <ToastContainer />
       
