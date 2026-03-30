@@ -210,7 +210,7 @@ export const Goals = () => {
               const desc = {
                 daily: 'Daily tasks and sessions',
                 weekly: 'Aggregated daily progress',
-                monthly: 'Monthly progress summary',
+                monthly: 'Weekly progress summary',
                 yearly: 'The big picture metrics'
               };
               return (
