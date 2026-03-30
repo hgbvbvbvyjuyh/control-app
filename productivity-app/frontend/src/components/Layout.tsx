@@ -81,7 +81,7 @@ export const Layout = () => {
         - `shrink-0` prevents it from shrinking if the content is too wide.
         - It has no `absolute` or `fixed` positioning, so it remains in the normal document flow.
       */}
-      <aside className="hidden md:flex h-full w-60 shrink-0 flex-col pt-10 p-5 z-30 bg-[#0B0F1A] border-r border-white/5">
+      <aside className="hidden md:flex h-full w-64 shrink-0 flex-col pt-10 p-5 z-30 bg-[#0B0F1A] border-r border-white/5">
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
