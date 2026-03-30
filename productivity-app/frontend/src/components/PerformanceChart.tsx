@@ -17,11 +17,11 @@ export const PerformanceChart = () => {
       initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="flex-1 min-h-0 w-full rounded-t-2xl bg-white/5 backdrop-blur-md border border-white/5 border-b-0 relative"
+      className="flex-1 min-h-0 w-full rounded-t-2xl bg-white/5 backdrop-blur-md border border-white/5 border-b-0 p-4 relative"
     >
-      <div className="absolute inset-0 p-4 pb-0">
+      <div className="h-full w-full">
         <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={data} margin={{ bottom: 10, left: 0, right: 0, top: 0 }}>
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#818CF8" stopOpacity={0.5}/>
@@ -39,9 +39,7 @@ export const PerformanceChart = () => {
             dataKey="name" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 500 }}
-            dy={10}
-            interval={0}
+            tick={{ fill: '#9CA3AF', fontSize: 12 }}
           />
           
           <YAxis 
