@@ -124,7 +124,7 @@ export const Dashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col flex-1 h-full w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100 overflow-hidden"
+      className="flex flex-col h-screen w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100"
     >
       {/* Top Quotes Row */}
       <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -159,7 +159,7 @@ export const Dashboard = () => {
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[35vh]">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
@@ -204,10 +204,10 @@ export const Dashboard = () => {
       </motion.div>
 
       {/* Activity Trend + Daily Progress */}
-      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch pb-1">
-        {/* Activity Trend — 2/3 width on large screens */}
-        <div className="lg:col-span-2 p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
-          <div className="flex-1 min-h-0 w-full">
+      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+        {/* Activity Trend */}
+        <div className="h-full w-full p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col min-h-0">
+          <div className="flex-1 min-h-0 w-full h-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -231,9 +231,9 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Daily Radial — 1/3 width on large screens */}
+        {/* Right Side */}
         <div className="flex flex-col gap-3 h-full min-h-0">
-          <div className="flex-1 p-2 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center relative overflow-hidden min-h-0">
+          <div className="flex-1 p-2 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center relative min-h-0">
             <div className="absolute top-3 left-4 z-10">
               <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Today</h3>
             </div>
@@ -257,7 +257,7 @@ export const Dashboard = () => {
           </div>
 
           {/* 2x2 Summary Grid */}
-          <div className="grid grid-cols-2 gap-2 shrink-0">
+          <div className="flex-1 grid grid-cols-2 gap-3 h-full min-h-0">
             {[
               { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
               { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
@@ -270,7 +270,7 @@ export const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
                 whileHover={{ scale: 1.02, y: -2, boxShadow: '0 15px 30px -10px rgba(0,0,0,0.5)' }}
-                className="p-2 py-3 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 flex flex-col items-center justify-center text-center shadow-lg relative group overflow-hidden"
+                className="p-2 py-3 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 flex flex-col items-center justify-center text-center shadow-lg relative group h-full w-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 <span className={`text-lg font-bold ${stat.color} drop-shadow-sm leading-none`}>{stat.value}</span>
