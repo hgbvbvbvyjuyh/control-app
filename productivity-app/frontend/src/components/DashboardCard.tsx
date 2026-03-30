@@ -1,22 +1,23 @@
 import { motion } from 'framer-motion';
-import type { LucideIcon } from 'lucide-react';
 
-interface DashboardCardProps {
+export interface DashboardCardProps {
   title: string;
-  description: string;
-  icon: LucideIcon;
-  gradient: string;
+  subtitle: string;
+  value: string;
+  gradientFrom: string;
+  gradientTo: string;
+  chartData: number[];
   delay?: number;
-  onClick?: () => void;
 }
 
 export const DashboardCard = ({ 
   title, 
-  description, 
-  icon: Icon, 
-  gradient, 
+  subtitle,
+  value,
+  gradientFrom,
+  gradientTo,
+  chartData,
   delay = 0,
-  onClick 
 }: DashboardCardProps) => {
   return (
     <motion.div
@@ -27,47 +28,29 @@ export const DashboardCard = ({
         delay, 
         ease: [0.22, 1, 0.36, 1] 
       }}
-      whileHover={{ 
-        y: -4, 
-        transition: { type: 'spring', stiffness: 200, damping: 25 }
-      }}
-      onClick={onClick}
-      className="group relative cursor-pointer"
+      className="relative cursor-pointer rounded-[18px] bg-white/5 backdrop-blur-md border border-white/5 p-5 overflow-hidden flex flex-col justify-between h-[180px]"
     >
-      {/* Soft Background Glow - Large & Subtle */}
-      <div className={`absolute -inset-8 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.03] blur-[100px] transition-opacity duration-1000 rounded-full pointer-events-none`} />
-      
-      {/* Main Card Surface */}
-      <div className="relative h-full glass-surface rounded-[2.5rem] p-10 flex flex-col items-start gap-8 overflow-hidden transition-all duration-700 bg-white/[0.01] hover:bg-white/[0.03]">
-        {/* Top Edge Inner Light */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <div className="flex flex-col z-10 w-full">
+        <span className="text-white/90 text-[15px] font-semibold tracking-wide">{title}</span>
+        <span className="text-white/40 text-[11px] font-medium mt-0.5">{subtitle}</span>
         
-        {/* Icon Container with Micro-interaction */}
-        <div className="relative">
-          <div className={`absolute -inset-4 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700 rounded-full`} />
-          <motion.div 
-            whileHover={{ y: -2, scale: 1.05 }}
-            className={`p-5 rounded-[1.25rem] bg-gradient-to-br ${gradient} bg-opacity-[0.03] border border-white/5 shadow-2xl relative z-10 transition-transform duration-500`}
-          >
-            <Icon size={24} className="text-white opacity-80 group-hover:opacity-100 transition-opacity" />
-          </motion.div>
-        </div>
+        <span className="text-white text-[34px] font-bold tracking-tight leading-none mt-3">{value}</span>
+        <span className="text-white/40 text-[10px] font-medium mt-1">
+          3 / 5 weeks
+        </span>
+      </div>
 
-        {/* Content Hierarchy */}
-        <div className="space-y-3">
-          <h3 className="text-2xl font-black tracking-tighter text-white/90 group-hover:text-white transition-colors duration-500">
-            {title}
-          </h3>
-          <p className="text-secondary/60 text-sm leading-relaxed font-medium group-hover:text-secondary/80 transition-colors duration-500">
-            {description}
-          </p>
-        </div>
-
-        {/* Minimalist Interactive Hint */}
-        <div className="mt-auto pt-4 flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] font-black text-secondary/30 group-hover:text-primary/60 transition-all duration-700">
-          <div className="w-8 h-px bg-current opacity-20 group-hover:w-12 transition-all duration-700" />
-          <span>Explore</span>
-        </div>
+      <div className="flex items-end justify-between w-full h-[45px] gap-[3px] mt-4 z-10">
+        {chartData.map((dataValue, index) => {
+          const heightPercent = Math.max(10, Math.min(100, dataValue));
+          return (
+            <motion.div
+              key={index}
+              style={{ height: `${heightPercent}%` }}
+              className={`w-full rounded-[2px] bg-gradient-to-t ${gradientFrom} ${gradientTo} opacity-80 hover:opacity-100 transition-opacity`}
+            />
+          );
+        })}
       </div>
     </motion.div>
   );

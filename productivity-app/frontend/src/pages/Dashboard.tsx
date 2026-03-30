@@ -1,102 +1,90 @@
-import { motion } from 'framer-motion';
-import { Calendar, Layout as LayoutIcon, Target, PieChart } from 'lucide-react';
 import { DashboardCard } from '../components/DashboardCard';
-import { useNavigate } from 'react-router-dom';
+import { PerformanceChart } from '../components/PerformanceChart';
+import { QuoteCard } from '../components/QuoteCard';
+import { motion } from 'framer-motion';
+import { BarChart3 } from 'lucide-react';
 
 export const Dashboard = () => {
-  const navigate = useNavigate();
+  const quotes = [
+    { quote: "Discipline is choosing between what you want now and what you want most." },
+    { quote: "Small progress is still progress." }
+  ];
 
-  const cards = [
+  const stats = [
     {
       title: 'Daily',
-      description: 'Focus on today\'s immediate goals and habits.',
-      icon: Calendar,
-      gradient: 'from-blue-500 to-cyan-400',
-      path: '/goals' // In a real app, this might filter or go to a specific view
+      subtitle: 'Overview of your work',
+      value: '70%',
+      gradientFrom: 'from-blue-600',
+      gradientTo: 'to-blue-400',
+      chartData: [20, 15, 25, 10, 30, 40, 20, 25, 45, 50, 40, 60, 70, 75, 45, 65, 80, 90, 85]
     },
     {
       title: 'Weekly',
-      description: 'Review progress and set objectives for the week.',
-      icon: LayoutIcon,
-      gradient: 'from-purple-500 to-pink-400',
-      path: '/goals'
+      subtitle: 'This week',
+      value: '48%',
+      gradientFrom: 'from-purple-600',
+      gradientTo: 'to-purple-400',
+      chartData: [10, 15, 12, 14, 18, 16, 20, 25, 22, 28, 30, 40, 35, 45, 60, 50, 70, 65, 80]
     },
     {
       title: 'Monthly',
-      description: 'Strategic planning and long-term momentum.',
-      icon: Target,
-      gradient: 'from-emerald-500 to-teal-400',
-      path: '/goals'
+      subtitle: 'This month',
+      value: '62%',
+      gradientFrom: 'from-cyan-500',
+      gradientTo: 'to-cyan-300',
+      chartData: [30, 40, 35, 45, 50, 40, 30, 45, 55, 60, 30, 45, 50, 65, 80, 70, 90, 85, 95]
     },
     {
       title: 'Yearly',
-      description: 'The big picture. Vision and major milestones.',
-      icon: PieChart,
-      gradient: 'from-orange-500 to-yellow-400',
-      path: '/goals'
+      subtitle: 'This year',
+      value: '35%',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-emerald-400',
+      chartData: [15, 12, 18, 15, 20, 18, 25, 20, 22, 28, 25, 30, 35, 40, 45, 60, 55, 70, 65]
     }
   ];
 
   return (
-    <div className="flex flex-col gap-16 max-w-6xl mx-auto w-full">
-      {/* Premium Header Section */}
-      <header className="space-y-6 relative">
-        <motion.div
-          initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-start gap-1"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/60">System Ready</span>
-          </div>
-          <h2 className="text-5xl font-black tracking-tighter text-white sm:text-6xl lg:text-7xl leading-none">
-            Dashboard
-          </h2>
-          <p className="text-secondary/50 text-base sm:text-lg mt-4 font-medium max-w-xl leading-relaxed">
-            Welcome back, architect. Your productivity framework is synchronized and ready for the next objective.
-          </p>
-        </motion.div>
+    <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full pb-20 pt-4">
+      {/* Top Quotes Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {quotes.map((item, index) => (
+          <QuoteCard key={index} quote={item.quote} delay={index * 0.1} />
+        ))}
+      </div>
 
-        <motion.div 
-          initial={{ opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 1.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent origin-left"
-        />
-      </header>
+      {/* Dashboard Section Title */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="flex flex-col gap-1 mt-4"
+      >
+        <div className="flex items-center gap-3">
+          <BarChart3 className="text-white w-7 h-7" />
+          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
+        </div>
+        <p className="text-secondary/60 text-sm font-medium ml-10">
+          Overview of your work
+        </p>
+      </motion.div>
 
-      {/* Grid Section: Perfected Spacing */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
-        {cards.map((card, index) => (
+      {/* Stats Cards Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => (
           <DashboardCard
-            key={card.title}
-            {...card}
-            delay={0.15 * index}
-            onClick={() => navigate(card.path)}
+            key={stat.title}
+            {...stat}
+            delay={0.3 + (index * 0.1)}
           />
         ))}
       </div>
 
-      {/* Floating Meta Quote */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 1 }}
-        className="mt-8 pt-12 border-t border-white/[0.03]"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-[9px] uppercase tracking-[0.5em] font-black text-secondary/20 hover:text-secondary/40 transition-colors cursor-default">
-            Precision in every action · Control in every outcome
-          </p>
-          <div className="flex gap-1">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-white/5" />
-            ))}
-          </div>
-        </div>
-      </motion.footer>
+      {/* Area Chart Row */}
+      <div className="mt-2">
+        <PerformanceChart />
+      </div>
     </div>
   );
 };
