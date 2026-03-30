@@ -28,19 +28,16 @@ export const DashboardCard = ({
         delay, 
         ease: [0.22, 1, 0.36, 1] 
       }}
-      className="relative cursor-pointer rounded-[18px] bg-white/5 backdrop-blur-md border border-white/5 p-5 overflow-hidden flex flex-col justify-between h-[180px]"
+      className="relative cursor-pointer rounded-2xl bg-white/5 backdrop-blur-md border border-white/5 p-4 overflow-hidden flex flex-col justify-between h-[130px]"
     >
       <div className="flex flex-col z-10 w-full">
-        <span className="text-white/90 text-[15px] font-semibold tracking-wide">{title}</span>
-        <span className="text-white/40 text-[11px] font-medium mt-0.5">{subtitle}</span>
+        <span className="text-white/90 text-xs font-semibold tracking-wide">{title}</span>
+        <span className="text-white/40 text-[9px] font-medium mt-0.5">{subtitle}</span>
         
-        <span className="text-white text-[34px] font-bold tracking-tight leading-none mt-3">{value}</span>
-        <span className="text-white/40 text-[10px] font-medium mt-1">
-          3 / 5 weeks
-        </span>
+        <span className="text-white text-2xl font-bold tracking-tight leading-none mt-2">{value}</span>
       </div>
 
-      <div className="flex items-end justify-between w-full h-[45px] gap-[3px] mt-4 z-10">
+      <div className="flex items-end justify-between w-full h-[35px] gap-[2px] mt-2 z-10">
         {chartData.map((dataValue, index) => {
           const heightPercent = Math.max(10, Math.min(100, dataValue));
           return (

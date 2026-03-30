@@ -46,9 +46,9 @@ export const Dashboard = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full pb-20 pt-4">
+    <div className="flex flex-col gap-4 max-w-7xl mx-auto w-full flex-1 overflow-hidden">
       {/* Top Quotes Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
         {quotes.map((item, index) => (
           <QuoteCard key={index} quote={item.quote} delay={index * 0.1} />
         ))}
@@ -59,19 +59,19 @@ export const Dashboard = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col gap-1 mt-4"
+        className="flex flex-col gap-0.5 shrink-0"
       >
-        <div className="flex items-center gap-3">
-          <BarChart3 className="text-white w-7 h-7" />
-          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
+        <div className="flex items-center gap-2">
+          <BarChart3 className="text-white w-6 h-6" />
+          <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
         </div>
-        <p className="text-secondary/60 text-sm font-medium ml-10">
+        <p className="text-secondary/60 text-xs font-medium ml-8">
           Overview of your work
         </p>
       </motion.div>
 
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         {stats.map((stat, index) => (
           <DashboardCard
             key={stat.title}
@@ -82,7 +82,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Area Chart Row */}
-      <div className="mt-2">
+      <div className="flex-1 min-h-0 mt-2 pb-2">
         <PerformanceChart />
       </div>
     </div>

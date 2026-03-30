@@ -17,7 +17,7 @@ export const PerformanceChart = () => {
       initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="w-full h-[320px] rounded-2xl bg-white/5 backdrop-blur-md border border-white/5 p-6 relative"
+      className="w-full h-full rounded-2xl bg-white/5 backdrop-blur-md border border-white/5 p-4 relative"
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
