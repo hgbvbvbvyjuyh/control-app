@@ -12,42 +12,41 @@
   --font-sans: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
-@layer base {
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  /* Single scroll surface: <main> in Layout. Prevents body/#root growing past viewport. */
-  html,
-  body {
+  /* === Full-screen lock: pure percentage chain prevents any subpixel drift === */
+  html {
     height: 100%;
     overflow: hidden;
   }
+  html,
   body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    height: 100%;
+    overflow: hidden;
     background-color: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    /* Controlled premium gradient */ 
-    background-image: 
-      radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%), 
-      radial-gradient(circle at 0% 100%, rgba(6, 182, 212, 0.04) 0%, transparent 60%), 
-      radial-gradient(circle at 100% 50%, rgba(147, 51, 234, 0.02) 0%, transparent 50%); 
-
-    background-repeat: no-repeat; 
-    background-size: cover; 
+    /* Controlled premium gradient */
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.06) 0%, transparent 60%),
+      radial-gradient(circle at 0% 100%, rgba(6, 182, 212, 0.04) 0%, transparent 60%),
+      radial-gradient(circle at 100% 50%, rgba(147, 51, 234, 0.02) 0%, transparent 50%);
+    background-repeat: no-repeat;
+    background-size: cover;
   }
   #root {
-    height: 100vh;
+    /* 100% of body (which is 100% of html = viewport) — no 100vh mismatch */
+    height: 100%;
+    max-height: 100dvh;
     width: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
-}
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {

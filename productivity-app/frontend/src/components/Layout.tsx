@@ -73,8 +73,8 @@ export const Layout = () => {
       <ConfirmModal />
       <ToastContainer />
       
-      {/* Sidebar */}
-      <aside className="hidden md:flex w-64 shrink-0 border-r border-white/5 bg-surface/40 backdrop-blur-2xl flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)]">
+      {/* Sidebar — h-full fills the flex-row container */}
+      <aside className="hidden md:flex h-full w-64 shrink-0 border-r border-white/5 bg-surface/40 backdrop-blur-2xl flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)]">
         <motion.h1 
           initial={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
           animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
@@ -140,13 +140,13 @@ export const Layout = () => {
       {/* Main Content Area */}
       <main className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col bg-transparent">
         <AnimatePresence mode="wait">
-          <motion.div 
+          <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10, filter: 'blur(8px)', scale: 0.99 }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
             exit={{ opacity: 0, y: -10, filter: 'blur(8px)', scale: 0.99 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full h-full flex-1 flex flex-col min-h-0"
+            className="w-full flex-1 min-h-0 flex flex-col"
           >
             <Outlet />
           </motion.div>
