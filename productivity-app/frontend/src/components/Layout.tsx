@@ -181,9 +181,7 @@ export const Layout = () => {
             </motion.div>
           </AnimatePresence>
         </div>
-        
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
-      </main>
+        </main>
 
       {/* Mobile Nav (Fallback) */}
       <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 glass-surface rounded-full z-50 flex justify-around items-center px-4 border border-white/10 shadow-2xl">
