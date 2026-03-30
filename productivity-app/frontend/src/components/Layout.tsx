@@ -164,7 +164,7 @@ export const Layout = () => {
       <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
         
-        <div className="flex-1 overflow-y-auto no-scrollbar relative">
+        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col h-full min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -175,7 +175,7 @@ export const Layout = () => {
                 duration: 0.6, 
                 ease: [0.22, 1, 0.36, 1] 
               }}
-              className="p-10 md:p-16 max-w-7xl mx-auto w-full min-h-full flex flex-col"
+              className="p-10 md:p-16 max-w-7xl mx-auto w-full flex-1 flex flex-col h-full min-h-0"
             >
               <Outlet />
             </motion.div>

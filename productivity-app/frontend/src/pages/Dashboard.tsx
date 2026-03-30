@@ -46,7 +46,7 @@ export const Dashboard = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-4 max-w-7xl mx-auto w-full flex-1 overflow-hidden">
+    <div className="flex flex-col gap-4 max-w-7xl mx-auto w-full h-full flex-1 min-h-0">
       {/* Top Quotes Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
         {quotes.map((item, index) => (
