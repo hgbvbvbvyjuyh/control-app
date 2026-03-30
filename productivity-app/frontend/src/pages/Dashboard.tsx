@@ -6,28 +6,58 @@ import { useFailureStore } from '../stores/failureStore';
 import { motion, type Variants } from 'framer-motion';
 import { dashboardPeriodStats, buildDashboardHistories } from '../utils/aggregation';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
-import { BarChart3, Quote as QuoteIcon } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
-  Cell,
-  CartesianGrid,
-} from 'recharts';
+import { BarChart3, Quote } from 'lucide-react';
 
-/**
- * Redesigned Dashboard: Matches the reference image exactly.
- * 
- * Layout:
- * - Top: Two Quote Cards
- * - Header: Title and Subtitle
- * - Middle: 4 Vertical Stat Cards with Bar Charts
- * - Bottom: Full-width Activity Trend Area Chart
- */
+const QuoteCard = ({ text }: { text: string }) => (
+  <motion.div 
+    whileHover={{ y: -2 }}
+    className="bg-[#121620] border border-white/[0.04] rounded-2xl p-5 flex items-start gap-4 shadow-lg shadow-black/20"
+  >
+    <Quote className="w-6 h-6 text-yellow-500 fill-yellow-500 shrink-0 mt-0.5 opacity-90" />
+    <p className="text-gray-300 text-sm leading-relaxed font-medium">{text}</p>
+  </motion.div>
+);
+
+const StatCard = ({
+  title,
+  subtitle,
+  value,
+  subValue,
+  chartColors,
+  bars,
+}: {
+  title: string;
+  subtitle: string;
+  value: string;
+  subValue: string;
+  chartColors: string;
+  bars: number[];
+}) => (
+  <motion.div 
+    whileHover={{ y: -4 }}
+    className="bg-[#121620] border border-white/[0.04] rounded-2xl p-5 flex flex-col justify-between h-[170px] relative overflow-hidden group shadow-lg shadow-black/20"
+  >
+    <div className="z-10 relative">
+      <h3 className="text-gray-100 font-semibold text-[15px]">{title}</h3>
+      <p className="text-gray-500 text-[11px] mb-3 mt-0.5">{subtitle}</p>
+      <div className="text-[32px] font-bold text-white leading-none tracking-tight mb-1.5">
+        {value}
+      </div>
+      <p className="text-gray-500 text-[11px] font-medium">{subValue}</p>
+    </div>
+
+    {/* Mini Bar Chart Mock */}
+    <div className="absolute bottom-4 left-5 right-5 h-12 flex items-end gap-[3px] z-0">
+      {bars.map((height, i) => (
+        <div
+          key={i}
+          className={`flex-1 rounded-sm opacity-90 transition-all duration-300 group-hover:opacity-100 ${chartColors}`}
+          style={{ height: `${height}%` }}
+        />
+      ))}
+    </div>
+  </motion.div>
+);
 
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
@@ -42,33 +72,6 @@ export const Dashboard = () => {
     loadFailures();
   }, []);
 
-  const periodStyles = [
-    {
-      title: 'Daily',
-      sub: "Today's progress",
-      barStart: '#3b82f6',
-      barEnd: '#60a5fa',
-    },
-    {
-      title: 'Weekly',
-      sub: 'This week',
-      barStart: '#8b5cf6',
-      barEnd: '#d946ef',
-    },
-    {
-      title: 'Monthly',
-      sub: 'This month',
-      barStart: '#06b6d4',
-      barEnd: '#22d3ee',
-    },
-    {
-      title: 'Yearly',
-      sub: 'This year',
-      barStart: '#10b981',
-      barEnd: '#34d399',
-    },
-  ];
-
   const periodData = useMemo(() => {
     const dayMs = 86400000;
     const now = new Date();
@@ -78,185 +81,183 @@ export const Dashboard = () => {
     const { dailyHistory, weeklyHistory, monthlyHistory, yearlyHistory } =
       buildDashboardHistories(goals, sessions, today, dayMs, zone);
 
-    return periodStyles.map((style, i) => {
-      const type = (['daily', 'weekly', 'monthly', 'yearly'] as const)[i];
-      const { pct, hasData } = stats[type];
-      let history: { name: string; value: number; hasData: boolean }[] = [];
-      if (type === 'daily') history = dailyHistory;
-      else if (type === 'weekly') history = weeklyHistory;
-      else if (type === 'monthly') history = monthlyHistory;
-      else if (type === 'yearly') history = yearlyHistory;
+    const periodConfigs = [
+      {
+        title: 'Daily',
+        subtitle: 'আজকের অগ্রগতি',
+        chartColors: 'bg-gradient-to-t from-blue-700 to-blue-400',
+        type: 'daily' as const,
+        history: dailyHistory,
+      },
+      {
+        title: 'Weekly',
+        subtitle: 'এই সপ্তাহ',
+        chartColors: 'bg-gradient-to-t from-purple-700 to-indigo-400',
+        type: 'weekly' as const,
+        history: weeklyHistory,
+      },
+      {
+        title: 'Monthly',
+        subtitle: 'এই মাস',
+        chartColors: 'bg-gradient-to-t from-cyan-600 to-cyan-300',
+        type: 'monthly' as const,
+        history: monthlyHistory,
+      },
+      {
+        title: 'Yearly',
+        subtitle: 'এই বছর',
+        chartColors: 'bg-gradient-to-t from-emerald-600 to-green-400',
+        type: 'yearly' as const,
+        history: yearlyHistory,
+      },
+    ];
 
-      // Extract raw counts for the footer
+    return periodConfigs.map((config) => {
+      const { pct, hasData } = stats[config.type];
+      
       let count = 0;
       let total = 0;
-      if (type === 'daily') {
+      let unit = '';
+      
+      if (config.type === 'daily') {
         count = sessions.filter(s => new Date(s.startTime).toDateString() === today.toDateString()).length;
         total = goals.length;
-      } else if (type === 'weekly') {
-        count = sessions.length; // Simplified for display
-        total = 7; 
-      } else if (type === 'monthly') {
+        unit = 'সম্পন্ন';
+      } else if (config.type === 'weekly') {
+        count = sessions.length;
+        total = 7;
+        unit = 'সম্পন্ন';
+      } else if (config.type === 'monthly') {
         count = entries.length;
-        total = 30;
+        total = 31;
+        unit = 'সম্পন্ন';
       } else {
         count = failures.length;
         total = 365;
+        unit = 'সম্পন্ন';
       }
 
+      // Convert history to heights (0-100)
+      const bars = config.history.map(h => h.value);
+
       return {
-        ...style,
-        pct,
-        hasData,
-        history,
-        count,
-        total,
+        ...config,
+        value: hasData ? `${pct}%` : '—',
+        subValue: `${count} / ${total} ${unit}`,
+        bars,
       };
     });
   }, [goals, sessions, entries, failures]);
-
-  const weeklyTrend = useMemo(() => {
-    const periods = ['Day', 'Week', 'Month', 'Year'] as const;
-    return periods.map((p, i) => ({
-      name: p,
-      progress: periodData[i].hasData ? periodData[i].pct : 0,
-    }));
-  }, [periodData]);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.05 }
+      transition: { staggerChildren: 0.1 }
     }
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
   };
 
   return (
-    <motion.div 
+    <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col flex-1 w-full min-h-0 overflow-hidden p-6 gap-8 font-sans text-slate-100 bg-[#0a0a0a]"
+      className="flex flex-col h-screen w-full bg-[#080B11] p-8 gap-8 overflow-hidden font-sans text-slate-100"
     >
-      {/* 1. TOP SECTION: Quotes */}
-      <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          "Discipline is choosing between what you want now and what you want most.",
-          "Small progress is still progress."
-        ].map((quote, idx) => (
-          <motion.div
-            key={idx}
-            variants={itemVariants}
-            className="bg-[#111111] border border-white/5 p-5 rounded-xl flex items-start gap-4"
-          >
-            <QuoteIcon className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" fill="currentColor" />
-            <p className="text-sm font-medium text-slate-400 leading-relaxed">{quote}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* 2. HEADER SECTION */}
-      <motion.div variants={itemVariants} className="shrink-0 flex flex-col gap-1 px-1">
-        <div className="flex items-center gap-2.5">
-          <BarChart3 className="w-5 h-5 text-blue-500" />
-          <h1 className="text-xl font-bold tracking-tight text-white">Dashboard</h1>
-        </div>
-        <p className="text-xs font-medium text-slate-500 ml-7.5">Your progress at a glance</p>
+      {/* Top Quotes Section */}
+      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-6 shrink-0">
+        <QuoteCard text="Discipline is choosing between what you want now and what you want most." />
+        <QuoteCard text="Small progress is still progress." />
       </motion.div>
 
-      {/* 3. STATS SECTION: 4 Period Cards */}
-      <div className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {periodData.map((p, i) => (
-          <motion.div
-            key={p.title}
-            variants={itemVariants}
-            className="bg-[#111111] border border-white/5 p-6 rounded-xl flex flex-col gap-1 min-h-[160px] relative overflow-hidden group"
-          >
-            <span className="text-xs font-medium text-slate-400">{p.title}</span>
-            <span className="text-[10px] font-medium text-slate-500 mb-2">{p.sub}</span>
-            <span className="text-3xl font-bold text-white tabular-nums">
-              {p.hasData ? `${p.pct}%` : '—'}
-            </span>
-            <span className="text-[10px] font-medium text-slate-500 mt-1">
-              {p.count} / {p.total} {p.title === 'Daily' ? 'sessions' : p.title === 'Weekly' ? 'days' : p.title === 'Monthly' ? 'journals' : 'failures'}
-            </span>
-            
-            {/* Chart at the bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-12 w-full px-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={p.history} margin={{ bottom: 4 }}>
-                  <defs>
-                    <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={p.barStart} stopOpacity={0.9} />
-                      <stop offset="100%" stopColor={p.barEnd} stopOpacity={0.3} />
-                    </linearGradient>
-                  </defs>
-                  <Bar dataKey="value" radius={[2, 2, 0, 0]} barSize={4}>
-                    {p.history.map((h, hi) => (
-                      <Cell
-                        key={hi}
-                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.03)'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* Header Section */}
+      <motion.div variants={itemVariants} className="flex flex-col gap-1.5 shrink-0">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 text-blue-500" />
+          <h1 className="text-2xl font-bold text-white tracking-wide">Dashboard</h1>
+        </div>
+        <p className="text-gray-500 text-sm font-medium">আপনার কাজের একনজরে</p>
+      </motion.div>
 
-      {/* 4. BOTTOM SECTION: Activity Chart */}
-      <motion.div
+      {/* Stats Cards Row */}
+      <motion.div variants={itemVariants} className="grid grid-cols-4 gap-6 shrink-0">
+        {periodData.map((p) => (
+          <StatCard
+            key={p.title}
+            title={p.title}
+            subtitle={p.subtitle}
+            value={p.value}
+            subValue={p.subValue}
+            chartColors={p.chartColors}
+            bars={p.bars}
+          />
+        ))}
+      </motion.div>
+
+      {/* Main Activity Chart Section */}
+      <motion.div 
         variants={itemVariants}
-        className="flex-1 bg-[#111111] border border-white/5 p-8 rounded-xl flex flex-col min-h-0 relative overflow-hidden"
+        className="bg-[#121620] border border-white/[0.04] rounded-2xl flex-1 flex flex-col relative min-h-0 shadow-lg shadow-black/20"
       >
-        <div className="flex-1 w-full min-h-0 mt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={weeklyTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.03)" strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#475569', fontSize: 11, fontWeight: 500 }}
-                dy={15}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#475569', fontSize: 11, fontWeight: 500 }}
-                tickFormatter={(val) => `${val}%`}
-                domain={[0, 100]}
-                ticks={[0, 25, 50, 75, 100]}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="progress" 
-                stroke="url(#lineGrad)" 
-                strokeWidth={3} 
-                fill="url(#areaGrad)" 
-                animationDuration={1500}
-                dot={{ fill: '#8b5cf6', r: 4, strokeWidth: 0 }}
-                activeDot={{ r: 6, fill: '#fff', strokeWidth: 2, stroke: '#8b5cf6' }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* Y-Axis & Grid Lines */}
+        <div className="absolute inset-0 p-6 pt-10 pb-12 flex flex-col justify-between z-0 pointer-events-none">
+          {[100, 75, 50, 25, 0].map((val) => (
+            <div key={val} className="border-b border-white/[0.03] w-full flex items-center relative">
+              <span className="absolute left-6 text-gray-500 text-[11px] -translate-y-1/2 bg-[#121620] pr-3 font-medium">
+                {val}%
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* SVG Curve Chart */}
+        <div className="flex-1 w-full relative z-10 mt-6 pl-[60px] pr-[40px] mb-[40px]">
+          <svg viewBox="0 0 1000 300" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#3b82f6" />
+                <stop offset="50%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+              <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.25} />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            
+            {/* Filled Area */}
+            <path
+              d="M 50 270 C 200 270 200 230 350 230 C 500 230 500 120 650 120 C 800 120 800 50 950 50 L 950 300 L 50 300 Z"
+              fill="url(#areaFill)"
+            />
+            
+            {/* Stroke Line */}
+            <path
+              d="M 50 270 C 200 270 200 230 350 230 C 500 230 500 120 650 120 C 800 120 800 50 950 50"
+              fill="none"
+              stroke="url(#lineGlow)"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            
+            {/* Data Points */}
+            <circle cx="350" cy="230" r="5" fill="#6366f1" className="shadow-lg" />
+            <circle cx="650" cy="120" r="5" fill="#8b5cf6" className="shadow-lg" />
+            <circle cx="950" cy="50" r="5" fill="#a855f7" className="shadow-lg" />
+          </svg>
+        </div>
+
+        {/* X-Axis Labels */}
+        <div className="absolute bottom-4 left-[90px] right-[40px] flex justify-between text-gray-500 text-[12px] font-medium z-10">
+          <span>Day</span>
+          <span className="-ml-6">Week</span>
+          <span className="-ml-6">Month</span>
+          <span>Year</span>
         </div>
       </motion.div>
     </motion.div>
