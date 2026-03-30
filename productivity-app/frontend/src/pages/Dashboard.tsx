@@ -206,8 +206,9 @@ export const Dashboard = () => {
       {/* Activity Trend + Daily Progress */}
       <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch z-10 relative">
         {/* Activity Trend */}
-        <div className="h-full w-full p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col min-h-0">
-          <div className="flex-1 min-h-0 w-full h-full">
+        <div className="lg:col-span-1 p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-lg flex flex-col min-h-[300px]">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Activity Trend</h3>
+          <div className="flex-1 w-full h-full min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={weeklyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -224,6 +225,7 @@ export const Dashboard = () => {
                   axisLine={false}
                   dx={-10}
                   tickFormatter={(val) => `${val}%`}
+                  domain={[0, 100]}
                 />
                 <Area type="monotone" dataKey="progress" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#areaGrad)" animationDuration={1500} />
               </AreaChart>
