@@ -69,7 +69,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex flex-1 min-h-screen w-full bg-[#020617] bg-cover bg-center bg-no-repeat font-sans text-text selection:bg-accent/30 selection:text-white">
+    <div className="flex flex-1 min-h-screen w-full bg-[#0F172A] font-sans text-text selection:bg-accent/30 selection:text-white">
       <ConfirmModal />
       <ToastContainer />
       
@@ -138,7 +138,7 @@ export const Layout = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10 flex flex-col">
+      <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10 flex flex-col bg-transparent">
         <AnimatePresence mode="wait">
           <motion.div 
             key={location.pathname}

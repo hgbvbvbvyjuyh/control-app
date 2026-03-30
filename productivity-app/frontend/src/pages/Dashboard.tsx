@@ -124,10 +124,10 @@ export const Dashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col h-screen w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100"
+      className="flex flex-col h-screen w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100 relative z-10"
     >
       {/* Top Quotes Row */}
-      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-3 z-10 relative">
         <div className="flex items-start gap-3 rounded-2xl border border-white/5 bg-surface/30 backdrop-blur-xl p-3 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:bg-surface/40 transition-colors">
           <span className="mt-0.5 font-serif text-lg leading-none text-yellow-500/80 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]">"</span>
           <p className="text-xs font-medium italic text-slate-400/90 leading-relaxed tracking-wide">Discipline is choosing between what you want now and what you want most.</p>
@@ -139,14 +139,14 @@ export const Dashboard = () => {
       </motion.div>
 
       {/* Title */}
-      <motion.div variants={itemVariants} className="shrink-0 flex items-center gap-2">
+      <motion.div variants={itemVariants} className="shrink-0 flex items-center gap-2 z-10 relative">
         <svg className="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <h1 className="text-xs sm:text-sm font-black tracking-widest leading-none uppercase text-slate-400">Dashboard</h1>
             <button
               type="button"
-              className="shrink-0 rounded p-0.5 text-slate-500 hover:text-cyan-400/90 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500"
+              className="shrink-0 rounded p-0.5 text-slate-500 hover:text-cyan-400/90 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 z-10 relative"
               title={PROGRESS_CALC_TOOLTIP}
               aria-label="How portfolio progress is calculated"
             >
@@ -159,7 +159,7 @@ export const Dashboard = () => {
         </div>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[35vh]">
+      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[35vh] z-10 relative">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
@@ -204,7 +204,7 @@ export const Dashboard = () => {
       </motion.div>
 
       {/* Activity Trend + Daily Progress */}
-      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
+      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch z-10 relative">
         {/* Activity Trend */}
         <div className="h-full w-full p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col min-h-0">
           <div className="flex-1 min-h-0 w-full h-full">
