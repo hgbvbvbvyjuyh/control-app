@@ -17,9 +17,10 @@ export const PerformanceChart = () => {
       initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="flex-1 min-h-0 w-full rounded-2xl bg-white/5 backdrop-blur-md border border-white/5 p-4 relative"
+      className="flex-1 min-h-0 w-full rounded-2xl bg-white/5 backdrop-blur-md border border-white/5 relative"
     >
-      <ResponsiveContainer width="100%" height="100%">
+      <div className="absolute inset-0 p-4 pb-0">
+        <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -65,6 +66,7 @@ export const PerformanceChart = () => {
           />
         </AreaChart>
       </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 };

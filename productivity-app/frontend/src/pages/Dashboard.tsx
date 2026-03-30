@@ -13,7 +13,7 @@ export const Dashboard = () => {
   const stats = [
     {
       title: 'Daily',
-      subtitle: 'Overview of your work',
+      subtitle: 'Today',
       value: '70%',
       gradientFrom: 'from-blue-600',
       gradientTo: 'to-blue-400',
@@ -59,15 +59,15 @@ export const Dashboard = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col gap-0.5 shrink-0"
+        className="flex items-start gap-2 shrink-0"
       >
-        <div className="flex items-center gap-2">
-          <BarChart3 className="text-white w-6 h-6" />
-          <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
+        <BarChart3 className="text-white w-6 h-6 mt-0.5 shrink-0" />
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold tracking-tight text-white leading-none">Dashboard</h1>
+          <p className="text-secondary/60 text-xs font-medium mt-1">
+            Overview of your work
+          </p>
         </div>
-        <p className="text-secondary/60 text-xs font-medium ml-8">
-          Overview of your work
-        </p>
       </motion.div>
 
       {/* Stats Cards Row */}
