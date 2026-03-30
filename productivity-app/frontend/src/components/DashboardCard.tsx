@@ -4,6 +4,7 @@ export interface DashboardCardProps {
   title: string;
   subtitle: string;
   value: string;
+  progressText?: string;
   gradientFrom: string;
   gradientTo: string;
   chartData: number[];
@@ -14,6 +15,7 @@ export const DashboardCard = ({
   title, 
   subtitle,
   value,
+  progressText,
   gradientFrom,
   gradientTo,
   chartData,
@@ -35,6 +37,7 @@ export const DashboardCard = ({
         <span className="text-white/40 text-[9px] font-medium mt-0.5">{subtitle}</span>
         
         <span className="text-white text-2xl font-bold tracking-tight leading-none mt-2">{value}</span>
+        {progressText && <span className="text-white/40 text-[9px] font-medium mt-0.5">{progressText}</span>}
       </div>
 
       <div className="flex items-end justify-between w-full h-[35px] gap-[2px] mt-2 z-10">
