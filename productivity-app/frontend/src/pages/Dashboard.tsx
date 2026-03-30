@@ -82,7 +82,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Area Chart Row */}
-      <div className="flex-1 min-h-0 mt-2 pb-2 w-full flex flex-col">
+      <div className="flex-1 min-h-0 mt-2 w-full flex flex-col">
         <PerformanceChart />
       </div>
     </div>

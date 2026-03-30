@@ -175,7 +175,7 @@ export const Layout = () => {
                 duration: 0.6, 
                 ease: [0.22, 1, 0.36, 1] 
               }}
-              className="p-10 md:p-16 max-w-7xl mx-auto w-full flex-1 flex flex-col h-full min-h-0"
+              className={`pt-10 md:pt-16 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-7xl mx-auto w-full flex-1 flex flex-col h-full min-h-0`}
             >
               <Outlet />
             </motion.div>
