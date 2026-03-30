@@ -80,9 +80,9 @@ export const Journal = () => {
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
       {/* MAIN CATEGORY SELECTION */}
-      <div className="flex items-center gap-4 mb-12 shrink-0">
+      <div className="flex items-center gap-4 mb-12 mt-4 shrink-0 relative z-20">
         <motion.button 
-          whileHover={{ scale: 1.02, y: -2 }}
+          whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setMainTab('daily')}
           className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border overflow-hidden ${
@@ -102,7 +102,7 @@ export const Journal = () => {
           <span className="relative z-10">1. Daily Journal</span>
         </motion.button>
         <motion.button 
-          whileHover={{ scale: 1.02, y: -2 }}
+          whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setMainTab('goals')}
           className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border overflow-hidden ${
