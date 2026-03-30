@@ -24,8 +24,8 @@ export const PerformanceChart = () => {
         <AreaChart data={data} margin={{ bottom: 10, left: 0, right: 0, top: 0 }}>
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#818CF8" stopOpacity={0.5}/>
-              <stop offset="95%" stopColor="#818CF8" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#818CF8" stopOpacity={0.6}/>
+              <stop offset="100%" stopColor="#818CF8" stopOpacity={0.15}/>
             </linearGradient>
             
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -37,7 +37,7 @@ export const PerformanceChart = () => {
           
           <XAxis 
             dataKey="name" 
-            axisLine={false} 
+            axisLine={{ stroke: '#ffffff15' }} 
             tickLine={false} 
             tick={{ fill: '#9CA3AF', fontSize: 12 }}
           />
