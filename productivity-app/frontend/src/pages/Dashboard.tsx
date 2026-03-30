@@ -27,8 +27,6 @@ export const Dashboard = () => {
   const { entries, load: loadJournals } = useJournalStore();
   const { failures, load: loadFailures } = useFailureStore();
 
-  console.log('Dashboard active', { entriesCount: entries.length, failuresCount: failures.length });
-
   useEffect(() => {
     loadGoals();
     loadSessions();
@@ -124,159 +122,227 @@ export const Dashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col h-screen w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100 relative z-10"
+      className="flex flex-col flex-1 w-full min-h-0 overflow-hidden p-4 md:p-5 gap-3 font-sans text-slate-100 relative z-10"
     >
-      {/* Top Quotes Row */}
-      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-3 z-10 relative">
-        <div className="flex items-start gap-3 rounded-2xl border border-white/5 bg-surface/30 backdrop-blur-xl p-3 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:bg-surface/40 transition-colors">
-          <span className="mt-0.5 font-serif text-lg leading-none text-yellow-500/80 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]">"</span>
-          <p className="text-xs font-medium italic text-slate-400/90 leading-relaxed tracking-wide">Discipline is choosing between what you want now and what you want most.</p>
-        </div>
-        <div className="flex items-start gap-3 rounded-2xl border border-white/5 bg-surface/30 backdrop-blur-xl p-3 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:bg-surface/40 transition-colors">
-          <span className="mt-0.5 font-serif text-lg leading-none text-yellow-500/80 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]">"</span>
-          <p className="text-xs font-medium italic text-slate-400/90 leading-relaxed tracking-wide">Small progress is still progress.</p>
-        </div>
-      </motion.div>
+      {/* === Top Section === */}
+      <div className="shrink-0 flex flex-col gap-3">
+        {/* Top Quotes Row */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <motion.div
+            whileHover={{ y: -1, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="flex items-center gap-3 rounded-xl border border-yellow-500/10 bg-gradient-to-br from-slate-900/60 via-slate-800/30 to-slate-900/60 backdrop-blur-xl py-3 px-4 shadow-[0_2px_16px_rgba(0,0,0,0.3)] relative overflow-hidden group cursor-default"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/[0.04] to-transparent pointer-events-none" />
+            <span className="shrink-0 font-serif text-lg leading-none text-yellow-400/70 relative z-10">"</span>
+            <p className="text-[11px] font-medium italic text-slate-400/90 leading-snug tracking-wide relative z-10 truncate">Discipline is choosing between what you want now and what you want most.</p>
+          </motion.div>
+          <motion.div
+            whileHover={{ y: -1, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="flex items-center gap-3 rounded-xl border border-yellow-500/10 bg-gradient-to-br from-slate-900/60 via-slate-800/30 to-slate-900/60 backdrop-blur-xl py-3 px-4 shadow-[0_2px_16px_rgba(0,0,0,0.3)] relative overflow-hidden group cursor-default"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/[0.04] to-transparent pointer-events-none" />
+            <span className="shrink-0 font-serif text-lg leading-none text-yellow-400/70 relative z-10">"</span>
+            <p className="text-[11px] font-medium italic text-slate-400/90 leading-snug tracking-wide relative z-10 truncate">Small progress is still progress.</p>
+          </motion.div>
+        </motion.div>
 
-      {/* Title */}
-      <motion.div variants={itemVariants} className="shrink-0 flex items-center gap-2 z-10 relative">
-        <svg className="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
-        <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h1 className="text-xs sm:text-sm font-black tracking-widest leading-none uppercase text-slate-400">Dashboard</h1>
+        {/* Title */}
+        <motion.div variants={itemVariants} className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border border-blue-500/20 shrink-0 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
+            <svg className="w-3 h-3 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+          </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <h1 className="text-[11px] font-black tracking-[0.25em] leading-none uppercase bg-gradient-to-r from-slate-300 to-slate-500 bg-clip-text text-transparent shrink-0">Dashboard</h1>
             <button
               type="button"
-              className="shrink-0 rounded p-0.5 text-slate-500 hover:text-cyan-400/90 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 z-10 relative"
+              className="shrink-0 rounded p-0.5 text-slate-600 hover:text-cyan-400 transition-colors duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500 z-10 relative"
               title={PROGRESS_CALC_TOOLTIP}
               aria-label="How portfolio progress is calculated"
             >
-              <Info className="w-3.5 h-3.5" strokeWidth={2} aria-hidden />
+              <Info className="w-3 h-3" strokeWidth={2.5} aria-hidden />
             </button>
+            <span className="text-[10px] text-slate-600/80 hidden md:block truncate font-medium">
+              Calendar &amp; sessions use your device time zone.
+            </span>
           </div>
-          <p className="text-[9px] text-slate-500 mt-0.5 max-w-xl truncate">
-            Calendar &amp; sessions use your device time zone (sent to the server for matching progress).
-          </p>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[35vh] z-10 relative">
-        {periodData.map((p, i) => (
-          <motion.div
-            key={p.title}
-            variants={itemVariants}
-            whileHover={{ scale: 1.02, y: -4, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="p-4 rounded-[24px] bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col gap-3 relative overflow-hidden group"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            <div className="absolute inset-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-[24px] pointer-events-none" />
-            <div className="flex flex-col">
-              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-                {p.title}
-              </h3>
-              <span className="text-xl sm:text-2xl font-bold text-white mt-0.5 drop-shadow-sm leading-none">
-                {p.hasData ? `${p.pct}%` : '—'}
-              </span>
-              <p className="text-[9px] text-slate-500 mt-1 leading-tight opacity-80">{p.sub}</p>
-            </div>
-            <div className="flex-1 w-full min-h-[32px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
-                  <defs>
-                    <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={p.barStart} />
-                      <stop offset="100%" stopColor={p.barEnd} />
-                    </linearGradient>
-                  </defs>
-                  <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                    {p.history.map((h, hi) => (
-                      <Cell
-                        key={hi}
-                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.05)'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+        {/* Period Stats Row */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {periodData.map((p, i) => {
+            const glows = [
+              '0 4px 24px rgba(37,99,235,0.18), 0 1px 0 rgba(255,255,255,0.04) inset',
+              '0 4px 24px rgba(147,51,234,0.18), 0 1px 0 rgba(255,255,255,0.04) inset',
+              '0 4px 24px rgba(6,182,212,0.18), 0 1px 0 rgba(255,255,255,0.04) inset',
+              '0 4px 24px rgba(16,185,129,0.18), 0 1px 0 rgba(255,255,255,0.04) inset',
+            ];
+            const hoverGlows = [
+              '0 8px 32px rgba(37,99,235,0.30), 0 1px 0 rgba(255,255,255,0.06) inset',
+              '0 8px 32px rgba(147,51,234,0.30), 0 1px 0 rgba(255,255,255,0.06) inset',
+              '0 8px 32px rgba(6,182,212,0.30), 0 1px 0 rgba(255,255,255,0.06) inset',
+              '0 8px 32px rgba(16,185,129,0.30), 0 1px 0 rgba(255,255,255,0.06) inset',
+            ];
+            const fromColors = [
+              'from-blue-500/[0.07]', 'from-purple-500/[0.07]',
+              'from-cyan-500/[0.07]', 'from-emerald-500/[0.07]',
+            ];
+            const borderColors = [
+              'border-blue-500/[0.12]', 'border-purple-500/[0.12]',
+              'border-cyan-500/[0.12]', 'border-emerald-500/[0.12]',
+            ];
+            const labelColors = [
+              'text-blue-400/80', 'text-purple-400/80',
+              'text-cyan-400/80', 'text-emerald-400/80',
+            ];
+            return (
+              <motion.div
+                key={p.title}
+                variants={itemVariants}
+                whileHover={{ scale: 1.025, y: -3, boxShadow: hoverGlows[i] }}
+                whileTap={{ scale: 0.975 }}
+                style={{ boxShadow: glows[i] }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className={`p-4 rounded-2xl bg-gradient-to-br ${fromColors[i]} via-slate-900/50 to-slate-900/80 backdrop-blur-xl border ${borderColors[i]} flex flex-col gap-3 relative group overflow-hidden cursor-default`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
+                <div className="flex flex-col relative z-10">
+                  <h3 className={`text-[10px] font-bold uppercase tracking-[0.18em] ${labelColors[i]}`}>
+                    {p.title}
+                  </h3>
+                  <span className="text-2xl font-black text-white mt-0.5 leading-none tracking-tight" style={{ textShadow: '0 0 20px rgba(255,255,255,0.15)' }}>
+                    {p.hasData ? `${p.pct}%` : '—'}
+                  </span>
+                  <p className="text-[10px] text-slate-500/60 mt-1.5 leading-snug font-medium line-clamp-1">{p.sub}</p>
+                </div>
+                <div className="flex-1 w-full min-h-[32px] relative z-10">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={p.history} margin={{ top: 0, left: 0, right: 0, bottom: 0 }} barSize={4}>
+                      <defs>
+                        <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={p.barStart} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={p.barEnd} stopOpacity={0.5} />
+                        </linearGradient>
+                      </defs>
+                      <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                        {p.history.map((h, hi) => (
+                          <Cell
+                            key={hi}
+                            fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.04)'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
 
-      {/* Activity Trend + Daily Progress */}
-      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch z-10 relative">
+      {/* === Bottom Section === */}
+      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
         {/* Activity Trend */}
-        <div className="lg:col-span-1 p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-lg flex flex-col min-h-[300px]">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Activity Trend</h3>
-          <div className="flex-1 w-full h-full min-h-0">
+        <motion.div
+          whileHover={{ boxShadow: '0 12px 48px rgba(139,92,246,0.18)' }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.04) inset' }}
+          className="h-full p-4 rounded-2xl bg-gradient-to-br from-violet-500/[0.06] via-slate-900/50 to-slate-900/80 backdrop-blur-xl border border-violet-500/[0.1] flex flex-col min-h-0 relative overflow-hidden group cursor-default"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.025] to-transparent pointer-events-none" />
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-400/70 mb-2 relative z-10 shrink-0">Activity Trend</h3>
+          <div className="flex-1 w-full min-h-0 relative z-10">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={weeklyTrend} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.5} />
+                    <stop offset="60%" stopColor="#6d28d9" stopOpacity={0.15} />
                     <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" stroke="#64748b" fontSize="10" tickLine={false} axisLine={false} dy={10} />
-                <YAxis 
-                  stroke="#475569"
-                  fontSize="10"
-                  tickLine={false} 
+                <XAxis dataKey="name" stroke="#334155" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} dy={6} tick={{ fill: '#64748b' }} />
+                <YAxis
+                  stroke="#334155"
+                  fontSize={10}
+                  fontWeight={600}
+                  tickLine={false}
                   axisLine={false}
-                  dx={-10}
+                  dx={-4}
                   tickFormatter={(val) => `${val}%`}
                   domain={[0, 100]}
+                  tick={{ fill: '#64748b' }}
                 />
-                <Area type="monotone" dataKey="progress" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#areaGrad)" animationDuration={1500} />
+                <Area type="monotone" dataKey="progress" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#areaGrad)" animationDuration={1500} dot={{ fill: '#8b5cf6', r: 3, strokeWidth: 0 }} activeDot={{ r: 4, fill: '#a78bfa', strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Side */}
-        <div className="flex flex-col gap-3 h-full min-h-0">
-          <div className="flex-1 p-2 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center relative min-h-0">
-            <div className="absolute top-3 left-4 z-10">
-              <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Today</h3>
-            </div>
-            <div className="w-full h-full flex items-center justify-center">
+        <div className="h-full flex flex-col gap-3 min-h-0">
+          {/* Today — hero radial card ~60% */}
+          <motion.div
+            whileHover={{ boxShadow: '0 16px 56px rgba(59,130,246,0.28), 0 0 0 1px rgba(59,130,246,0.15)' }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            style={{ boxShadow: '0 8px 40px rgba(59,130,246,0.15), 0 0 0 1px rgba(59,130,246,0.08)' }}
+            className="flex-[3] min-h-0 pt-4 pb-2 px-4 rounded-2xl bg-gradient-to-b from-blue-950/60 via-slate-900/50 to-slate-900/80 backdrop-blur-2xl border border-blue-500/[0.15] flex flex-col relative group overflow-hidden cursor-default"
+          >
+            {/* Ambient glow layer */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.06] via-transparent to-cyan-500/[0.03] pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent" />
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-blue-400/70 shrink-0 mb-1 relative z-10">Today</h3>
+            <div className="flex-1 min-h-0 flex items-center justify-center relative z-10">
               <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="65%" outerRadius="85%" barSize={8} data={radialData} startAngle={90} endAngle={-270}>
+                <RadialBarChart cx="50%" cy="50%" innerRadius="64%" outerRadius="84%" barSize={9} data={radialData} startAngle={90} endAngle={-270}>
                   <defs>
                     <linearGradient id="radialGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" />
+                      <stop offset="0%" stopColor="#60a5fa" />
                       <stop offset="100%" stopColor="#06b6d4" />
                     </linearGradient>
+                    <filter id="radialGlow">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
                   </defs>
-                  <RadialBar dataKey="value" cornerRadius={5} />
+                  <RadialBar dataKey="value" cornerRadius={5} filter="url(#radialGlow)" />
                 </RadialBarChart>
               </ResponsiveContainer>
-              <div className="absolute flex flex-col items-center justify-center">
-                <span className="text-3xl font-black text-white drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">{dailyHasData ? dailyPct : 0}%</span>
-                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Daily Target</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span
+                  className="text-3xl font-black text-white tracking-tight leading-none"
+                  style={{ textShadow: '0 0 30px rgba(96,165,250,0.6), 0 0 60px rgba(6,182,212,0.3)' }}
+                >
+                  {dailyHasData ? dailyPct : 0}%
+                </span>
+                <span className="text-[9px] font-semibold text-blue-400/60 uppercase tracking-[0.14em] mt-2">Daily Target</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* 2x2 Summary Grid */}
-          <div className="flex-1 grid grid-cols-2 gap-3 h-full min-h-0">
-            {[
-              { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
-              { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
-              { label: 'Journals', value: entries.length, color: 'text-purple-400' },
-              { label: 'Failures', value: failures.length, color: 'text-rose-400' }
-            ].map((stat, i) => (
+          {/* 2×2 Summary Grid — ~40% */}
+          <div className="flex-[2] min-h-0 grid grid-cols-2 gap-3">
+            {([
+              { label: 'Goals',    value: goals.length,    color: 'text-cyan-300',   glow: 'rgba(6,182,212,0.20)',   border: 'border-cyan-500/[0.12]',   from: 'from-cyan-500/[0.06]'    },
+              { label: 'Sessions', value: sessions.length,  color: 'text-blue-300',   glow: 'rgba(59,130,246,0.20)',  border: 'border-blue-500/[0.12]',   from: 'from-blue-500/[0.06]'    },
+              { label: 'Journals', value: entries.length,   color: 'text-purple-300', glow: 'rgba(168,85,247,0.20)', border: 'border-purple-500/[0.12]', from: 'from-purple-500/[0.06]'  },
+              { label: 'Failures', value: failures.length,  color: 'text-rose-300',   glow: 'rgba(244,63,94,0.20)',  border: 'border-rose-500/[0.12]',   from: 'from-rose-500/[0.06]'    },
+            ] as const).map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
-                whileHover={{ scale: 1.02, y: -2, boxShadow: '0 15px 30px -10px rgba(0,0,0,0.5)' }}
-                className="p-2 py-3 rounded-2xl bg-surface/40 backdrop-blur-2xl border border-white/5 flex flex-col items-center justify-center text-center shadow-lg relative group h-full w-full"
+                transition={{ delay: 0.2 + i * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ scale: 1.04, y: -2, boxShadow: `0 8px 28px ${stat.glow}` }}
+                whileTap={{ scale: 0.96 }}
+                style={{ boxShadow: `0 2px 16px ${stat.glow.replace('0.20', '0.10')}` }}
+                className={`rounded-xl bg-gradient-to-br ${stat.from} via-slate-900/50 to-slate-900/80 backdrop-blur-xl border ${stat.border} flex flex-col items-center justify-center text-center relative group overflow-hidden cursor-default`}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                <span className={`text-lg font-bold ${stat.color} drop-shadow-sm leading-none`}>{stat.value}</span>
-                <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5 leading-none">{stat.label}</span>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
+                <span className={`text-xl font-black ${stat.color} leading-none relative z-10`} style={{ textShadow: `0 0 16px ${stat.glow}` }}>{stat.value}</span>
+                <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-[0.16em] mt-1.5 leading-none relative z-10">{stat.label}</span>
               </motion.div>
             ))}
           </div>

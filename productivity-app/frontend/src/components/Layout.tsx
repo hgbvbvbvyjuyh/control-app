@@ -69,7 +69,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex flex-1 min-h-screen w-full bg-[#0F172A] font-sans text-text selection:bg-accent/30 selection:text-white">
+    <div className="flex h-screen w-full bg-[#0F172A] font-sans text-text selection:bg-accent/30 selection:text-white overflow-hidden">
       <ConfirmModal />
       <ToastContainer />
       
@@ -138,7 +138,7 @@ export const Layout = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10 flex flex-col bg-transparent">
+      <main className="relative z-10 flex-1 min-h-0 overflow-hidden flex flex-col bg-transparent">
         <AnimatePresence mode="wait">
           <motion.div 
             key={location.pathname}
@@ -146,7 +146,7 @@ export const Layout = () => {
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
             exit={{ opacity: 0, y: -10, filter: 'blur(8px)', scale: 0.99 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full flex-1 flex flex-col min-h-0"
+            className="w-full h-full flex-1 flex flex-col min-h-0"
           >
             <Outlet />
           </motion.div>
