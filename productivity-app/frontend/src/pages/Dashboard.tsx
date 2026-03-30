@@ -310,7 +310,7 @@ export const Dashboard = () => {
               { label: 'Sessions', value: sessions.length,  color: 'text-violet-400', bg: 'bg-violet-400/10' },
               { label: 'Journals', value: entries.length,   color: 'text-cyan-400',   bg: 'bg-cyan-400/10' },
               { label: 'Failures', value: failures.length,  color: 'text-rose-400',   bg: 'bg-rose-400/10' },
-            ].map((stat, i) => (
+            ].map((stat) => (
               <motion.div
                 key={stat.label}
                 variants={itemVariants}
