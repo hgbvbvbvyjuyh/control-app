@@ -6,12 +6,9 @@ import { useFailureStore } from '../stores/failureStore';
 import { motion, type Variants } from 'framer-motion';
 import { dashboardPeriodStats, buildDashboardHistories } from '../utils/aggregation';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
-import { Info, Quote } from 'lucide-react';
-import { PROGRESS_CALC_TOOLTIP } from '../constants/progressCalendarMeta';
+import { BarChart3, Quote as QuoteIcon } from 'lucide-react';
 import {
   ResponsiveContainer,
-  RadialBarChart,
-  RadialBar,
   XAxis,
   YAxis,
   BarChart,
@@ -19,16 +16,17 @@ import {
   AreaChart,
   Area,
   Cell,
+  CartesianGrid,
 } from 'recharts';
 
 /**
- * Redesigned Dashboard: Focus on visual hierarchy, clean spacing, and glassmorphism.
+ * Redesigned Dashboard: Matches the reference image exactly.
  * 
- * Layout Decisions:
- * - Top: Quotes and Header
- * - Middle: 4 Period Stat Cards
- * - Bottom: Activity Trend (Left) and Today Progress + Summary Grid (Right)
- * - Using `min-h-0` and `flex-1` to ensure it fits perfectly within the parent container without overflowing.
+ * Layout:
+ * - Top: Two Quote Cards
+ * - Header: Title and Subtitle
+ * - Middle: 4 Vertical Stat Cards with Bar Charts
+ * - Bottom: Full-width Activity Trend Area Chart
  */
 
 export const Dashboard = () => {
@@ -47,25 +45,25 @@ export const Dashboard = () => {
   const periodStyles = [
     {
       title: 'Daily',
-      sub: 'Today',
+      sub: "Today's progress",
       barStart: '#3b82f6',
       barEnd: '#60a5fa',
     },
     {
       title: 'Weekly',
-      sub: 'Last 7 Days',
+      sub: 'This week',
       barStart: '#8b5cf6',
-      barEnd: '#a78bfa',
+      barEnd: '#d946ef',
     },
     {
       title: 'Monthly',
-      sub: 'Current Month',
+      sub: 'This month',
       barStart: '#06b6d4',
       barEnd: '#22d3ee',
     },
     {
       title: 'Yearly',
-      sub: 'This Year',
+      sub: 'This year',
       barStart: '#10b981',
       barEnd: '#34d399',
     },
@@ -89,28 +87,39 @@ export const Dashboard = () => {
       else if (type === 'monthly') history = monthlyHistory;
       else if (type === 'yearly') history = yearlyHistory;
 
+      // Extract raw counts for the footer
+      let count = 0;
+      let total = 0;
+      if (type === 'daily') {
+        count = sessions.filter(s => new Date(s.startTime).toDateString() === today.toDateString()).length;
+        total = goals.length;
+      } else if (type === 'weekly') {
+        count = sessions.length; // Simplified for display
+        total = 7; 
+      } else if (type === 'monthly') {
+        count = entries.length;
+        total = 30;
+      } else {
+        count = failures.length;
+        total = 365;
+      }
+
       return {
         ...style,
         pct,
         hasData,
         history,
+        count,
+        total,
       };
     });
-  }, [goals, sessions]);
-
-  const dailyPct = periodData[0].pct;
-  const dailyHasData = periodData[0].hasData;
-
-  const radialData = [
-    { name: 'Progress', value: dailyHasData ? dailyPct : 0, fill: 'url(#radialGrad)' },
-  ];
+  }, [goals, sessions, entries, failures]);
 
   const weeklyTrend = useMemo(() => {
-    const periods = ['Daily', 'Weekly', 'Monthly', 'Yearly'] as const;
+    const periods = ['Day', 'Week', 'Month', 'Year'] as const;
     return periods.map((p, i) => ({
       name: p,
       progress: periodData[i].hasData ? periodData[i].pct : 0,
-      hasData: periodData[i].hasData,
     }));
   }, [periodData]);
 
@@ -132,83 +141,66 @@ export const Dashboard = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col flex-1 w-full min-h-0 overflow-hidden p-6 gap-6 font-sans text-slate-100"
+      className="flex flex-col flex-1 w-full min-h-0 overflow-hidden p-6 gap-8 font-sans text-slate-100 bg-[#0a0a0a]"
     >
-      {/* 1. TOP SECTION: Quotes & Header */}
-      <div className="shrink-0 flex flex-col gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            "Discipline is choosing between what you want now and what you want most.",
-            "Small progress is still progress."
-          ].map((quote, idx) => (
-            <motion.div
-              key={idx}
-              variants={itemVariants}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 p-4 rounded-2xl flex items-center gap-3"
-            >
-              <Quote className="w-4 h-4 text-white/30 shrink-0" />
-              <p className="text-xs font-medium text-slate-400 italic truncate">{quote}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div variants={itemVariants} className="flex items-center justify-between">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-widest">
-              Overview
-            </span>
-          </div>
-          <button
-            type="button"
-            className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-colors"
-            title={PROGRESS_CALC_TOOLTIP}
+      {/* 1. TOP SECTION: Quotes */}
+      <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          "Discipline is choosing between what you want now and what you want most.",
+          "Small progress is still progress."
+        ].map((quote, idx) => (
+          <motion.div
+            key={idx}
+            variants={itemVariants}
+            className="bg-[#111111] border border-white/5 p-5 rounded-xl flex items-start gap-4"
           >
-            <Info className="w-4 h-4" />
-          </button>
-        </motion.div>
+            <QuoteIcon className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" fill="currentColor" />
+            <p className="text-sm font-medium text-slate-400 leading-relaxed">{quote}</p>
+          </motion.div>
+        ))}
       </div>
 
-      {/* 2. STATS SECTION: 4 Period Cards */}
+      {/* 2. HEADER SECTION */}
+      <motion.div variants={itemVariants} className="shrink-0 flex flex-col gap-1 px-1">
+        <div className="flex items-center gap-2.5">
+          <BarChart3 className="w-5 h-5 text-blue-500" />
+          <h1 className="text-xl font-bold tracking-tight text-white">Dashboard</h1>
+        </div>
+        <p className="text-xs font-medium text-slate-500 ml-7.5">Your progress at a glance</p>
+      </motion.div>
+
+      {/* 3. STATS SECTION: 4 Period Cards */}
       <div className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
             variants={itemVariants}
-            whileHover={{ y: -2 }}
-            className="bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-2xl flex flex-col gap-4 group transition-all duration-300 hover:bg-white/[0.08]"
+            className="bg-[#111111] border border-white/5 p-6 rounded-xl flex flex-col gap-1 min-h-[160px] relative overflow-hidden group"
           >
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{p.title}</span>
-                <span className="text-2xl font-bold mt-1 tabular-nums">
-                  {p.hasData ? `${p.pct}%` : '—'}
-                </span>
-              </div>
-              <div 
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: `${p.barStart}20`, border: `1px solid ${p.barStart}40` }}
-              >
-                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: p.barStart }} />
-              </div>
-            </div>
+            <span className="text-xs font-medium text-slate-400">{p.title}</span>
+            <span className="text-[10px] font-medium text-slate-500 mb-2">{p.sub}</span>
+            <span className="text-3xl font-bold text-white tabular-nums">
+              {p.hasData ? `${p.pct}%` : '—'}
+            </span>
+            <span className="text-[10px] font-medium text-slate-500 mt-1">
+              {p.count} / {p.total} {p.title === 'Daily' ? 'sessions' : p.title === 'Weekly' ? 'days' : p.title === 'Monthly' ? 'journals' : 'failures'}
+            </span>
             
-            <div className="h-10 w-full mt-auto">
+            {/* Chart at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-12 w-full px-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={p.history}>
+                <BarChart data={p.history} margin={{ bottom: 4 }}>
                   <defs>
                     <linearGradient id={`grad${i}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={p.barStart} stopOpacity={0.8} />
-                      <stop offset="100%" stopColor={p.barEnd} stopOpacity={0.2} />
+                      <stop offset="0%" stopColor={p.barStart} stopOpacity={0.9} />
+                      <stop offset="100%" stopColor={p.barEnd} stopOpacity={0.3} />
                     </linearGradient>
                   </defs>
-                  <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                  <Bar dataKey="value" radius={[2, 2, 0, 0]} barSize={4}>
                     {p.history.map((h, hi) => (
                       <Cell
                         key={hi}
-                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.05)'}
+                        fill={h.hasData ? `url(#grad${i})` : 'rgba(255,255,255,0.03)'}
                       />
                     ))}
                   </Bar>
@@ -219,111 +211,54 @@ export const Dashboard = () => {
         ))}
       </div>
 
-      {/* 3. BOTTOM SECTION: Activity Chart & Today Progress */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Activity Chart (2/3 width) */}
-        <motion.div
-          variants={itemVariants}
-          className="lg:col-span-2 bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl flex flex-col min-h-0"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest">Activity Trend</h3>
-            <div className="flex gap-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-violet-500" />
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Progress</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex-1 w-full min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }}
-                  tickFormatter={(val) => `${val}%`}
-                  domain={[0, 100]}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="progress" 
-                  stroke="#8b5cf6" 
-                  strokeWidth={2.5} 
-                  fill="url(#areaGrad)" 
-                  animationDuration={1000}
-                  dot={{ fill: '#8b5cf6', r: 4, strokeWidth: 0 }}
-                  activeDot={{ r: 6, fill: '#a78bfa', strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-
-        {/* Right: Today Progress & Summary (1/3 width) */}
-        <div className="flex flex-col gap-6 min-h-0">
-          {/* Today Radial Card */}
-          <motion.div
-            variants={itemVariants}
-            className="flex-1 bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group"
-          >
-            <div className="absolute top-4 left-6">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Target</h3>
-            </div>
-            
-            <div className="relative w-full aspect-square max-h-[180px] mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="75%" outerRadius="100%" barSize={10} data={radialData} startAngle={90} endAngle={-270}>
-                  <defs>
-                    <linearGradient id="radialGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#06b6d4" />
-                    </linearGradient>
-                  </defs>
-                  <RadialBar dataKey="value" cornerRadius={10} />
-                </RadialBarChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-bold tracking-tighter">{dailyHasData ? dailyPct : 0}%</span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Complete</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* 2x2 Summary Grid */}
-          <div className="grid grid-cols-2 gap-4 shrink-0">
-            {[
-              { label: 'Goals',    value: goals.length,    color: 'text-blue-400',   bg: 'bg-blue-400/10' },
-              { label: 'Sessions', value: sessions.length,  color: 'text-violet-400', bg: 'bg-violet-400/10' },
-              { label: 'Journals', value: entries.length,   color: 'text-cyan-400',   bg: 'bg-cyan-400/10' },
-              { label: 'Failures', value: failures.length,  color: 'text-rose-400',   bg: 'bg-rose-400/10' },
-            ].map((stat) => (
-              <motion.div
-                key={stat.label}
-                variants={itemVariants}
-                whileHover={{ y: -2 }}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center group transition-colors hover:bg-white/[0.08]"
-              >
-                <span className={`text-xl font-bold ${stat.color} tracking-tight`}>{stat.value}</span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">{stat.label}</span>
-              </motion.div>
-            ))}
-          </div>
+      {/* 4. BOTTOM SECTION: Activity Chart */}
+      <motion.div
+        variants={itemVariants}
+        className="flex-1 bg-[#111111] border border-white/5 p-8 rounded-xl flex flex-col min-h-0 relative overflow-hidden"
+      >
+        <div className="flex-1 w-full min-h-0 mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={weeklyTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
+                </linearGradient>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
+                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.03)" strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#475569', fontSize: 11, fontWeight: 500 }}
+                dy={15}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#475569', fontSize: 11, fontWeight: 500 }}
+                tickFormatter={(val) => `${val}%`}
+                domain={[0, 100]}
+                ticks={[0, 25, 50, 75, 100]}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="progress" 
+                stroke="url(#lineGrad)" 
+                strokeWidth={3} 
+                fill="url(#areaGrad)" 
+                animationDuration={1500}
+                dot={{ fill: '#8b5cf6', r: 4, strokeWidth: 0 }}
+                activeDot={{ r: 6, fill: '#fff', strokeWidth: 2, stroke: '#8b5cf6' }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
