@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, Archive } from 'lucide-react';
+import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { exportAllData } from '../utils/dataExport';
 import { db } from '../db';
