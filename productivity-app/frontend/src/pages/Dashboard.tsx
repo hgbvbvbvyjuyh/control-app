@@ -3,7 +3,7 @@ import { useGoalStore } from '../stores/goalStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { useJournalStore } from '../stores/journalStore';
 import { useFailureStore } from '../stores/failureStore';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { dashboardPeriodStats, buildDashboardHistories } from '../utils/aggregation';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
 import { Info } from 'lucide-react';
@@ -26,6 +26,8 @@ export const Dashboard = () => {
   const { sessions, load: loadSessions } = useSessionStore();
   const { entries, load: loadJournals } = useJournalStore();
   const { failures, load: loadFailures } = useFailureStore();
+
+  console.log('Dashboard active', { entriesCount: entries.length, failuresCount: failures.length });
 
   useEffect(() => {
     loadGoals();
@@ -104,22 +106,40 @@ export const Dashboard = () => {
     }));
   }, [periodData]);
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 15, filter: 'blur(4px)' },
+    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+  };
+
   return (
-    <div className="flex flex-col flex-1 h-full w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100 overflow-hidden">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-col flex-1 h-full w-full min-h-0 p-3 md:p-4 gap-3 font-sans text-slate-100 overflow-hidden"
+    >
       {/* Top Quotes Row */}
-      <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-lg">
-          <span className="mt-0.5 font-serif text-sm leading-none text-yellow-500">"</span>
-          <p className="text-[10px] font-medium italic text-slate-400 leading-tight">Discipline is choosing between what you want now and what you want most.</p>
+      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="flex items-start gap-3 rounded-2xl border border-white/5 bg-surface/30 backdrop-blur-xl p-3 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:bg-surface/40 transition-colors">
+          <span className="mt-0.5 font-serif text-lg leading-none text-yellow-500/80 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]">"</span>
+          <p className="text-xs font-medium italic text-slate-400/90 leading-relaxed tracking-wide">Discipline is choosing between what you want now and what you want most.</p>
         </div>
-        <div className="flex items-start gap-3 rounded-xl border border-white/5 bg-[#13151A] p-2 px-3 shadow-lg">
-          <span className="mt-0.5 font-serif text-sm leading-none text-yellow-500">"</span>
-          <p className="text-[10px] font-medium italic text-slate-400 leading-tight">Small progress is still progress.</p>
+        <div className="flex items-start gap-3 rounded-2xl border border-white/5 bg-surface/30 backdrop-blur-xl p-3 px-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:bg-surface/40 transition-colors">
+          <span className="mt-0.5 font-serif text-lg leading-none text-yellow-500/80 drop-shadow-[0_0_8px_rgba(234,179,8,0.3)]">"</span>
+          <p className="text-xs font-medium italic text-slate-400/90 leading-relaxed tracking-wide">Small progress is still progress.</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Title */}
-      <div className="shrink-0 flex items-center gap-2">
+      <motion.div variants={itemVariants} className="shrink-0 flex items-center gap-2">
         <svg className="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
@@ -137,15 +157,19 @@ export const Dashboard = () => {
             Calendar &amp; sessions use your device time zone (sent to the server for matching progress).
           </p>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <motion.div variants={itemVariants} className="shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {periodData.map((p, i) => (
           <motion.div
             key={p.title}
-            whileHover={{ scale: 1.01, y: -1 }}
-            className="p-3 rounded-xl bg-slate-900/60 backdrop-blur-md border border-slate-800 shadow-lg shadow-black/20 flex flex-col gap-2"
+            variants={itemVariants}
+            whileHover={{ scale: 1.02, y: -4, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="p-4 rounded-[24px] bg-surface/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex flex-col gap-3 relative overflow-hidden group"
           >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-[24px] pointer-events-none" />
             <div className="flex flex-col">
               <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                 {p.title}
@@ -177,10 +201,10 @@ export const Dashboard = () => {
             </div>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Activity Trend + Daily Progress */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch pb-1">
+      <motion.div variants={itemVariants} className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch pb-1">
         {/* Activity Trend — 2/3 width on large screens */}
         <div className="lg:col-span-2 p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col">
           <div className="flex-1 min-h-0 w-full">
@@ -192,77 +216,46 @@ export const Dashboard = () => {
                     <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} dy={10} />
+                <XAxis dataKey="name" stroke="#64748b" fontSize="10" tickLine={false} axisLine={false} dy={10} />
                 <YAxis 
-                  stroke="#475569" 
-                  fontSize={10} 
+                  stroke="#475569"
+                  fontSize="10"
                   tickLine={false} 
                   axisLine={false}
-                  domain={[0, 100]}
-                  ticks={[0, 25, 50, 75, 100]}
-                  tickFormatter={(v) => `${v}%`}
-                  tickMargin={10}
+                  dx={-10}
+                  tickFormatter={(val) => `${val}%`}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="progress" 
-                  stroke="#8b5cf6" 
-                  strokeWidth={2} 
-                  fill="url(#areaGrad)" 
-                  dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 0 }}
-                />
+                <Area type="monotone" dataKey="progress" stroke="#8b5cf6" strokeWidth={2} fillOpacity={1} fill="url(#areaGrad)" animationDuration={1500} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <div className="text-center mt-2 text-[9px] font-semibold uppercase tracking-widest text-slate-400 shrink-0">
-            Activity Trend
-          </div>
         </div>
 
-        {/* Daily Progress Circle & Stats — 1/3 width on large screens */}
-        <div className="lg:col-span-1 p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col justify-between h-full">
-          
-          {/* Centered Circle */}
-          <div className="relative flex-1 min-h-0 flex items-center justify-center w-full shrink">
+        {/* Daily Radial — 1/3 width on large screens */}
+        <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 shadow-lg shadow-black/20 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="absolute top-2 left-3">
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Today</h3>
+          </div>
+          <div className="flex-1 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" data={radialData} startAngle={90} endAngle={-270}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="90%" barSize={10} data={radialData} startAngle={90} endAngle={-270}>
                 <defs>
-                  <linearGradient id="radialGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#3b82f6" />
+                  <linearGradient id="radialGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#06b6d4" />
                   </linearGradient>
                 </defs>
-                <RadialBar dataKey="value" background={{ fill: 'rgba(255,255,255,0.05)' }} cornerRadius={12} />
+                <RadialBar dataKey="value" cornerRadius={5} />
               </RadialBarChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="flex flex-col items-center justify-center text-center">
-                <span className="text-2xl font-bold text-white drop-shadow-md leading-tight">
-                  {dailyHasData ? `${dailyPct}%` : '0%'}
-                </span>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">Daily</span>
-              </div>
+            <div className="absolute flex flex-col items-center justify-center">
+              <span className="text-3xl font-black text-white drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">{dailyHasData ? dailyPct : 0}%</span>
+              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Daily Target</span>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-2 mt-3 w-full shrink-0">
-            {[
-              { label: 'Goals', value: goals.length, color: 'text-cyan-400' },
-              { label: 'Sessions', value: sessions.length, color: 'text-blue-400' },
-              { label: 'Journals', value: entries.length, color: 'text-purple-400' },
-              { label: 'Failures', value: failures.length, color: 'text-rose-400' }
-            ].map(stat => (
-              <div key={stat.label} className="p-2 rounded-lg bg-slate-800/40 border border-slate-700/50 flex flex-col items-center justify-center text-center">
-                <span className={`text-lg font-bold ${stat.color} drop-shadow-md leading-none`}>{stat.value}</span>
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-
         </div>
-      </div>
-
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

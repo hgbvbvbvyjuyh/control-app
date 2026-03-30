@@ -1,6 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, Archive } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { exportAllData } from '../utils/dataExport';
 import { db } from '../db';
 import { ConfirmModal } from './ConfirmModal';
@@ -20,6 +20,7 @@ const navItems = [
 export const Layout = () => {
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
+  const location = useLocation();
 
   const handleExport = async () => {
     try {
@@ -73,41 +74,83 @@ export const Layout = () => {
       <ToastContainer />
       
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 shrink-0 border-r border-white/5 bg-background/40 backdrop-blur-xl flex-col pt-8 p-3 z-30">
-        <h1 className="text-2xl font-black mb-10 px-4 text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary tracking-tight">Control.</h1>
-        <div className="flex flex-col gap-2">
+      <aside className="hidden md:flex w-64 shrink-0 border-r border-white/5 bg-surface/40 backdrop-blur-2xl flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)]">
+        <motion.h1 
+          initial={{ opacity: 0, x: -20, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-2xl font-black mb-10 px-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent tracking-tighter drop-shadow-sm"
+        >
+          Control.
+        </motion.h1>
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+          }}
+          className="flex flex-col gap-2 relative"
+        >
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 p-3 rounded-xl transition-all ${
-                  isActive ? 'bg-primary/20 text-accent shadow-[0_0_15px_rgba(6,182,212,0.3)]' : 'hover:bg-white/5 text-secondary'
-                }`
-              }
+              className="relative rounded-xl outline-none"
             >
-              <item.icon size={20} />
-              <span className="font-semibold text-sm">{item.label}</span>
+              {({ isActive }) => (
+                <motion.div 
+                  variants={{
+                    hidden: { opacity: 0, x: -10 },
+                    visible: { opacity: 1, x: 0 }
+                  }}
+                  whileHover={{ scale: 1.02, x: 2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-colors relative z-10 ${
+                    isActive ? 'text-white' : 'text-secondary hover:text-white'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-white/10 border border-white/10 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_20px_rgba(59,130,246,0.1)] z-0"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <item.icon size={20} className="relative z-10" />
+                  <span className="font-medium text-sm tracking-wide relative z-10">{item.label}</span>
+                </motion.div>
+              )}
             </NavLink>
           ))}
-        </div>
+        </motion.div>
 
         {/* Bottom Actions */}
-        <div className="mt-auto flex flex-col gap-1 pt-6 border-t border-white/5 mb-4">
-          <button onClick={handleExport} className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-black text-secondary hover:text-accent p-3 transition-colors">
+        <div className="mt-auto flex flex-col gap-1 pt-6 border-t border-white/10 mb-4">
+          <motion.button whileHover={{ scale: 1.02, x: 2 }} whileTap={{ scale: 0.98 }} onClick={handleExport} className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-secondary hover:text-white p-3 transition-colors rounded-xl hover:bg-white/5">
             <Download size={14} /> Export Plan
-          </button>
-          <button onClick={handleClear} className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-black text-error/60 hover:text-error p-3 transition-colors">
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.02, x: 2 }} whileTap={{ scale: 0.98 }} onClick={handleClear} className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-error/80 hover:text-error p-3 transition-colors rounded-xl hover:bg-error/10">
             <Trash2 size={14} /> System Wipe
-          </button>
+          </motion.button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="relative z-10 flex-1 overflow-auto p-4 pb-24 no-scrollbar md:p-10 md:pb-10 flex flex-col">
-        <div className="w-full flex-1 flex flex-col min-h-0">
-          <Outlet />
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10, filter: 'blur(8px)', scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
+            exit={{ opacity: 0, y: -10, filter: 'blur(8px)', scale: 0.99 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full flex-1 flex flex-col min-h-0"
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Mobile Bottom Navigation */}

@@ -52,37 +52,42 @@ const GoalJournal = ({ goalId, goalType, goalCategory }: { goalId: string, goalT
       </div>
 
       {open && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-3 flex flex-col gap-3">
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="mb-4 flex flex-col gap-4 p-4 bg-surface/30 backdrop-blur-xl rounded-[24px] border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
           <div>
-            <label className="text-[10px] font-bold text-secondary uppercase mb-1 block">Did I complete my goals?</label>
+            <label className="text-[10px] font-bold text-secondary uppercase mb-1.5 block tracking-widest">Did I complete my goals?</label>
             <textarea
               rows={2}
               value={answers.completed}
               onChange={e => setAnswers(prev => ({ ...prev, completed: e.target.value }))}
-              className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
+              className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
             />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-secondary uppercase mb-1 block">What mistakes did I make?</label>
+            <label className="text-[10px] font-bold text-secondary uppercase mb-1.5 block tracking-widest">What mistakes did I make?</label>
             <textarea
               rows={2}
               value={answers.mistakes}
               onChange={e => setAnswers(prev => ({ ...prev, mistakes: e.target.value }))}
-              className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
+              className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
             />
           </div>
           <div>
-            <label className="text-[10px] font-bold text-secondary uppercase mb-1 block">How can I improve next time?</label>
+            <label className="text-[10px] font-bold text-secondary uppercase mb-1.5 block tracking-widest">How can I improve next time?</label>
             <textarea
               rows={2}
               value={answers.improvement}
               onChange={e => setAnswers(prev => ({ ...prev, improvement: e.target.value }))}
-              className="w-full bg-background border border-secondary/30 rounded-xl p-3 text-sm text-text focus:outline-none focus:border-accent resize-none"
+              className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
             />
           </div>
-          <button onClick={handleAdd} className="mt-1 bg-accent text-background text-xs font-bold px-4 py-2 rounded-lg hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-shadow w-fit">
+          <motion.button 
+            whileHover={{ scale: 1.02 }} 
+            whileTap={{ scale: 0.98 }}
+            onClick={handleAdd} 
+            className="mt-2 bg-accent text-background text-xs font-bold px-5 py-2.5 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all w-fit"
+          >
             Save Entry
-          </button>
+          </motion.button>
         </motion.div>
       )}
 
@@ -90,9 +95,15 @@ const GoalJournal = ({ goalId, goalType, goalCategory }: { goalId: string, goalT
         {goalEntries.length === 0 && !open && (
           <p className="text-secondary/50 text-xs text-center py-2">No journal entries for this goal yet.</p>
         )}
-        {goalEntries.map(e => (
-          <div key={e.id} className="bg-background/50 rounded-xl border border-secondary/20 p-3 group relative">
-            <span className="text-[10px] text-secondary/50 block mb-2">{e.date}</span>
+        {goalEntries.map((e, index) => (
+          <motion.div 
+            key={e.id} 
+            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ delay: index * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="bg-surface/40 backdrop-blur-2xl rounded-2xl border border-white/5 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] group relative"
+          >
+            <span className="text-[10px] text-secondary/70 font-semibold block mb-3">{e.date}</span>
             <div className="space-y-3">
               {e.content.goals && (
                 <div>
@@ -129,7 +140,7 @@ const GoalJournal = ({ goalId, goalType, goalCategory }: { goalId: string, goalT
               }}
               className="absolute top-2 right-2 text-error/30 hover:text-error text-xs opacity-0 group-hover:opacity-100 transition-opacity p-2 z-10"
             >✕</button>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -205,15 +216,15 @@ export const Goals = () => {
               return (
                 <div key={cat} onClick={() => setActiveCategory(cat)}>
                   <AntiGravity
-                    className="p-8 cursor-pointer border border-transparent hover:border-accent/40 bg-secondary/5 hover:bg-accent/5 group transition-all"
+                    className="p-8 cursor-pointer border border-white/5 hover:border-accent/40 bg-surface/30 backdrop-blur-xl hover:bg-accent/5 group transition-all rounded-[32px] shadow-lg shadow-black/20"
                   >
                     <div className="flex items-center gap-6">
-                      <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(6,182,212,0.2)]">
                         <Icon className="text-accent" size={32} />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold capitalize">{cat}</h2>
-                        <p className="text-secondary mt-1">{desc[cat]}</p>
+                        <h2 className="text-2xl font-bold capitalize tracking-tight">{cat}</h2>
+                        <p className="text-secondary mt-1 text-sm">{desc[cat]}</p>
                       </div>
                     </div>
                   </AntiGravity>
@@ -229,27 +240,27 @@ export const Goals = () => {
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
                 onClick={() => { setActiveCategory(null); select(undefined as any); }}
-                className="flex items-center gap-2 text-secondary hover:text-text transition-colors text-sm font-medium w-fit"
+                className="flex items-center gap-2 text-secondary hover:text-text transition-colors text-sm font-medium w-fit px-2 py-1 rounded-lg hover:bg-white/5"
               >
                 <ChevronLeft size={16} /> Back to Categories
               </button>
               <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold capitalize">{activeCategory}</h1>
-                <div className="flex gap-2">
-                  <button onClick={() => setShowFwModal(true)} className="text-xs bg-secondary/20 text-secondary hover:text-text px-3 py-2 rounded-lg transition-colors">
+                <h1 className="text-3xl font-bold capitalize tracking-tight">{activeCategory}</h1>
+                <div className="flex gap-3">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowFwModal(true)} className="text-xs bg-surface/50 border border-white/10 text-secondary hover:text-white px-4 py-2 rounded-xl transition-colors shadow-sm hover:bg-surface/80">
                     + Framework
-                  </button>
-                  <button onClick={() => setShowGoalModal(true)} className="bg-accent hover:bg-accent/80 text-background px-3 py-2 rounded-lg transition-colors shadow-lg shadow-accent/20 text-sm font-bold">
+                  </motion.button>
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowGoalModal(true)} className="bg-accent text-background px-5 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] text-sm font-bold">
                     + Goal
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </div>
 
             {goals.filter(g => g.goalType === activeCategory).length === 0 && (
-              <div className="flex flex-1 items-center justify-center h-full">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 items-center justify-center h-full">
                 <p className="text-secondary text-sm text-center">No {activeCategory} goals yet. Add one to get started.</p>
-              </div>
+              </motion.div>
             )}
 
             {goals.filter(g => g.goalType === activeCategory).map((goal, i) => (
@@ -261,17 +272,19 @@ export const Goals = () => {
                 onClick={() => select(goal.id!)}
               >
                 <AntiGravity
-                  className={`p-4 cursor-pointer border transition-colors ${
-                    String(selectedGoalId) === String(goal.id) ? 'border-accent/60 bg-accent/5' : 'border-transparent hover:border-secondary/40'
+                  className={`p-4 cursor-pointer border rounded-[20px] transition-all duration-300 ${
+                    String(selectedGoalId) === String(goal.id) 
+                      ? 'border-primary/50 bg-primary/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_20px_rgba(59,130,246,0.15)] scale-[1.02]' 
+                      : 'border-white/5 bg-surface/30 backdrop-blur-md hover:border-white/20 hover:bg-surface/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:scale-[1.01]'
                   }`}
                 >
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[10px] uppercase tracking-wider text-accent/70 font-semibold leading-none">{getFrameworkName(goal.frameworkId)}</span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] uppercase tracking-widest text-primary/80 font-bold leading-none">{getFrameworkName(goal.frameworkId)}</span>
                         </div>
-                        <h3 className="font-semibold text-lg mt-0.5 flex items-center gap-2">
+                        <h3 className="font-semibold text-lg mt-0.5 flex items-center gap-2 text-white">
                           <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
                             (goal.category || 'health') === 'spirituality' ? 'bg-blue-500/20 text-blue-400' :
                             (goal.category || 'health') === 'finance' ? 'bg-yellow-500/20 text-yellow-500' :
@@ -300,21 +313,20 @@ export const Goals = () => {
             ))}
           </div>
 
-          {/* Goal Detail Panel */}
-          <div className="hidden md:flex flex-1 h-full flex-col bg-secondary/5 rounded-2xl border border-secondary/20 overflow-y-auto no-scrollbar relative">
+          <div className="hidden md:flex flex-1 h-full flex-col bg-surface/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl shadow-black/50 overflow-y-auto no-scrollbar relative overflow-hidden">
             {!selectedGoal ? (
               <div className="flex-1 flex items-center justify-center text-secondary/50 text-lg h-full">Select a goal to view details</div>
             ) : (
-              <div className="flex flex-col gap-0 h-full">
+              <div className="flex flex-col gap-0 h-full relative z-10">
                 {/* Header */}
-                <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-secondary/20 p-6 pb-4">
+                <div className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-white/10 p-6 pb-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] uppercase tracking-wider text-accent font-bold bg-accent/10 px-2 py-0.5 rounded">{selectedGoal.goalType || 'daily'}</span>
-                        <span className="text-[10px] text-secondary">{selectedFw?.name}</span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">{selectedGoal.goalType || 'daily'}</span>
+                        <span className="text-[10px] text-secondary font-medium tracking-wide">{selectedFw?.name}</span>
                       </div>
-                      <h2 className="text-2xl font-bold flex items-center gap-2">
+                      <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
                         <span className={`text-[12px] uppercase font-bold px-2 py-0.5 rounded leading-none ${
                             (selectedGoal.category || 'health') === 'spirituality' ? 'bg-blue-500/20 text-blue-400' :
                             (selectedGoal.category || 'health') === 'finance' ? 'bg-yellow-500/20 text-yellow-500' :
@@ -327,19 +339,23 @@ export const Goals = () => {
                       </h2>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => { setEditingGoal(selectedGoal); setShowGoalModal(true); }}
-                        className="bg-secondary/20 text-secondary hover:text-text hover:bg-secondary/30 px-4 py-2 rounded-xl transition-colors text-sm font-semibold"
+                        className="bg-surface/50 text-secondary hover:text-white border border-white/10 px-4 py-2 rounded-xl transition-colors text-sm font-semibold"
                       >
                         Edit
-                      </button>
+                      </motion.button>
                       {selectedGoal.goalType === 'daily' && (
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           onClick={() => navigate(`/session?goalId=${selectedGoal.id}`)}
                           className="bg-accent text-background font-bold py-2 px-5 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow text-sm"
                         >
                           + Session
-                        </button>
+                        </motion.button>
                       )}
                     </div>
                   </div>

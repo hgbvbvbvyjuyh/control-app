@@ -14,15 +14,19 @@ export const ConfirmModal = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-[6px] p-4" onClick={close}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 30 }}
-          onClick={e => e.stopPropagation()}
-          className="bg-background border border-secondary/30 rounded-3xl p-8 w-full max-w-sm shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border-white/10"
-        >
-          <div className="flex flex-col items-center text-center">
+      {isOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={close}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 30 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.3 }}
+            onClick={e => e.stopPropagation()}
+            className="bg-surface/50 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 md:p-10 w-full max-w-sm shadow-2xl shadow-black/80 relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 to-rose-400 opacity-60" />
+            
+            <div className="flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center mb-6 border border-error/20">
               <AlertCircle size={32} className="text-error" />
             </div>
@@ -49,6 +53,7 @@ export const ConfirmModal = () => {
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 };
