@@ -79,7 +79,7 @@ export const Layout = () => {
         FIX 2: The sidebar is now a direct child of the flex container.
         - `w-64` gives it a fixed width.
         - `shrink-0` prevents it from shrinking if the content is too wide.
-        - There is no `absolute` or `fixed` positioning, so it remains in the normal document flow.
+        - It has no `absolute` or `fixed` positioning, so it remains in the normal document flow.
       */}
       <aside className="hidden md:flex h-full w-64 shrink-0 flex-col pt-8 p-4 z-30 shadow-[4px_0_32px_rgba(0,0,0,0.4)] bg-surface/40 backdrop-blur-2xl border-r border-white/5">
         <motion.h1 
