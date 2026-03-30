@@ -80,26 +80,46 @@ export const Journal = () => {
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
       {/* MAIN CATEGORY SELECTION */}
       <div className="flex items-center gap-4 mb-12 shrink-0">
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setMainTab('daily')}
-          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border ${
+          className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border overflow-hidden ${
             mainTab === 'daily' 
               ? 'bg-accent/10 border-accent text-white shadow-[0_0_20px_rgba(34,211,238,0.15)]' 
               : 'bg-secondary/5 border-secondary/10 text-gray-500 hover:border-secondary/30 hover:text-gray-300'
           }`}
         >
-          1. Daily Journal
-        </button>
-        <button 
+          {mainTab === 'daily' && (
+            <motion.div
+              layoutId="activeJournalTab"
+              className="absolute inset-0 bg-accent/5 z-0"
+              initial={false}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">1. Daily Journal</span>
+        </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02, y: -2 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setMainTab('goals')}
-          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border ${
+          className={`relative px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border overflow-hidden ${
             mainTab === 'goals' 
               ? 'bg-accent/10 border-accent text-white shadow-[0_0_20px_rgba(34,211,238,0.15)]' 
               : 'bg-secondary/5 border-secondary/10 text-gray-500 hover:border-secondary/30 hover:text-gray-300'
           }`}
         >
-          2. Goals
-        </button>
+          {mainTab === 'goals' && (
+            <motion.div
+              layoutId="activeJournalTab"
+              className="absolute inset-0 bg-accent/5 z-0"
+              initial={false}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">2. Goals</span>
+        </motion.button>
       </div>
 
       {mainTab === 'daily' ? (
