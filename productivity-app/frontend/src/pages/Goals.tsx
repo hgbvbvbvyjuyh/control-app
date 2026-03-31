@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AntiGravity } from '../components/AntiGravity';
 import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
@@ -9,8 +9,9 @@ import { type Goal } from '../db';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FrameworkModal } from '../components/FrameworkModal';
 import { GoalModal } from '../components/GoalModal';
+import { JournalModal, type CompletionIntent, type JournalAnswers } from '../components/JournalModal';
 import { useConfirmStore } from '../stores/confirmStore';
-import { ChevronLeft, Calendar, Layout, Target, PieChart } from 'lucide-react';
+import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle } from 'lucide-react';
 
 import { calculateGoalProgress } from '../utils/aggregation';
 
@@ -149,7 +150,8 @@ const GoalJournal = ({ goalId, goalType, goalCategory }: { goalId: string, goalT
 
 // ---- Goals Page ----
 export const Goals = () => {
-  const { goals, load: loadGoals, selectedGoalId, select, remove: removeGoal } = useGoalStore();
+  const { goals, load: loadGoals, selectedGoalId, select, remove: removeGoal, patchStatus } = useGoalStore();
+  const { add: addJournal, load: loadJournals } = useJournalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
   const { sessions, load: loadSessions, remove: removeSession } = useSessionStore();
   const { confirm } = useConfirmStore();
@@ -160,10 +162,48 @@ export const Goals = () => {
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
   const [showFrameworkData, setShowFrameworkData] = useState(false);
 
+  // ── Goal journal modal state ──
+  const [journalModalOpen, setJournalModalOpen] = useState(false);
+  const [journalTargetGoal, setJournalTargetGoal] = useState<Goal | null>(null);
+  const [journalIntent, setJournalIntent] = useState<CompletionIntent>('completed');
+
+  const openGoalJournal = (goal: Goal, intent: CompletionIntent, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setJournalTargetGoal(goal);
+    setJournalIntent(intent);
+    setJournalModalOpen(true);
+  };
+
+  const handleGoalJournalSubmit = async (answers: JournalAnswers) => {
+    if (!journalTargetGoal || answers.type !== 'goal') return;
+    const today = new Date().toISOString().split('T')[0];
+    const goalType = journalTargetGoal.goalType as any;
+    const category = (journalTargetGoal.category || 'health') as any;
+
+    await addJournal(
+      goalType,
+      today,
+      {
+        goals: answers.completed,
+        problems: answers.mistakes,
+        ideas: answers.improvement,
+      },
+      String(journalTargetGoal.id),
+      category
+    );
+
+    const newStatus = journalIntent === 'completed' ? 'completed' : 'failed';
+    await patchStatus(String(journalTargetGoal.id), newStatus);
+
+    setJournalModalOpen(false);
+    setJournalTargetGoal(null);
+  };
+
   useEffect(() => {
     loadGoals();
     loadFrameworks();
     loadSessions();
+    loadJournals();
   }, []);
 
   const selectedGoal = goals.find(g => String(g.id) === String(selectedGoalId));
@@ -199,6 +239,13 @@ export const Goals = () => {
           initialType={activeCategory || 'daily'}
         />
       )}</AnimatePresence>
+      <JournalModal
+        open={journalModalOpen}
+        onClose={() => { setJournalModalOpen(false); setJournalTargetGoal(null); }}
+        journalType="goal"
+        intent={journalIntent}
+        onSubmit={handleGoalJournalSubmit}
+      />
 
       {!activeCategory ? (
         <div className="flex-1 flex flex-col">
@@ -283,6 +330,16 @@ export const Goals = () => {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-[10px] uppercase tracking-widest text-primary/80 font-bold leading-none">{getFrameworkName(goal.frameworkId)}</span>
+                          {/* Goal status badge */}
+                          {goal.status && goal.status !== 'active' && (
+                            <span className={`text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none border ${
+                              goal.status === 'completed' ? 'bg-success/10 text-success border-success/20' :
+                              goal.status === 'failed' ? 'bg-error/10 text-error border-error/20' :
+                              'bg-secondary/10 text-secondary border-secondary/20'
+                            }`}>
+                              {goal.status}
+                            </span>
+                          )}
                         </div>
                         <h3 className="font-semibold text-lg mt-0.5 flex items-center gap-2 text-white">
                           <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
@@ -307,6 +364,24 @@ export const Goals = () => {
                     <p className="text-sm text-secondary truncate mt-1">
                       {Object.values(goal.data).slice(1).join(' · ') || '—'}
                     </p>
+
+                    {/* ── Completed / Not Completed action buttons ── */}
+                    <div className="flex gap-2 mt-3" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={e => openGoalJournal(goal, 'completed', e)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg border border-success/20 text-success/70 bg-success/5 hover:bg-success/15 hover:border-success/40 hover:text-success transition-all duration-200 active:scale-95"
+                      >
+                        <CheckCircle2 size={11} />
+                        Completed
+                      </button>
+                      <button
+                        onClick={e => openGoalJournal(goal, 'not_completed', e)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg border border-error/20 text-error/70 bg-error/5 hover:bg-error/15 hover:border-error/40 hover:text-error transition-all duration-200 active:scale-95"
+                      >
+                        <XCircle size={11} />
+                        Not Completed
+                      </button>
+                    </div>
                   </div>
                 </AntiGravity>
               </motion.div>

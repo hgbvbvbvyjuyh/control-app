@@ -10,6 +10,7 @@ interface GoalStore {
   add: (frameworkId: string, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
   remove: (id: string) => Promise<void>;
   update: (id: string, data: Record<string, string>, goalType?: Goal['goalType'], category?: Goal['category']) => Promise<void>;
+  patchStatus: (id: string, status: Goal['status']) => Promise<void>;
   select: (id: string | null) => void;
   getByFramework: (frameworkId: string) => Goal[];
 }
@@ -46,6 +47,15 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     set({
       goals: get().goals.map(g =>
         String(g.id) === String(id) ? updated : g
+      ),
+    });
+  },
+
+  patchStatus: async (id, status) => {
+    const updated = await api.put<Goal>(`/goals/${id}`, { status });
+    set({
+      goals: get().goals.map(g =>
+        String(g.id) === String(id) ? { ...g, status: updated.status ?? status } : g
       ),
     });
   },
