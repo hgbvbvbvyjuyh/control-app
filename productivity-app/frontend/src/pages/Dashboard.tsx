@@ -98,15 +98,15 @@ export const Dashboard = () => {
   );
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pt-16 pb-32">
+    <div className="flex flex-col gap-3 w-full max-w-7xl mx-auto h-full max-h-screen overflow-hidden px-8 py-6">
       {/* ── Page Header ── */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4"
+        className="mb-1 shrink-0"
       >
-        <h1 className="text-4xl font-black text-white tracking-tighter">Dashboard</h1>
-        <p className="text-secondary text-sm font-bold uppercase tracking-widest mt-1 opacity-60">Performance Overview</p>
+        <h1 className="text-3xl font-black text-white tracking-tighter">Dashboard</h1>
+        <p className="text-[10px] text-secondary font-bold uppercase tracking-widest opacity-60">Performance Overview</p>
       </motion.div>
 
       {/* ── Summary Bar ── */}
