@@ -16,137 +16,7 @@ import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle 
 import { calculateGoalProgress } from '../utils/aggregation';
 
 
-// ---- Goal Journal sub-component ----
-const GoalJournal = ({ goalId, goalType, goalCategory }: { goalId: string, goalType: string, goalCategory: string }) => {
-  const { entries, load, add, remove } = useJournalStore();
-  const { confirm } = useConfirmStore();
-  const [open, setOpen] = useState(false);
-  const [answers, setAnswers] = useState({
-    completed: '',
-    mistakes: '',
-    improvement: ''
-  });
 
-  useEffect(() => { load(); }, []);
-
-  const goalEntries = entries.filter(e => e.goalId === goalId);
-
-  const handleAdd = async () => {
-    if (!answers.completed.trim() && !answers.mistakes.trim() && !answers.improvement.trim()) return;
-    const today = new Date().toISOString().split('T')[0];
-    await add(goalType as any, today, { 
-      goals: answers.completed.trim(),
-      problems: answers.mistakes.trim(),
-      ideas: answers.improvement.trim()
-    }, goalId, goalCategory as any);
-    setAnswers({ completed: '', mistakes: '', improvement: '' });
-    setOpen(false);
-  };
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider">Goal Journal</h3>
-        <button onClick={() => setOpen(v => !v)} className="text-xs text-accent hover:underline">
-          {open ? 'Cancel' : '+ Entry'}
-        </button>
-      </div>
-
-      {open && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="mb-4 flex flex-col gap-4 p-4 bg-surface/30 backdrop-blur-xl rounded-[24px] border border-white/5 shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
-          <div>
-            <label className="text-[10px] font-bold text-secondary uppercase mb-1.5 block tracking-widest">Did I complete my goals?</label>
-            <textarea
-              rows={2}
-              value={answers.completed}
-              onChange={e => setAnswers(prev => ({ ...prev, completed: e.target.value }))}
-              className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-secondary uppercase mb-1.5 block tracking-widest">What mistakes did I make?</label>
-            <textarea
-              rows={2}
-              value={answers.mistakes}
-              onChange={e => setAnswers(prev => ({ ...prev, mistakes: e.target.value }))}
-              className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-secondary uppercase mb-1.5 block tracking-widest">How can I improve next time?</label>
-            <textarea
-              rows={2}
-              value={answers.improvement}
-              onChange={e => setAnswers(prev => ({ ...prev, improvement: e.target.value }))}
-              className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
-            />
-          </div>
-          <motion.button 
-            whileHover={{ scale: 1.02 }} 
-            whileTap={{ scale: 0.98 }}
-            onClick={handleAdd} 
-            className="mt-2 bg-accent text-background text-xs font-bold px-5 py-2.5 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all w-fit"
-          >
-            Save Entry
-          </motion.button>
-        </motion.div>
-      )}
-
-      <div className="flex flex-col gap-2">
-        {goalEntries.length === 0 && !open && (
-          <p className="text-secondary/50 text-xs text-center py-2">No journal entries for this goal yet.</p>
-        )}
-        {goalEntries.map((e, index) => (
-          <motion.div 
-            key={e.id} 
-            initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ delay: index * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="bg-surface/40 backdrop-blur-2xl rounded-2xl border border-white/5 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.2)] group relative"
-          >
-            <span className="text-[10px] text-secondary/70 font-semibold block mb-3">{e.date}</span>
-            <div className="space-y-3">
-              {e.content.goals && (
-                <div>
-                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Goals</p>
-                  <p className="text-sm text-text/80">{e.content.goals}</p>
-                </div>
-              )}
-              {e.content.problems && (
-                <div>
-                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Mistakes</p>
-                  <p className="text-sm text-text/80">{e.content.problems}</p>
-                </div>
-              )}
-              {e.content.ideas && (
-                <div>
-                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Improvements</p>
-                  <p className="text-sm text-text/80">{e.content.ideas}</p>
-                </div>
-              )}
-              {e.content.reflection && (
-                <div>
-                  <p className="text-[9px] font-bold text-secondary uppercase leading-none mb-1">Reflection</p>
-                  <p className="text-sm text-text/80">{e.content.reflection}</p>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={() => {
-                confirm(
-                  'Delete Journal Entry',
-                  'Are you sure you want to delete this journal entry?',
-                  () => remove(e.id!)
-                );
-              }}
-              className="absolute top-2 right-2 text-error/30 hover:text-error text-xs opacity-0 group-hover:opacity-100 transition-opacity p-2 z-10"
-            >✕</button>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // ---- Goals Page ----
 export const Goals = () => {
@@ -184,15 +54,20 @@ export const Goals = () => {
       goalType,
       today,
       {
-        goals: answers.completed,
-        problems: answers.mistakes,
-        ideas: answers.improvement,
+        type: "goal",
+        goalId: journalTargetGoal.id,
+        answers: {
+          q1: answers.completed,
+          q2: answers.mistakes,
+          q3: answers.improvement
+        },
+        createdAt: new Date().toISOString()
       },
-      String(journalTargetGoal.id),
+      journalTargetGoal.id,
       category
     );
 
-    const newStatus = journalIntent === 'completed' ? 'completed' : 'failed';
+    const newStatus = journalIntent === 'completed' ? 'done' : 'not_done';
     await patchStatus(String(journalTargetGoal.id), newStatus);
 
     setJournalModalOpen(false);
@@ -333,11 +208,11 @@ export const Goals = () => {
                           {/* Goal status badge */}
                           {goal.status && goal.status !== 'active' && (
                             <span className={`text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none border ${
-                              goal.status === 'completed' ? 'bg-success/10 text-success border-success/20' :
-                              goal.status === 'failed' ? 'bg-error/10 text-error border-error/20' :
+                              goal.status === 'done' ? 'bg-success/10 text-success border-success/20' :
+                              goal.status === 'not_done' ? 'bg-error/10 text-error border-error/20' :
                               'bg-secondary/10 text-secondary border-secondary/20'
                             }`}>
-                              {goal.status}
+                              {goal.status.replace('_', ' ')}
                             </span>
                           )}
                         </div>
@@ -364,6 +239,8 @@ export const Goals = () => {
                     <p className="text-sm text-secondary truncate mt-1">
                       {Object.values(goal.data).slice(1).join(' · ') || '—'}
                     </p>
+
+
                   </div>
                 </AntiGravity>
               </motion.div>
@@ -585,26 +462,26 @@ export const Goals = () => {
               </div>
               )}
 
-              {/* ── Goal Actions ── */}
-              <div>
-                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Goal Actions</h3>
-                <div className="flex gap-3">
+
+              {/* Goal Action Buttons */}
+              <div className="mt-auto pt-6 border-t border-white/10">
+                <div className="flex gap-4">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={e => openGoalJournal(selectedGoal, 'completed', e)}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-success/20 text-success/80 bg-success/5 hover:bg-success/15 hover:border-success/40 hover:text-success transition-all duration-200 text-xs font-black uppercase tracking-wider"
+                    whileTap={{ scale: 0.98 }}
+                    onClick={(e) => openGoalJournal(selectedGoal, 'completed', e)}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-success/10 border border-success/20 text-success font-bold hover:bg-success/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(34,197,94,0.1)]"
                   >
-                    <CheckCircle2 size={14} />
+                    <CheckCircle2 size={18} />
                     Completed
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={e => openGoalJournal(selectedGoal, 'not_completed', e)}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-error/20 text-error/80 bg-error/5 hover:bg-error/15 hover:border-error/40 hover:text-error transition-all duration-200 text-xs font-black uppercase tracking-wider"
+                    whileTap={{ scale: 0.98 }}
+                    onClick={(e) => openGoalJournal(selectedGoal, 'not_completed', e)}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-error/10 border border-error/20 text-error font-bold hover:bg-error/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(239,68,68,0.1)]"
                   >
-                    <XCircle size={14} />
+                    <XCircle size={18} />
                     Not Completed
                   </motion.button>
                 </div>

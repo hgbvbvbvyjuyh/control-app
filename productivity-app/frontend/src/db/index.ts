@@ -22,7 +22,7 @@ export interface Goal {
   progress: number;    // 0-100, auto-calculated by backend
   /** false = no session data for this row’s metric (UI: “no data”, not 0%). */
   progressHasData?: boolean;
-  status: 'active' | 'completed' | 'skipped' | 'failed';
+  status: 'active' | 'done' | 'not_done' | 'skipped';
   createdAt: number;
   updatedAt: number;
   deletedAt?: number;
@@ -61,6 +61,13 @@ export interface JournalEntry {
     emotions_life?: { feel: string; why: string; next: string };
     problems_life?: { problems: string; solutions: string };
     ideas_life?: string;
+    // Goal Journal refinement
+    answers?: {
+      q1: string;
+      q2: string;
+      q3: string;
+    };
+    createdAt?: string;
   };
   createdAt: number;
   updatedAt: number;
