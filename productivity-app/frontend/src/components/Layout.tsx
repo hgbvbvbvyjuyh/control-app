@@ -56,6 +56,7 @@ export const Layout = () => {
             db.users.clear(),
             api.post('/export/clear', {}),
           ]);
+          localStorage.removeItem('active_productivity_session');
           alert('System wiped successfully. The app will now reload.');
           window.location.reload();
         } catch (err) {
