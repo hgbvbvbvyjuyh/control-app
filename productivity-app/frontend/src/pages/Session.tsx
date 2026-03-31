@@ -33,7 +33,7 @@ export const Session = () => {
   const goalId = params.get('goalId') || '';
   const { goals, load: loadGoals } = useGoalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
-  const { activeSession, start, end, skip, restoreSession, resetSession } = useSessionStore();
+  const { activeSession, start, end, skip, restoreSession } = useSessionStore();
 
   const [selectedFw, setSelectedFw] = useState<string>('');
 
