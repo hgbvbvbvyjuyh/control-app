@@ -131,9 +131,13 @@ export function calculateDashboardStats(
   const monthlyStats = getCategoryStats('monthly');
   const yearlyStats  = getCategoryStats('yearly');
 
-  // ---- Chart data: last 7 days daily % ----
+  // ---- Chart data: Current Week (Saturday to Friday) ----
+  // Sat=6 in Luxon weekday
+  const daysSinceSat = (now.weekday + 7 - 6) % 7;
+  const startOfSatWeek = now.minus({ days: daysSinceSat }).startOf('day');
+
   const chartData = Array.from({ length: 7 }, (_, i) => {
-    const targetDay = now.minus({ days: 6 - i });
+    const targetDay = startOfSatWeek.plus({ days: i });
     return {
       day: targetDay.toFormat('ccc'),
       value: dailyPctForDay(dailyGoals, targetDay, zone),
