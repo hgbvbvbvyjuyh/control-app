@@ -222,6 +222,7 @@ export const Session = () => {
   const handleEnd = async () => {
     if (didAchieveGoal === null) return;
     await end(didAchieveGoal, mistake, improvementSuggestion);
+    stopAlarm();
     setShowEndForm(false);
     navigate('/goals');
   };
