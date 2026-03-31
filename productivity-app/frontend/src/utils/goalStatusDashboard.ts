@@ -29,7 +29,7 @@ export function calculateDashboardStats(goals: Goal[], zone: string = getBrowser
     
     const doneCount = dayDailyGoals.filter(g => {
       if (g.status !== 'done' || !g.completedAt) return false;
-      const completedDt = DateTime.fromMillis(g.completedAt).setZone(zone);
+      const completedDt = DateTime.fromISO(g.completedAt).setZone(zone);
       return completedDt >= dayStart && completedDt <= dayEnd;
     }).length;
     
@@ -39,7 +39,7 @@ export function calculateDashboardStats(goals: Goal[], zone: string = getBrowser
   const todayPct = dailyPctForDay(todayStart);
   const todayDone = dailyGoals.filter(g => {
     if (g.status !== 'done' || !g.completedAt) return false;
-    return DateTime.fromMillis(g.completedAt).setZone(zone) >= todayStart;
+    return DateTime.fromISO(g.completedAt).setZone(zone) >= todayStart;
   }).length;
 
   // 2. Rolling Averages (Average of last N days' Daily %)

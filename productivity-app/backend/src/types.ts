@@ -20,7 +20,7 @@ export interface Goal {
   /** 0 = no session data for this row’s metric (distinct from real 0% when has data). */
   progressHasData?: boolean;
   status: 'active' | 'done' | 'not_done' | 'skipped';
-  completedAt: number | null;
+  completedAt: string | null;
   createdAt: number;
   updatedAt: number;
 }

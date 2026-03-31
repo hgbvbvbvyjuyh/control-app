@@ -23,7 +23,7 @@ function parseGoal(row: Record<string, unknown>): Goal {
     data: JSON.parse(row['data'] as string),
     progress: Number(row['progress']),
     status: row['status'] as Goal['status'],
-    completedAt: row['completedAt'] ? Number(row['completedAt']) : null,
+    completedAt: row['completedAt'] === null ? null : (row['completedAt'] as string),
     createdAt: Number(row['createdAt']),
     updatedAt: Number(row['updatedAt']),
     progressHasData,
@@ -113,11 +113,16 @@ router.put('/:id', (req, res, next) => {
     const status = body.status ?? existing['status'];
     const progress = body.progress !== undefined ? body.progress : existing['progress'];
 
-    let completedAt = existing['completedAt'] ? Number(existing['completedAt']) : null;
+    let completedAt = existing['completedAt'] ? (existing['completedAt'] as string) : null;
+    
+    console.log(`Update Goal [${req.params['id']}]: current_status=${existing['status']}, new_status=${status}`);
+
     if (status === 'done' && existing['status'] !== 'done') {
-      completedAt = Date.now();
+      completedAt = new Date().toISOString();
+      console.log(`Setting completedAt to ${completedAt}`);
     } else if (status !== 'done' && existing['status'] === 'done') {
       completedAt = null;
+      console.log(`Clearing completedAt`);
     }
 
     run(
