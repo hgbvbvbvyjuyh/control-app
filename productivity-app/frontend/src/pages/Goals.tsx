@@ -88,7 +88,8 @@ export const Goals = () => {
 
   const handleUpdatePlan = async (label: string, text: string) => {
     if (!selectedGoal) return;
-    const currentPlan = selectedGoal.data.plan || { 
+    const data = selectedGoal.data as any;
+    const currentPlan = data.plan || { 
       type: selectedGoal.goalType, 
       items: selectedGoal.goalType === 'yearly' ? Array.from({length: 12}, (_, i) => ({label: `Month ${i+1}`, text: ''})) :
              selectedGoal.goalType === 'monthly' ? Array.from({length: 4}, (_, i) => ({label: `Week ${i+1}`, text: ''})) :
@@ -101,8 +102,8 @@ export const Goals = () => {
 
     await useGoalStore.getState().update(
       selectedGoal.id!, 
-      { ...selectedGoal.data, plan: { ...currentPlan, items: newItems } },
-      selectedGoal.goalType,
+      { ...data, plan: { ...currentPlan, items: newItems } },
+      selectedGoal.goalType as any,
       selectedGoal.category
     );
   };
@@ -442,6 +443,64 @@ export const Goals = () => {
                   </div>
                 )}
               </div>
+
+              {/* Planning Section */}
+              {selectedGoal.goalType !== 'daily' && (
+                <div className="bg-background/50 rounded-xl border border-secondary/20 p-4">
+                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">Planning Breakdown</h3>
+                  <div className="flex flex-col gap-4">
+                    {((selectedGoal.data as any).plan?.items || (
+                      selectedGoal.goalType === 'yearly' ? Array.from({length: 12}, (_, i) => ({label: `Month ${i+1}`, text: ''})) :
+                      selectedGoal.goalType === 'monthly' ? Array.from({length: 4}, (_, i) => ({label: `Week ${i+1}`, text: ''})) :
+                      selectedGoal.goalType === 'weekly' ? Array.from({length: 7}, (_, i) => ({label: `Day ${i+1}`, text: ''})) : []
+                    )).map((item: any, idx: number) => (
+                      <div key={idx} className="flex flex-col gap-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">{item.label}</label>
+                          {item.text.trim() && (
+                            <button 
+                              onClick={() => handleGenerateSubGoal(item)}
+                              className="text-[9px] bg-accent/10 text-accent hover:bg-accent/20 px-2 py-0.5 rounded border border-accent/20 transition-colors font-black uppercase tracking-tighter"
+                            >
+                              Generate Goal
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          value={item.text}
+                          onChange={(e) => handleUpdatePlan(item.label, e.target.value)}
+                          placeholder={`Enter plan for ${item.label}...`}
+                          className="bg-background border border-secondary/20 p-2.5 rounded-lg text-xs text-text focus:outline-none focus:border-accent w-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-goals List */}
+              {childGoals.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Linked Sub-goals</h3>
+                  <div className="flex flex-col gap-2">
+                    {childGoals.map((cg) => (
+                      <div key={cg.id} className="flex items-center justify-between bg-background/50 border border-secondary/20 p-3 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-1.5 h-1.5 rounded-full ${cg.status === 'done' ? 'bg-success' : 'bg-secondary/40'}`} />
+                          <span className="text-xs font-medium text-text">{Object.values(cg.data)[0]}</span>
+                        </div>
+                        <span className={`text-[8px] uppercase font-black px-1.5 py-0.5 rounded border ${
+                          cg.status === 'done' ? 'bg-success/10 text-success border-success/20' :
+                          cg.status === 'not_done' ? 'bg-error/10 text-error border-error/20' :
+                          'bg-secondary/10 text-secondary border-secondary/20'
+                        }`}>
+                          {cg.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Session History */}
               {selectedGoal.goalType === 'daily' && (
