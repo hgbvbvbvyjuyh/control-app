@@ -464,19 +464,6 @@ export const Session = () => {
             >
               Complete Session
             </button>
-            
-            <button
-              onClick={() => {
-                if (window.confirm("Emergency: Force clear this session? (No record will be saved)")) {
-                  stopAlarm();
-                  resetSession();
-                  navigate('/goals');
-                }
-              }}
-              className="w-full mt-4 text-rose-400 text-[10px] font-bold hover:text-rose-300 uppercase tracking-widest transition-colors opacity-50 hover:opacity-100"
-            >
-              Emergency Force Exit
-            </button>
           </div>
         </motion.div>
       </div>
@@ -556,18 +543,6 @@ export const Session = () => {
           className="bg-accent text-background px-10 py-4 rounded-2xl font-black text-base hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all uppercase tracking-widest"
         >
           End Session
-        </button>
-        <button
-          onClick={() => {
-            if (window.confirm("Emergency: Force clear this session? (No record will be saved)")) {
-              stopAlarm();
-              resetSession();
-              navigate('/goals');
-            }
-          }}
-          className="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-6 py-4 rounded-2xl font-black text-xs hover:bg-rose-500/20 transition-all uppercase tracking-widest"
-        >
-          Emergency Exit
         </button>
         {!isFocusMode && (
           <button
