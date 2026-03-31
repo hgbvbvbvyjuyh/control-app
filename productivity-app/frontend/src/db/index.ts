@@ -68,6 +68,8 @@ export interface JournalEntry {
       q3: string;
     };
     createdAt?: string;
+    type?: string;
+    goalId?: string;
   };
   createdAt: number;
   updatedAt: number;
