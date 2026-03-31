@@ -84,52 +84,6 @@ export const Goals = () => {
   const selectedGoal = goals.find(g => String(g.id) === String(selectedGoalId));
   const selectedFw = selectedGoal ? frameworks.find(f => f.id === selectedGoal.frameworkId) : null;
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
-  const childGoals = selectedGoal ? goals.filter(g => g.parentId === selectedGoal.id) : [];
-
-  const handleUpdatePlan = async (label: string, text: string) => {
-    if (!selectedGoal) return;
-    const data = selectedGoal.data as any;
-    const currentPlan = data.plan || { 
-      type: selectedGoal.goalType, 
-      items: selectedGoal.goalType === 'yearly' ? Array.from({length: 12}, (_, i) => ({label: `Month ${i+1}`, text: ''})) :
-             selectedGoal.goalType === 'monthly' ? Array.from({length: 4}, (_, i) => ({label: `Week ${i+1}`, text: ''})) :
-             selectedGoal.goalType === 'weekly' ? Array.from({length: 7}, (_, i) => ({label: `Day ${i+1}`, text: ''})) : []
-    };
-    
-    const newItems = currentPlan.items.map((item: any) => 
-      item.label === label ? { ...item, text } : item
-    );
-
-    await useGoalStore.getState().update(
-      selectedGoal.id!, 
-      { ...data, plan: { ...currentPlan, items: newItems } },
-      selectedGoal.goalType as any,
-      selectedGoal.category
-    );
-  };
-
-  const handleGenerateSubGoal = async (item: { label: string, text: string }) => {
-    if (!selectedGoal || !item.text.trim()) return;
-    
-    const subGoalType = selectedGoal.goalType === 'yearly' ? 'monthly' :
-                        selectedGoal.goalType === 'monthly' ? 'weekly' :
-                        selectedGoal.goalType === 'weekly' ? 'daily' : 'daily';
-
-    const exists = childGoals.find(g => g.goalType === subGoalType && Object.values(g.data)[0] === item.text);
-    if (exists) {
-      confirm('Goal Exists', 'A sub-goal with this title already exists under this parent.', () => {});
-      return;
-    }
-
-    await useGoalStore.getState().add(
-      selectedGoal.frameworkId,
-      { title: item.text },
-      subGoalType as any,
-      selectedGoal.id,
-      false,
-      selectedGoal.category
-    );
-  };
 
   const handleDelete = async (id: number) => {
     confirm(
@@ -274,10 +228,19 @@ export const Goals = () => {
                           {Object.values(goal.data)[0] || 'Untitled'}
                         </h3>
                       </div>
+                      <button
+                        onClick={e => { 
+                          e.stopPropagation(); 
+                          handleDelete(goal.id as any);
+                        }}
+                        className="text-error/30 hover:text-error text-sm p-3 transition-colors relative z-20"
+                      >✕</button>
                     </div>
                     <p className="text-sm text-secondary truncate mt-1">
                       {Object.values(goal.data).slice(1).join(' · ') || '—'}
                     </p>
+
+
                   </div>
                 </AntiGravity>
               </motion.div>
@@ -310,14 +273,6 @@ export const Goals = () => {
                       </h2>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleDelete(selectedGoal.id as any)}
-                        className="bg-error/10 text-error hover:bg-error/20 border border-error/20 px-4 py-2 rounded-xl transition-colors text-sm font-semibold"
-                      >
-                        Delete
-                      </motion.button>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -443,64 +398,6 @@ export const Goals = () => {
                   </div>
                 )}
               </div>
-
-              {/* Planning Section */}
-              {selectedGoal.goalType !== 'daily' && (
-                <div className="bg-background/50 rounded-xl border border-secondary/20 p-4">
-                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-4">Planning Breakdown</h3>
-                  <div className="flex flex-col gap-4">
-                    {((selectedGoal.data as any).plan?.items || (
-                      selectedGoal.goalType === 'yearly' ? Array.from({length: 12}, (_, i) => ({label: `Month ${i+1}`, text: ''})) :
-                      selectedGoal.goalType === 'monthly' ? Array.from({length: 4}, (_, i) => ({label: `Week ${i+1}`, text: ''})) :
-                      selectedGoal.goalType === 'weekly' ? Array.from({length: 7}, (_, i) => ({label: `Day ${i+1}`, text: ''})) : []
-                    )).map((item: any, idx: number) => (
-                      <div key={idx} className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">{item.label}</label>
-                          {item.text.trim() && (
-                            <button 
-                              onClick={() => handleGenerateSubGoal(item)}
-                              className="text-[9px] bg-accent/10 text-accent hover:bg-accent/20 px-2 py-0.5 rounded border border-accent/20 transition-colors font-black uppercase tracking-tighter"
-                            >
-                              Generate Goal
-                            </button>
-                          )}
-                        </div>
-                        <input
-                          value={item.text}
-                          onChange={(e) => handleUpdatePlan(item.label, e.target.value)}
-                          placeholder={`Enter plan for ${item.label}...`}
-                          className="bg-background border border-secondary/20 p-2.5 rounded-lg text-xs text-text focus:outline-none focus:border-accent w-full"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Sub-goals List */}
-              {childGoals.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Linked Sub-goals</h3>
-                  <div className="flex flex-col gap-2">
-                    {childGoals.map((cg) => (
-                      <div key={cg.id} className="flex items-center justify-between bg-background/50 border border-secondary/20 p-3 rounded-xl">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-1.5 h-1.5 rounded-full ${cg.status === 'done' ? 'bg-success' : 'bg-secondary/40'}`} />
-                          <span className="text-xs font-medium text-text">{Object.values(cg.data)[0]}</span>
-                        </div>
-                        <span className={`text-[8px] uppercase font-black px-1.5 py-0.5 rounded border ${
-                          cg.status === 'done' ? 'bg-success/10 text-success border-success/20' :
-                          cg.status === 'not_done' ? 'bg-error/10 text-error border-error/20' :
-                          'bg-secondary/10 text-secondary border-secondary/20'
-                        }`}>
-                          {cg.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Session History */}
               {selectedGoal.goalType === 'daily' && (

@@ -38,23 +38,8 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   },
 
   remove: async (id) => {
-    // ── Recursive cascading delete ──
-    const getChildren = (parentId: string) => 
-      get().goals.filter(g => String(g.parentId) === String(parentId));
-    
-    const deleteRecursive = async (goalId: string) => {
-      const children = getChildren(goalId);
-      for (const child of children) {
-        if (child.id) await deleteRecursive(child.id);
-      }
-      await api.delete(`/goals/${goalId}`);
-    };
-
-    await deleteRecursive(id);
-    
-    // Refresh the list from the server to ensure consistency
-    const goals = await api.get<Goal[]>('/goals');
-    set({ goals });
+    await api.delete(`/goals/${id}`);
+    set({ goals: get().goals.filter(g => String(g.id) !== String(id)) });
   },
 
   update: async (id, data, goalType, category) => {
