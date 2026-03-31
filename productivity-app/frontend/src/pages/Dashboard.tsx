@@ -4,8 +4,6 @@ import { useGoalStore } from "../stores/goalStore";
 import { useSessionStore } from "../stores/sessionStore";
 import { calculateDashboardStats } from "../utils/goalStatusDashboard";
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -26,8 +24,8 @@ const CAT_COLORS: Record<string, string> = {
   default:  "#64748b",
 };
 
-function catColor(category: string): string {
-  return CAT_COLORS[category?.toLowerCase()] ?? CAT_COLORS.default;
+function catColor(category: string | undefined): string {
+  return CAT_COLORS[category?.toLowerCase() || 'default'] ?? CAT_COLORS.default;
 }
 
 const BAR_COLOR: Record<string, string> = {
@@ -80,7 +78,7 @@ function Card({ title, pct, text }: { title: string; pct: number; text: string }
 
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
-  const { sessions, load: loadSessions } = useSessionStore();
+  const { load: loadSessions } = useSessionStore();
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
