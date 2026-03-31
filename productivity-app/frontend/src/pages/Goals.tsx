@@ -364,24 +364,6 @@ export const Goals = () => {
                     <p className="text-sm text-secondary truncate mt-1">
                       {Object.values(goal.data).slice(1).join(' · ') || '—'}
                     </p>
-
-                    {/* ── Completed / Not Completed action buttons ── */}
-                    <div className="flex gap-2 mt-3" onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={e => openGoalJournal(goal, 'completed', e)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg border border-success/20 text-success/70 bg-success/5 hover:bg-success/15 hover:border-success/40 hover:text-success transition-all duration-200 active:scale-95"
-                      >
-                        <CheckCircle2 size={11} />
-                        Completed
-                      </button>
-                      <button
-                        onClick={e => openGoalJournal(goal, 'not_completed', e)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg border border-error/20 text-error/70 bg-error/5 hover:bg-error/15 hover:border-error/40 hover:text-error transition-all duration-200 active:scale-95"
-                      >
-                        <XCircle size={11} />
-                        Not Completed
-                      </button>
-                    </div>
                   </div>
                 </AntiGravity>
               </motion.div>
@@ -603,12 +585,30 @@ export const Goals = () => {
               </div>
               )}
 
-              {/* Goal Journaling */}
-              <GoalJournal 
-                goalId={selectedGoal.id!} 
-                goalType={selectedGoal.goalType} 
-                goalCategory={selectedGoal.category || 'health'} 
-              />
+              {/* ── Goal Actions ── */}
+              <div>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Goal Actions</h3>
+                <div className="flex gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={e => openGoalJournal(selectedGoal, 'completed', e)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-success/20 text-success/80 bg-success/5 hover:bg-success/15 hover:border-success/40 hover:text-success transition-all duration-200 text-xs font-black uppercase tracking-wider"
+                  >
+                    <CheckCircle2 size={14} />
+                    Completed
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={e => openGoalJournal(selectedGoal, 'not_completed', e)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-error/20 text-error/80 bg-error/5 hover:bg-error/15 hover:border-error/40 hover:text-error transition-all duration-200 text-xs font-black uppercase tracking-wider"
+                  >
+                    <XCircle size={14} />
+                    Not Completed
+                  </motion.button>
+                </div>
+              </div>
 
             </div>
           </div>
