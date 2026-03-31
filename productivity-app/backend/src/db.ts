@@ -91,6 +91,7 @@ export async function initDb() {
       data          TEXT    NOT NULL DEFAULT '{}',
       progress      INTEGER NOT NULL DEFAULT 0,
       status        TEXT    NOT NULL DEFAULT 'active',
+      completedAt   INTEGER,
       createdAt     INTEGER NOT NULL,
       updatedAt     INTEGER NOT NULL,
       deletedAt     INTEGER
@@ -171,6 +172,7 @@ export async function initDb() {
   safeAlter('ALTER TABLE goals ADD COLUMN category TEXT NOT NULL DEFAULT \'health\'');
   safeAlter('ALTER TABLE goals ADD COLUMN progress INTEGER NOT NULL DEFAULT 0');
   safeAlter('ALTER TABLE goals ADD COLUMN status TEXT NOT NULL DEFAULT \'active\'');
+  safeAlter('ALTER TABLE goals ADD COLUMN completedAt INTEGER');
 
   // Sessions table migrations
   safeAlter('ALTER TABLE sessions ADD COLUMN skipReason TEXT');

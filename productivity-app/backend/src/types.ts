@@ -19,7 +19,8 @@ export interface Goal {
   progress: number;      // 0–100, auto-calculated
   /** 0 = no session data for this row’s metric (distinct from real 0% when has data). */
   progressHasData?: boolean;
-  status: 'active' | 'completed' | 'skipped' | 'failed';
+  status: 'active' | 'done' | 'not_done' | 'skipped';
+  completedAt: number | null;
   createdAt: number;
   updatedAt: number;
 }

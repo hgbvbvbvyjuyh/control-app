@@ -3,6 +3,9 @@ import { PerformanceChart } from '../components/PerformanceChart';
 import { QuoteCard } from '../components/QuoteCard';
 import { motion } from 'framer-motion';
 import { BarChart3 } from 'lucide-react';
+import { useGoalStore } from '../stores/goalStore';
+import { calculateDashboardStats } from '../utils/goalStatusDashboard';
+import { useEffect } from 'react';
 
 export const Dashboard = () => {
   const quotes = [
@@ -10,42 +13,50 @@ export const Dashboard = () => {
     { quote: "Small progress is still progress." }
   ];
 
+  const { goals, load } = useGoalStore();
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const dashboardStats = calculateDashboardStats(goals);
+
   const stats = [
     {
       title: 'Daily',
       subtitle: 'Today',
-      value: '70%',
-      progressText: '3 / 5 Tasks',
+      value: `${dashboardStats.daily.pct}%`,
+      progressText: dashboardStats.daily.progressText,
       gradientFrom: 'from-blue-600',
       gradientTo: 'to-blue-400',
-      chartData: [20, 15, 25, 10, 30, 40, 20, 25, 45, 50, 40, 60, 70, 75, 45, 65, 80, 90, 85]
+      chartData: dashboardStats.chartData
     },
     {
       title: 'Weekly',
-      subtitle: 'This week',
-      value: '48%',
-      progressText: '2 / 3 Tasks',
+      subtitle: 'Last 7 days',
+      value: `${dashboardStats.weekly.pct}%`,
+      progressText: dashboardStats.weekly.progressText,
       gradientFrom: 'from-purple-600',
       gradientTo: 'to-purple-400',
-      chartData: [10, 15, 12, 14, 18, 16, 20, 25, 22, 28, 30, 40, 35, 45, 60, 50, 70, 65, 80]
+      chartData: dashboardStats.chartData
     },
     {
       title: 'Monthly',
-      subtitle: 'This month',
-      value: '62%',
-      progressText: '15 / 24 Tasks',
+      subtitle: 'Last 30 days',
+      value: `${dashboardStats.monthly.pct}%`,
+      progressText: dashboardStats.monthly.progressText,
       gradientFrom: 'from-cyan-500',
       gradientTo: 'to-cyan-300',
-      chartData: [30, 40, 35, 45, 50, 40, 30, 45, 55, 60, 30, 45, 50, 65, 80, 70, 90, 85, 95]
+      chartData: dashboardStats.chartData
     },
     {
       title: 'Yearly',
-      subtitle: 'This year',
-      value: '35%',
-      progressText: '128 / 365 Tasks',
+      subtitle: 'Last 365 days',
+      value: `${dashboardStats.yearly.pct}%`,
+      progressText: dashboardStats.yearly.progressText,
       gradientFrom: 'from-emerald-500',
       gradientTo: 'to-emerald-400',
-      chartData: [15, 12, 18, 15, 20, 18, 25, 20, 22, 28, 25, 30, 35, 40, 45, 60, 55, 70, 65]
+      chartData: dashboardStats.chartData
     }
   ];
 

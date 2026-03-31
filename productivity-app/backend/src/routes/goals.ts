@@ -23,6 +23,7 @@ function parseGoal(row: Record<string, unknown>): Goal {
     data: JSON.parse(row['data'] as string),
     progress: Number(row['progress']),
     status: row['status'] as Goal['status'],
+    completedAt: row['completedAt'] ? Number(row['completedAt']) : null,
     createdAt: Number(row['createdAt']),
     updatedAt: Number(row['updatedAt']),
     progressHasData,
@@ -78,8 +79,8 @@ router.post('/', (req, res, next) => {
 
     const now = Date.now();
     const { lastInsertRowid } = run(
-      `INSERT INTO goals (frameworkId, goalType, parentId, isIndependent, category, data, progress, status, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, 0, 'active', ?, ?)`,
+      `INSERT INTO goals (frameworkId, goalType, parentId, isIndependent, category, data, progress, status, completedAt, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, 0, 'active', NULL, ?, ?)`,
       [
         frameworkId,
         goalType || 'daily',
@@ -112,10 +113,17 @@ router.put('/:id', (req, res, next) => {
     const status = body.status ?? existing['status'];
     const progress = body.progress !== undefined ? body.progress : existing['progress'];
 
+    let completedAt = existing['completedAt'] ? Number(existing['completedAt']) : null;
+    if (status === 'done' && existing['status'] !== 'done') {
+      completedAt = Date.now();
+    } else if (status !== 'done' && existing['status'] === 'done') {
+      completedAt = null;
+    }
+
     run(
       `UPDATE goals SET data = ?, goalType = ?, parentId = ?, isIndependent = ?,
-       category = ?, status = ?, progress = ?, updatedAt = ? WHERE id = ?`,
-      [data, goalType, parentId ?? null, isIndependent, category || 'health', status, progress, updatedAt, req.params['id']]
+       category = ?, status = ?, progress = ?, completedAt = ?, updatedAt = ? WHERE id = ?`,
+      [data, goalType, parentId ?? null, isIndependent, category || 'health', status, progress, completedAt, updatedAt, req.params['id']]
     );
     recalcPortfolioProgress(Date.now(), getRecalcTimeZone());
     const updated = parseGoal(queryOne('SELECT * FROM goals WHERE id = ?', [req.params['id']])!);
