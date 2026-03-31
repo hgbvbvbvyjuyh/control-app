@@ -18,6 +18,7 @@ interface SessionStore {
   skip: (reason: string) => Promise<void>;
   tick: () => void;
   restoreSession: () => void;
+  resetSession: () => void;
   remove: (id: string) => Promise<void>;
 }
 
@@ -113,6 +114,11 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         localStorage.removeItem(SESSION_LOCK_KEY);
       }
     }
+  },
+
+  resetSession: () => {
+    set({ activeSession: null });
+    localStorage.removeItem(SESSION_LOCK_KEY);
   },
 
   remove: async (id: string) => {
