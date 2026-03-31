@@ -7,7 +7,7 @@ export interface DashboardCardProps {
   progressText?: string;
   gradientFrom: string;
   gradientTo: string;
-  chartData: number[];
+  chartData: { day: string; value: number }[];
   delay?: number;
 }
 
@@ -41,8 +41,8 @@ export const DashboardCard = ({
       </div>
 
       <div className="flex items-end justify-between w-full h-[35px] gap-[2px] mt-2 z-10">
-        {chartData.map((dataValue, index) => {
-          const heightPercent = Math.max(10, Math.min(100, dataValue));
+        {chartData.map((data, index) => {
+          const heightPercent = Math.max(10, Math.min(100, data.value));
           return (
             <motion.div
               key={index}
