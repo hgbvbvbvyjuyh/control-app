@@ -179,13 +179,13 @@ export const Goals = () => {
               </div>
             </div>
 
-            {goals.filter(g => g.goalType === activeCategory).length === 0 && (
+            {goals.filter(g => g.goalType === activeCategory && g.status === 'active').length === 0 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 items-center justify-center h-full">
-                <p className="text-secondary text-sm text-center">No {activeCategory} goals yet. Add one to get started.</p>
+                <p className="text-secondary text-sm text-center">No active {activeCategory} goals yet. Add one to get started.</p>
               </motion.div>
             )}
 
-            {goals.filter(g => g.goalType === activeCategory).map((goal, i) => (
+            {goals.filter(g => g.goalType === activeCategory && g.status === 'active').map((goal, i) => (
               <motion.div
                 key={goal.id}
                 initial={{ opacity: 0, x: -20 }}

@@ -54,10 +54,10 @@ export const JournalModal = ({
 
   // ── Derived ──
   const isGoal = journalType === 'goal';
-  const title = isGoal ? 'Goal Journaling' : 'Session Journaling';
+  const title = isGoal ? 'Goal Journal' : 'Session Journaling';
 
   const isValid = isGoal
-    ? completed.trim() !== '' || mistakes.trim() !== '' || improvement.trim() !== ''
+    ? completed.trim() !== '' && mistakes.trim() !== '' && improvement.trim() !== ''
     : didAchieveGoal !== null;
 
   const reset = () => {
