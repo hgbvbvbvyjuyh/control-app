@@ -175,7 +175,7 @@ export const Dashboard = () => {
                   tickLine={false} 
                   tick={(props) => {
                     const { x, y, payload } = props;
-                    let textAnchor = "middle";
+                    let textAnchor: "start" | "middle" | "end" = "middle";
                     if (payload.index === 0) textAnchor = "start";
                     if (payload.index === 6) textAnchor = "end";
                     return (
