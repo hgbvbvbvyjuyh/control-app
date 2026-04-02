@@ -421,23 +421,25 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
         <div className="w-full">
           <div className="flex justify-between items-center mb-1">
             <span className="text-[10px] font-bold text-secondary uppercase opacity-50">{dateLabel}</span>
-            <span className="text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">{type}</span>
+            <div className="flex items-center gap-2">
+              <span className="h-6 inline-flex items-center text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
+                {type}
+              </span>
+              <button
+                type="button"
+                onClick={() => setOpenJournal((prev) => !prev)}
+                title={openJournal ? "Hide Journal" : "Show Journal"}
+                aria-label={openJournal ? "Hide Journal" : "Show Journal"}
+                className="h-6 px-2 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+              >
+                {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
           <h4 className="font-bold text-sm mb-2">{title}</h4>
           <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${categoryColors[goalCategory]}`}>
             {goalCategory}
           </span>
-        </div>
-        <div className="ml-2 shrink-0 flex items-center">
-          <button
-            type="button"
-            onClick={() => setOpenJournal((prev) => !prev)}
-            title={openJournal ? "Hide Journal" : "Show Journal"}
-            aria-label={openJournal ? "Hide Journal" : "Show Journal"}
-            className="h-6 px-2 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
-          >
-            {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
         </div>
       </div>
       
