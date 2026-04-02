@@ -302,6 +302,12 @@ export const Goals = () => {
     }
   };
 
+  const handleStartSessionUI = () => {
+    const gid = selectedGoal?.id;
+    if (gid == null || gid === '') return;
+    navigate(`/session?goalId=${gid}`);
+  };
+
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
   const activeGoalsInCategory =
     activeCategory !== null
@@ -646,7 +652,7 @@ export const Goals = () => {
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => navigate(`/session?goalId=${selectedGoal.id}`)}
+                            onClick={handleStartSessionUI}
                             className="bg-accent text-background font-bold py-2 px-5 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             + Session
@@ -863,6 +869,13 @@ export const Goals = () => {
                             className={`${BTN_SECONDARY} text-xs py-1.5 self-start`}
                           >
                             Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleStartSessionUI}
+                            className="bg-accent text-background font-bold text-xs py-1.5 px-3 rounded-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-shadow"
+                          >
+                            Start
                           </button>
                         </div>
                       )}
