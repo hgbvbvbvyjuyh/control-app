@@ -399,6 +399,7 @@ export const Goals = () => {
                       </h2>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0 justify-end max-md:w-full max-md:justify-start">
+                      {selectedGoal.goalType !== 'daily' && (
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -411,6 +412,7 @@ export const Goals = () => {
                       >
                         Add Sub Goal
                       </motion.button>
+                      )}
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -616,7 +618,11 @@ export const Goals = () => {
               <div>
                 <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Sub goals</h3>
                 {childGoalsUnderSelected.length === 0 ? (
-                  <p className="text-secondary text-sm">No sub goals yet. Use &quot;Add Sub Goal&quot; above.</p>
+                  <p className="text-secondary text-sm">
+                    {selectedGoal.goalType === 'daily'
+                      ? 'No sub goals yet.'
+                      : 'No sub goals yet. Use "Add Sub Goal" above.'}
+                  </p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {childGoalsUnderSelected.map((child) => (
