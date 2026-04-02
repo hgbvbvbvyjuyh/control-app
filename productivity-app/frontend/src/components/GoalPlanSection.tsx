@@ -15,7 +15,6 @@ export interface GoalPlanSectionProps {
   onPlanItemChange: (index: number, text: string) => void;
   onSavePlan: () => void;
   onGenerateSubGoals: () => void;
-  generateSubGoalsDisabled: boolean;
 }
 
 export function GoalPlanSection({
@@ -25,7 +24,6 @@ export function GoalPlanSection({
   onPlanItemChange,
   onSavePlan,
   onGenerateSubGoals,
-  generateSubGoalsDisabled,
 }: GoalPlanSectionProps) {
   const [showPlan, setShowPlan] = useState(false);
 
@@ -72,7 +70,6 @@ export function GoalPlanSection({
                 <button
                   type="button"
                   onClick={onGenerateSubGoals}
-                  disabled={generateSubGoalsDisabled}
                   className={BTN_ACCENT_OUTLINE}
                 >
                   Generate Sub Goals

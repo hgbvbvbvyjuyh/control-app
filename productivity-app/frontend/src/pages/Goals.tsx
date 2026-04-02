@@ -127,6 +127,10 @@ export const Goals = () => {
     setPlanDraft(parseGoalPlan(selectedGoal.data));
   }, [selectedGoalId, selectedGoal?.data?.plan]);
 
+  const selectedFw = selectedGoal
+    ? frameworks.find(f => String(f.id) === String(selectedGoal.frameworkId))
+    : null;
+
   const handleSavePlan = async () => {
     if (!selectedGoal?.id || !planDraft) return;
     try {
@@ -141,32 +145,59 @@ export const Goals = () => {
   };
 
   const handleGenerateSubGoalsFromPlan = async () => {
-    if (!selectedGoal?.id || !selectedFw || !isPlannableGoalType(selectedGoal.goalType)) return;
+    console.log('[generateSubGoalsFromPlan] start', { selectedGoal });
+    if (!selectedGoal?.id) {
+      console.log('[generateSubGoalsFromPlan] validation: missing selectedGoal.id');
+      return;
+    }
+    if (!isPlannableGoalType(selectedGoal.goalType)) {
+      console.log('[generateSubGoalsFromPlan] validation: goal type not plannable', selectedGoal.goalType);
+      return;
+    }
+    if (!selectedFw) {
+      console.log('[generateSubGoalsFromPlan] validation: framework not found', {
+        goalFrameworkId: selectedGoal.frameworkId,
+        frameworkIds: frameworks.map(f => f.id),
+      });
+      showToast('Framework not found for this goal', 'error');
+      return;
+    }
     const plan = parseGoalPlan(selectedGoal.data);
+    console.log('[generateSubGoalsFromPlan] parsed plan', plan, 'raw plan field:', selectedGoal.data?.plan);
     if (!plan) {
-      showToast('Save your plan first');
+      console.log('[generateSubGoalsFromPlan] validation: parseGoalPlan returned null');
+      showToast('Save your plan first', 'error');
       return;
     }
     const savedStr = typeof selectedGoal.data.plan === 'string' ? selectedGoal.data.plan : '';
-    if (
-      planDraft === null ||
-      savedStr === '' ||
-      savedStr !== serializeGoalPlan(planDraft)
-    ) {
-      showToast('Save your plan before generating sub-goals');
+    const draftStr = planDraft === null ? null : serializeGoalPlan(planDraft);
+    console.log('[generateSubGoalsFromPlan] validation: save vs draft', {
+      savedStrLen: savedStr.length,
+      draftMatch: draftStr !== null && savedStr === draftStr,
+      planDraftNull: planDraft === null,
+    });
+    if (planDraft === null || savedStr === '' || savedStr !== draftStr) {
+      console.log('[generateSubGoalsFromPlan] validation: saved plan missing or does not match editor draft');
+      showToast('Save your plan first', 'error');
       return;
     }
-    if (plan.items.some(it => !it.text.trim())) {
-      showToast('All plan items must have text before generating sub-goals');
+    const emptyIdx = plan.items.findIndex(it => !it.text.trim());
+    if (emptyIdx !== -1) {
+      console.log('[generateSubGoalsFromPlan] validation: empty plan item at index', emptyIdx);
+      showToast('All plan items must have text', 'error');
       return;
     }
     const childType = childTypeForPlannedParent(selectedGoal.goalType);
     if (hasChildOfType(goals, String(selectedGoal.id), childType)) {
-      showToast(`Sub-goals (${childType}) already exist for this goal`);
+      console.log('[generateSubGoalsFromPlan] validation: children of type already exist', childType);
+      showToast('Sub goals already exist', 'error');
       return;
     }
+    console.log('[generateSubGoalsFromPlan] passed validation; creating', plan.items.length, 'sub-goals');
     try {
-      for (const item of plan.items) {
+      for (let i = 0; i < plan.items.length; i++) {
+        const item = plan.items[i]!;
+        console.log('[generateSubGoalsFromPlan] add() item', i, item.text.trim());
         await add(
           selectedGoal.frameworkId,
           buildChildGoalRowData(selectedFw, item.text.trim()),
@@ -176,9 +207,11 @@ export const Goals = () => {
           selectedGoal.category || 'health'
         );
       }
+      console.log('[generateSubGoalsFromPlan] add() completed for all items');
       showToast('Sub goals created from plan');
-    } catch {
-      showToast('Failed to create sub goals');
+    } catch (e) {
+      console.error('[generateSubGoalsFromPlan] add() failed', e);
+      showToast('Failed to create sub goals', 'error');
     }
   };
 
@@ -190,7 +223,6 @@ export const Goals = () => {
       return { ...prev, items };
     });
   };
-  const selectedFw = selectedGoal ? frameworks.find(f => f.id === selectedGoal.frameworkId) : null;
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
   const childGoalsUnderSelected = selectedGoal
     ? goals
@@ -206,13 +238,6 @@ export const Goals = () => {
           g => g.goalType === activeCategory && g.parentId == null
         )
       : [];
-
-  const savedPlanStr =
-    selectedGoal?.data && typeof selectedGoal.data.plan === 'string' ? selectedGoal.data.plan : '';
-  const generateSubGoalsUnlocked =
-    planDraft !== null &&
-    savedPlanStr !== '' &&
-    savedPlanStr === serializeGoalPlan(planDraft);
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col md:flex-row gap-6 w-full max-w-7xl mx-auto">
@@ -551,7 +576,6 @@ export const Goals = () => {
                   onPlanItemChange={setPlanItemText}
                   onSavePlan={handleSavePlan}
                   onGenerateSubGoals={handleGenerateSubGoalsFromPlan}
-                  generateSubGoalsDisabled={!generateSubGoalsUnlocked}
                 />
               )}
 
