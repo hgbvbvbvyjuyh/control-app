@@ -37,7 +37,7 @@ import { useToastStore } from '../stores/toastStore';
 
 // ---- Goals Page ----
 export const Goals = () => {
-  const { goals, load: loadGoals, selectedGoalId, select, patchStatus, add, update } = useGoalStore();
+  const { goals, load: loadGoals, selectedGoalId, select, patchStatus, add, update, remove, removeSingle } = useGoalStore();
   const { add: addJournal, load: loadJournals } = useJournalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
   const { sessions, load: loadSessions, remove: removeSession } = useSessionStore();
@@ -47,6 +47,7 @@ export const Goals = () => {
     add: addSimpleSession,
     setStatus: setSimpleSessionStatus,
     updateNote: updateSimpleSessionNote,
+    remove: removeSimpleSession,
   } = useDailySimpleSessionStore();
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
@@ -142,6 +143,57 @@ export const Goals = () => {
     } catch {
       showToast('Failed to save plan');
     }
+  };
+
+  const handleClearPlan = async () => {
+    if (!selectedGoal?.id) return;
+    confirm(
+      'Clear Plan',
+      'This will remove the saved plan from this goal (sub-goals are not affected).',
+      async () => {
+        try {
+          await update(String(selectedGoal.id), {
+            ...selectedGoal.data,
+            plan: '',
+          }, selectedGoal.goalType, selectedGoal.category);
+          showToast('Plan cleared', 'info');
+        } catch {
+          showToast('Could not clear plan', 'error');
+        }
+      },
+      'Clear Plan',
+      'Cancel'
+    );
+  };
+
+  const handleDeleteSelectedGoal = async () => {
+    if (!selectedGoal?.id) return;
+    const isRoot = selectedGoal.parentId == null;
+    confirm(
+      isRoot ? 'Delete Goal' : 'Delete Sub Goal',
+      isRoot
+        ? 'This will delete the goal and all generated sub-goals.'
+        : 'This will delete only the selected sub-goal.',
+      async () => {
+        try {
+          if (isRoot) {
+            await remove(String(selectedGoal.id));
+            showToast('Goal deleted', 'info');
+          } else {
+            await removeSingle(String(selectedGoal.id));
+            showToast('Sub goal deleted', 'info');
+          }
+          select(null);
+          setPlanDraft(null);
+          setSimpleSessionPlanOpenId(null);
+          setSimpleSessionPlanText('');
+        } catch {
+          showToast('Could not delete goal', 'error');
+        }
+      },
+      'Delete',
+      'Cancel'
+    );
   };
 
   const handleGenerateSubGoalsFromPlan = async () => {
@@ -471,6 +523,15 @@ export const Goals = () => {
                           </motion.button>
                         </>
                       )}
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleDeleteSelectedGoal}
+                        className="text-sm font-semibold px-4 py-2 rounded-xl border border-error/30 bg-error/10 text-error hover:bg-error/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Delete
+                      </motion.button>
                     </div>
                   </div>
                 </div>
@@ -591,6 +652,7 @@ export const Goals = () => {
                   }}
                   onPlanItemChange={setPlanItemText}
                   onSavePlan={handleSavePlan}
+                  onClearPlan={handleClearPlan}
                   onGenerateSubGoals={handleGenerateSubGoalsFromPlan}
                 />
               )}
@@ -624,20 +686,44 @@ export const Goals = () => {
                             {s.status}
                           </span>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (simpleSessionPlanOpenId === s.id) {
-                              setSimpleSessionPlanOpenId(null);
-                            } else {
-                              setSimpleSessionPlanText(s.note || '');
-                              setSimpleSessionPlanOpenId(s.id);
-                            }
-                          }}
-                          className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded shrink-0"
-                        >
-                          {simpleSessionPlanOpenId === s.id ? 'Hide Plan' : 'Show Plan'}
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (simpleSessionPlanOpenId === s.id) {
+                                setSimpleSessionPlanOpenId(null);
+                              } else {
+                                setSimpleSessionPlanText(s.note || '');
+                                setSimpleSessionPlanOpenId(s.id);
+                              }
+                            }}
+                            className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded shrink-0"
+                          >
+                            {simpleSessionPlanOpenId === s.id ? 'Hide Plan' : 'Show Plan'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              confirm(
+                                'Delete Session',
+                                'Move this session to the trash?',
+                                async () => {
+                                  try {
+                                    await removeSimpleSession(s.id!, String(selectedGoal.id));
+                                    showToast('Session moved to trash', 'info');
+                                  } catch {
+                                    showToast('Could not delete session', 'error');
+                                  }
+                                },
+                                'Delete',
+                                'Cancel'
+                              );
+                            }}
+                            className="text-error/30 hover:text-error text-xs p-2 transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
                       {simpleSessionPlanOpenId === s.id && (
                         <div className="flex flex-col gap-2 mb-2">

@@ -164,6 +164,12 @@ router.delete('/:id', (req, res, next) => {
     const now = Date.now();
     const { changes } = run('UPDATE sessions SET deletedAt = ? WHERE id = ?', [now, id]);
     if (changes === 0) { res.status(404).json({ error: 'Session not found' }); return; }
+
+    // Clean up failures linked to this session to avoid orphan rows.
+    run(
+      'UPDATE failures SET deletedAt = ? WHERE type = ? AND linkedId = ? AND deletedAt IS NULL',
+      [now, 'session', String(id)]
+    );
     
     if (session) recalcProgressChain(session['goalId'] as number);
     

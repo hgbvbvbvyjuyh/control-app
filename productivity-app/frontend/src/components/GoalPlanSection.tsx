@@ -14,6 +14,7 @@ export interface GoalPlanSectionProps {
   onAddPlan: () => void;
   onPlanItemChange: (index: number, text: string) => void;
   onSavePlan: () => void;
+  onClearPlan: () => void;
   onGenerateSubGoals: () => void;
 }
 
@@ -23,6 +24,7 @@ export function GoalPlanSection({
   onAddPlan,
   onPlanItemChange,
   onSavePlan,
+  onClearPlan,
   onGenerateSubGoals,
 }: GoalPlanSectionProps) {
   const [showPlan, setShowPlan] = useState(false);
@@ -66,6 +68,13 @@ export function GoalPlanSection({
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={onSavePlan} className={`${BTN_SECONDARY} text-xs py-2`}>
                   Save Plan
+                </button>
+                <button
+                  type="button"
+                  onClick={onClearPlan}
+                  className={BTN_ACCENT_OUTLINE}
+                >
+                  Clear Plan
                 </button>
                 <button
                   type="button"

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useFrameworkStore } from '../stores/frameworkStore';
+import { useGoalStore } from '../stores/goalStore';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useToastStore } from '../stores/toastStore';
 import { type Framework } from '../db';
@@ -13,6 +14,7 @@ interface FrameworkModalProps {
 
 export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
   const { frameworks, add, update, remove } = useFrameworkStore();
+  const { load: loadGoals, goals, selectedGoalId, select } = useGoalStore();
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -145,10 +147,17 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
                   onClick={() => {
                     confirm(
                       'Delete Framework',
-                      'Are you sure you want to move this framework to the trash? Existing goals will be hidden from lists but remain in database.',
+                      'This will delete the framework and all related goals (including their sessions/journals).',
                       async () => {
+                        const selected = selectedGoalId
+                          ? goals.find(g => String(g.id) === String(selectedGoalId)) || null
+                          : null;
                         await remove(fw.id!);
-                        showToast('Framework moved to trash', 'info');
+                        await loadGoals();
+                        if (selected && String(selected.frameworkId) === String(fw.id)) {
+                          select(null);
+                        }
+                        showToast('Framework deleted', 'info');
                       }
                     );
                   }}

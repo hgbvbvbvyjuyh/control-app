@@ -16,6 +16,7 @@ interface DailySimpleSessionStore {
   byGoalId: Record<string, DailySimpleSession[]>;
   loadForGoal: (goalId: string) => Promise<void>;
   add: (goalId: string) => Promise<void>;
+  remove: (sessionId: string, goalId: string) => Promise<void>;
   setStatus: (sessionId: string, goalId: string, status: 'done' | 'missed') => Promise<void>;
   updateNote: (sessionId: string, goalId: string, note: string) => Promise<void>;
 }
@@ -34,6 +35,17 @@ export const useDailySimpleSessionStore = create<DailySimpleSessionStore>((set, 
     const created = await api.post<DailySimpleSession>('/daily-simple-sessions', { goalId });
     const cur = get().byGoalId[goalId] ?? [];
     set(s => ({ byGoalId: { ...s.byGoalId, [goalId]: [created, ...cur] } }));
+  },
+
+  remove: async (sessionId, goalId) => {
+    await api.delete(`/daily-simple-sessions/${sessionId}`);
+    const cur = get().byGoalId[goalId] ?? [];
+    set(s => ({
+      byGoalId: {
+        ...s.byGoalId,
+        [goalId]: cur.filter(x => String(x.id) !== String(sessionId)),
+      },
+    }));
   },
 
   setStatus: async (sessionId, goalId, status) => {

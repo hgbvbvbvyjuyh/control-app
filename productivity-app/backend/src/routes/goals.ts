@@ -168,7 +168,25 @@ router.delete('/:id', (req, res, next) => {
     if (!existing) { res.status(404).json({ error: 'Goal not found' }); return; }
 
     const now = Date.now();
-    const allIds = collectGoalTreeIds(id);
+    // Default: cascade delete goal subtree.
+    // Set `?cascade=false` to delete only this goal (no descendants).
+    const cascadeParam = req.query['cascade'];
+    const cascade =
+      cascadeParam === undefined || cascadeParam === null
+        ? true
+        : String(cascadeParam) !== 'false' && String(cascadeParam) !== '0';
+
+    const rootNum = Number(id);
+    if (!cascade && Number.isNaN(rootNum)) {
+      res.status(400).json({ error: 'Invalid goal id' });
+      return;
+    }
+
+    const allIds = cascade ? collectGoalTreeIds(id) : [rootNum];
+    if (allIds.length === 0) {
+      res.status(404).json({ error: 'Goal not found' });
+      return;
+    }
 
     for (const gid of allIds) {
       run('UPDATE sessions SET deletedAt = ? WHERE goalId = ? AND deletedAt IS NULL', [now, gid]);

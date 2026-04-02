@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { queryAll, queryOne, run } from '../db';
+import { recalcProgressChain } from '../services/progress';
 
 const router = Router();
 
@@ -112,6 +113,37 @@ router.put('/:id', (req, res, next) => {
 
     const updated = queryOne('SELECT * FROM daily_simple_sessions WHERE id = ?', [req.params['id']]);
     res.json(parseRow(updated as Record<string, unknown>));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE — soft-delete a daily simple session (and update portfolio progress)
+router.delete('/:id', (req, res, next) => {
+  try {
+    const id = req.params['id'];
+    const existing = queryOne<Record<string, unknown>>(
+      'SELECT id, goalId FROM daily_simple_sessions WHERE id = ? AND deletedAt IS NULL',
+      [id]
+    );
+    if (!existing) {
+      res.status(404).json({ error: 'Session not found' });
+      return;
+    }
+
+    const now = Date.now();
+    run('UPDATE daily_simple_sessions SET deletedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, id]);
+
+    // If there are failures linked to this session row, clean them up too.
+    run(
+      'UPDATE failures SET deletedAt = ? WHERE type = ? AND linkedId = ? AND deletedAt IS NULL',
+      [now, 'session', id]
+    );
+
+    const goalId = Number(existing['goalId']);
+    if (!Number.isNaN(goalId)) recalcProgressChain(goalId);
+
+    res.status(204).send();
   } catch (err) {
     next(err);
   }

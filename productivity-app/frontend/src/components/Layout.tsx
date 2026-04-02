@@ -1,13 +1,15 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { exportAllData } from '../utils/dataExport';
 import { db } from '../db';
 import { ConfirmModal } from './ConfirmModal';
 import { ToastContainer } from './ToastContainer';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useToastStore } from '../stores/toastStore';
 import { api } from '../utils/api';
+import { useGoalStore } from '../stores/goalStore';
+import { parseGoalPlan } from '../utils/goalPlan';
+import { exportGoalPlanPdf } from '../utils/planPdfExport';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -21,20 +23,42 @@ export const Layout = () => {
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
   const location = useLocation();
+  const { goals, selectedGoalId, load: loadGoals } = useGoalStore();
 
   const handleExport = async () => {
     try {
-      const json = await exportAllData();
-      const blob = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `control-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('Backup exported successfully', 'success');
+      if (!selectedGoalId) {
+        showToast('Select a goal to export its plan', 'error');
+        return;
+      }
+
+      let selected = goals.find(g => String(g.id) === String(selectedGoalId)) || null;
+      if (!selected) {
+        await loadGoals();
+        selected = goals.find(g => String(g.id) === String(selectedGoalId)) || null;
+      }
+
+      if (!selected) {
+        showToast('Selected goal not found', 'error');
+        return;
+      }
+
+      const plan = parseGoalPlan(selected.data);
+      if (!plan) showToast('No saved plan found for this goal; exporting PDF anyway', 'info');
+
+      const goalTitle = Object.values(selected.data)[0] || 'Untitled';
+      const subGoals = goals.filter(
+        g => g.parentId != null && String(g.parentId) === String(selected!.id)
+      );
+
+      exportGoalPlanPdf({
+        goalTitle,
+        goalType: selected.goalType,
+        plan,
+        subGoals,
+      });
+
+      showToast('Plan exported as PDF', 'success');
     } catch (err) {
       console.error('Export failed:', err);
       showToast('Export failed. Please try again.', 'error');

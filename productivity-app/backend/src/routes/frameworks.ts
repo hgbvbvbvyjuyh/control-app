@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { queryAll, queryOne, run } from '../db';
 import type { Framework } from '../types';
+import { recalcPortfolioProgress } from '../services/progress';
+import { getRecalcTimeZone } from '../middleware/clientTimezone';
 
 const router = Router();
 
@@ -62,8 +64,47 @@ router.delete('/:id', (req, res, next) => {
     if (existing['isDefault']) {
       res.status(403).json({ error: 'Cannot delete a default framework' }); return;
     }
+
     const now = Date.now();
-    run('UPDATE frameworks SET deletedAt = ? WHERE id = ?', [now, req.params['id']]);
+    const frameworkId = req.params['id'];
+
+    // Soft-delete framework
+    run('UPDATE frameworks SET deletedAt = ? WHERE id = ?', [now, frameworkId]);
+
+    // Soft-delete all related goals and associated data to prevent orphan rows.
+    const goalRows = queryAll('SELECT id FROM goals WHERE frameworkId = ? AND deletedAt IS NULL', [frameworkId]);
+    const goalIds = goalRows.map(r => Number(r['id'])).filter(n => !Number.isNaN(n));
+
+    if (goalIds.length > 0) {
+      const goalPh = goalIds.map(() => '?').join(',');
+
+      run(`UPDATE sessions SET deletedAt = ? WHERE goalId IN (${goalPh}) AND deletedAt IS NULL`, [now, ...goalIds]);
+      run(`UPDATE journals SET deletedAt = ? WHERE goalId IN (${goalPh}) AND deletedAt IS NULL`, [now, ...goalIds]);
+      run(`UPDATE daily_simple_sessions SET deletedAt = ? WHERE goalId IN (${goalPh}) AND deletedAt IS NULL`, [now, ...goalIds]);
+
+      run(
+        `UPDATE failures SET deletedAt = ? WHERE type = 'goal' AND linkedId IN (${goalPh}) AND deletedAt IS NULL`,
+        [now, ...goalIds.map(n => String(n))]
+      );
+
+      // Failures linked to timer sessions for these goals
+      const sessionIds = queryAll(
+        `SELECT id FROM sessions WHERE goalId IN (${goalPh})`,
+        goalIds
+      ).map(r => String(r['id']));
+
+      if (sessionIds.length > 0) {
+        const sessionPh = sessionIds.map(() => '?').join(',');
+        run(
+          `UPDATE failures SET deletedAt = ? WHERE type = 'session' AND linkedId IN (${sessionPh}) AND deletedAt IS NULL`,
+          [now, ...sessionIds]
+        );
+      }
+
+      run(`UPDATE goals SET deletedAt = ? WHERE id IN (${goalPh}) AND deletedAt IS NULL`, [now, ...goalIds]);
+    }
+
+    recalcPortfolioProgress(Date.now(), getRecalcTimeZone());
     res.status(204).send();
   } catch (err) { next(err); }
 });

@@ -9,6 +9,7 @@ interface GoalStore {
   load: () => Promise<void>;
   add: (frameworkId: string, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
   remove: (id: string) => Promise<void>;
+  removeSingle: (id: string) => Promise<void>;
   update: (id: string, data: Record<string, string>, goalType?: Goal['goalType'], category?: Goal['category']) => Promise<void>;
   patchStatus: (id: string, status: Goal['status']) => Promise<void>;
   select: (id: string | null) => void;
@@ -38,8 +39,16 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   },
 
   remove: async (id) => {
+    // Default backend behavior is cascade delete, so reload after deletion
+    // to remove the entire deleted subtree from local state.
     await api.delete(`/goals/${id}`);
-    set({ goals: get().goals.filter(g => String(g.id) !== String(id)) });
+    void get().load();
+  },
+
+  removeSingle: async (id) => {
+    // Non-cascading delete: delete only this goal (no descendants).
+    await api.delete(`/goals/${id}?cascade=false`);
+    void get().load();
   },
 
   update: async (id, data, goalType, category) => {
