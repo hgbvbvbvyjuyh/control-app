@@ -573,11 +573,6 @@ export const Goals = () => {
                         </h3>
                       </div>
                     </div>
-                    <p className="text-sm text-secondary truncate mt-1">
-                      {Object.values(goal.data).slice(1).join(' · ') || '—'}
-                    </p>
-
-
                   </div>
                 </AntiGravity>
               </motion.div>
