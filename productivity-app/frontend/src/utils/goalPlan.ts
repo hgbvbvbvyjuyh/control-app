@@ -92,13 +92,3 @@ export function hasChildOfType(
   );
 }
 
-export function buildChildGoalRowData(
-  fw: { keys: { key: string }[] },
-  titleFromFirstField: string
-): Record<string, string> {
-  const row: Record<string, string> = {};
-  fw.keys.forEach((k, i) => {
-    row[k.key] = i === 0 ? titleFromFirstField : '';
-  });
-  return row;
-}

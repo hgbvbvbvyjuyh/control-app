@@ -21,7 +21,6 @@ const BTN_SECONDARY =
   'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
 import {
   type GoalPlanData,
-  buildChildGoalRowData,
   childTypeForPlannedParent,
   emptyPlanForGoalType,
   hasChildOfType,
@@ -61,6 +60,7 @@ export const Goals = () => {
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
   const [simpleSessionPlanOpenId, setSimpleSessionPlanOpenId] = useState<string | null>(null);
   const [simpleSessionPlanText, setSimpleSessionPlanText] = useState('');
+  const [simpleSessionFrameworkPickerOpenId, setSimpleSessionFrameworkPickerOpenId] = useState<string | null>(null);
 
   // ── Goal journal modal state ──
   const [journalModalOpen, setJournalModalOpen] = useState(false);
@@ -199,14 +199,6 @@ export const Goals = () => {
       console.log('[generateSubGoalsFromPlan] validation: goal type not plannable', selectedGoal.goalType);
       return;
     }
-    if (!selectedFw) {
-      console.log('[generateSubGoalsFromPlan] validation: framework not found', {
-        goalFrameworkId: selectedGoal.frameworkId,
-        frameworkIds: frameworks.map(f => f.id),
-      });
-      showToast('Framework not found for this goal', 'error');
-      return;
-    }
     const plan = parseGoalPlan(selectedGoal.data);
     console.log('[generateSubGoalsFromPlan] parsed plan', plan, 'raw plan field:', selectedGoal.data?.plan);
     if (!plan) {
@@ -226,26 +218,25 @@ export const Goals = () => {
       showToast('Save your plan first', 'error');
       return;
     }
-    const emptyIdx = plan.items.findIndex(it => !it.text.trim());
-    if (emptyIdx !== -1) {
-      console.log('[generateSubGoalsFromPlan] validation: empty plan item at index', emptyIdx);
-      showToast('All plan items must have text', 'error');
-      return;
-    }
     const childType = childTypeForPlannedParent(selectedGoal.goalType);
     if (hasChildOfType(goals, String(selectedGoal.id), childType)) {
       console.log('[generateSubGoalsFromPlan] validation: children of type already exist', childType);
       showToast('Sub goals already exist', 'error');
       return;
     }
-    console.log('[generateSubGoalsFromPlan] passed validation; creating', plan.items.length, 'sub-goals');
+    const ideaItems = plan.items.map(it => it.text.trim()).filter(Boolean);
+    if (ideaItems.length === 0) {
+      showToast('Add at least one plan idea to generate sub goals', 'error');
+      return;
+    }
+    console.log('[generateSubGoalsFromPlan] passed validation; creating', ideaItems.length, 'sub-goals');
     try {
-      for (let i = 0; i < plan.items.length; i++) {
-        const item = plan.items[i]!;
-        console.log('[generateSubGoalsFromPlan] add() item', i, item.text.trim());
+      for (let i = 0; i < ideaItems.length; i++) {
+        const ideaText = ideaItems[i]!;
+        console.log('[generateSubGoalsFromPlan] add() idea item', i, ideaText);
         await add(
-          selectedGoal.frameworkId,
-          buildChildGoalRowData(selectedFw, item.text.trim()),
+          null,
+          { title: ideaText },
           childType,
           String(selectedGoal.id),
           false,
@@ -272,6 +263,14 @@ export const Goals = () => {
     const goalId = String(goal.id);
     const currentTitle = String(Object.values(goal.data)[0] || '');
     setInlineTitleEditByGoalId(prev => ({ ...prev, [goalId]: currentTitle }));
+  };
+
+  const buildSimpleSessionTemplateFromFramework = (frameworkId: string): string => {
+    const fw = frameworks.find(f => String(f.id) === String(frameworkId));
+    if (!fw || fw.keys.length === 0) return '';
+    return fw.keys
+      .map(k => `${k.label || k.key}:`)
+      .join('\n');
   };
 
   const saveInlineTitleEdit = async (goal: Goal) => {
@@ -308,7 +307,9 @@ export const Goals = () => {
     navigate(`/session?goalId=${gid}`);
   };
 
-  const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
+  const goalSessions = selectedGoal
+    ? sessions.filter(s => String(s.goalId) === String(selectedGoal.id))
+    : [];
   const activeGoalsInCategory =
     activeCategory !== null
       ? getActiveGoals(goals).filter(g => g.goalType === activeCategory)
@@ -337,11 +338,32 @@ export const Goals = () => {
 
     if (selectedGoal.goalType === 'daily') {
       const list = simpleSessionsByGoal[goalId] ?? [];
-      const total = resolveDailyExpectedSessions(selectedGoal.data);
-      if (!total || total <= 0) return { hasData: false, pct: 0, completed: 0, total: 0, unitLabel: 'Sessions' };
-      const completed = list.filter(s => s.status === 'done').length;
-      const pct = Math.round((Math.min(completed, total) / total) * 100);
-      return { hasData: true, pct, completed: Math.min(completed, total), total, unitLabel: 'Sessions' };
+      const history = sessions.filter(s => String(s.goalId) === goalId);
+
+      const simpleCompleted = list.filter(s => s.status === 'done').length;
+      const historyCompleted = history.filter(s => s.status === 'completed').length;
+      const completed = simpleCompleted + historyCompleted;
+
+      const plannedTotal = resolveDailyExpectedSessions(selectedGoal.data);
+      if (plannedTotal && plannedTotal > 0) {
+        const pct = Math.round((Math.min(completed, plannedTotal) / plannedTotal) * 100);
+        return {
+          hasData: true,
+          pct,
+          completed: Math.min(completed, plannedTotal),
+          total: plannedTotal,
+          unitLabel: 'Sessions',
+        };
+      }
+
+      // Fallback when no explicit daily target exists: infer total from logged sessions.
+      const simpleLogged = list.length;
+      const historyLogged = history.filter(s => s.status === 'completed' || s.status === 'skipped').length;
+      const inferredTotal = simpleLogged + historyLogged;
+      if (inferredTotal <= 0) return { hasData: false, pct: 0, completed: 0, total: 0, unitLabel: 'Sessions' };
+
+      const pct = Math.round((completed / inferredTotal) * 100);
+      return { hasData: true, pct, completed, total: inferredTotal, unitLabel: 'Sessions' };
     }
 
     const childType =
@@ -622,7 +644,13 @@ export const Goals = () => {
                       </button>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">{selectedGoal.goalType || 'daily'}</span>
-                        <span className="text-[10px] text-secondary font-medium tracking-wide">{selectedFw?.name}</span>
+                        {selectedFw ? (
+                          <span className="text-[10px] text-secondary font-medium tracking-wide">{selectedFw.name}</span>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-widest text-secondary/70 font-semibold bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-md">
+                            Independent
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0 justify-end max-md:w-full max-md:justify-start">
@@ -814,6 +842,7 @@ export const Goals = () => {
                             onClick={() => {
                               if (simpleSessionPlanOpenId === s.id) {
                                 setSimpleSessionPlanOpenId(null);
+                                setSimpleSessionFrameworkPickerOpenId(null);
                               } else {
                                 setSimpleSessionPlanText(s.note || '');
                                 setSimpleSessionPlanOpenId(s.id);
@@ -856,20 +885,52 @@ export const Goals = () => {
                             className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-text resize-y min-h-[4.5rem]"
                             placeholder="Optional session plan…"
                           />
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              try {
-                                await updateSimpleSessionNote(s.id, String(selectedGoal.id), simpleSessionPlanText);
-                                showToast('Plan saved', 'success');
-                              } catch {
-                                showToast('Could not save plan', 'error');
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await updateSimpleSessionNote(s.id, String(selectedGoal.id), simpleSessionPlanText);
+                                  showToast('Plan saved', 'success');
+                                } catch {
+                                  showToast('Could not save plan', 'error');
+                                }
+                              }}
+                              className={`${BTN_SECONDARY} text-xs py-1.5`}
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSimpleSessionFrameworkPickerOpenId(prev =>
+                                  prev === s.id ? null : s.id
+                                )
                               }
-                            }}
-                            className={`${BTN_SECONDARY} text-xs py-1.5 self-start`}
-                          >
-                            Save
-                          </button>
+                              className={`${BTN_SECONDARY} text-xs py-1.5`}
+                            >
+                              Select Framework
+                            </button>
+                          </div>
+                          {simpleSessionFrameworkPickerOpenId === s.id && (
+                            <select
+                              value=""
+                              onChange={e => {
+                                const frameworkId = e.target.value;
+                                if (!frameworkId) return;
+                                const template = buildSimpleSessionTemplateFromFramework(frameworkId);
+                                setSimpleSessionPlanText(template);
+                              }}
+                              className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-text"
+                            >
+                              <option value="">Select Framework</option>
+                              {frameworks.map(f => (
+                                <option key={f.id} value={String(f.id)}>
+                                  {f.name}
+                                </option>
+                              ))}
+                            </select>
+                          )}
                           <button
                             type="button"
                             onClick={handleStartSessionUI}

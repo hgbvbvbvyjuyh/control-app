@@ -83,7 +83,7 @@ export async function initDb() {
 
     CREATE TABLE IF NOT EXISTS goals (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      frameworkId   INTEGER NOT NULL,
+      frameworkId   INTEGER,
       goalType      TEXT    NOT NULL DEFAULT 'daily',
       parentId      INTEGER,
       isIndependent INTEGER NOT NULL DEFAULT 1,
@@ -207,6 +207,49 @@ export async function initDb() {
   safeAlter('ALTER TABLE frameworks ADD COLUMN deletedAt INTEGER');
   safeAlter('ALTER TABLE goals ADD COLUMN deletedAt INTEGER');
   safeAlter('ALTER TABLE goals ADD COLUMN progressHasData INTEGER NOT NULL DEFAULT 1');
+  // Goals table migration: allow NULL frameworkId for idea-only sub-goals.
+  // SQLite cannot alter NOT NULL directly, so rebuild table if needed.
+  try {
+    const cols = queryAll<{ name: string; notnull: number }>('PRAGMA table_info(goals)');
+    const fwCol = cols.find(c => c.name === 'frameworkId');
+    if (fwCol && Number(fwCol.notnull) === 1) {
+      _db.run(`
+        CREATE TABLE goals_new (
+          id            INTEGER PRIMARY KEY AUTOINCREMENT,
+          frameworkId   INTEGER,
+          goalType      TEXT    NOT NULL DEFAULT 'daily',
+          parentId      INTEGER,
+          isIndependent INTEGER NOT NULL DEFAULT 1,
+          category      TEXT    NOT NULL DEFAULT 'health',
+          data          TEXT    NOT NULL DEFAULT '{}',
+          progress      INTEGER NOT NULL DEFAULT 0,
+          status        TEXT    NOT NULL DEFAULT 'active',
+          completedAt   INTEGER,
+          createdAt     INTEGER NOT NULL,
+          updatedAt     INTEGER NOT NULL,
+          deletedAt     INTEGER,
+          progressHasData INTEGER NOT NULL DEFAULT 1
+        );
+      `);
+      _db.run(`
+        INSERT INTO goals_new (
+          id, frameworkId, goalType, parentId, isIndependent, category,
+          data, progress, status, completedAt, createdAt, updatedAt, deletedAt, progressHasData
+        )
+        SELECT
+          id, frameworkId, goalType, parentId, isIndependent, category,
+          data, progress, status, completedAt, createdAt, updatedAt, deletedAt,
+          COALESCE(progressHasData, 1)
+        FROM goals;
+      `);
+      _db.run('DROP TABLE goals');
+      _db.run('ALTER TABLE goals_new RENAME TO goals');
+    }
+  } catch (err) {
+    console.error('Failed to migrate goals.frameworkId nullability:', err);
+    throw err;
+  }
+
   safeAlter('ALTER TABLE sessions ADD COLUMN deletedAt INTEGER');
   safeAlter('ALTER TABLE journals ADD COLUMN deletedAt INTEGER');
   safeAlter('ALTER TABLE failures ADD COLUMN deletedAt INTEGER');

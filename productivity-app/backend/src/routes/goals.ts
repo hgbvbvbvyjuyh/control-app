@@ -39,7 +39,7 @@ function parseGoal(row: Record<string, unknown>): Goal {
 
       return {
     id: String(row['id']),
-    frameworkId: String(row['frameworkId']),
+    frameworkId: row['frameworkId'] == null ? null : String(row['frameworkId']),
     goalType: row['goalType'] as Goal['goalType'],
     parentId: row['parentId'] ? String(row['parentId']) : null,
     isIndependent: Boolean(row['isIndependent']),
@@ -91,8 +91,8 @@ router.post('/', (req, res, next) => {
   try {
     const body = req.body as Partial<Goal>;
     const { frameworkId, data, goalType, parentId, isIndependent, category } = body;
-    if (!frameworkId || !data) {
-      res.status(400).json({ error: 'frameworkId and data are required' }); return;
+    if (!data) {
+      res.status(400).json({ error: 'data is required' }); return;
     }
 
     // If parentId is provided, validate it exists

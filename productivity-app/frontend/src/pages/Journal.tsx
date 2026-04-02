@@ -420,17 +420,8 @@ function GoalCard({
   openJournal: boolean;
   onToggleJournal: (goalId: string) => void;
 }) {
-  const categoryColors: Record<string, string> = {
-    spirituality: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    finance: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30",
-    health: "bg-green-500/20 text-green-400 border-green-500/30",
-    relation: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-  };
-
   const title = String(Object.values(goal.data)[0] || 'Untitled');
   const type = String(goal.goalType || 'daily');
-  const goalCategory = String(goal.category || 'health');
-
   const answers = entry?.content?.answers ?? null;
   const q1 = answers?.q1 ?? entry?.content?.goals ?? '';
   const q2 = answers?.q2 ?? entry?.content?.problems ?? '';
@@ -439,43 +430,50 @@ function GoalCard({
   const mistakes = (typeof q2 === 'string' ? q2.trim() : '') || '-';
   const improvement = (typeof q3 === 'string' ? q3.trim() : '') || '-';
 
-  const dateLabel = String(entry?.date || '-');
-
   return (
-    <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 hover:border-secondary/40 transition-colors">
-      <div className="flex justify-between items-center mb-4">
-        <div className="w-full">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-[10px] font-bold text-secondary uppercase opacity-50">{dateLabel}</span>
-            <div className="flex items-center gap-2">
-              <span className="h-6 inline-flex items-center text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
-                {type}
-              </span>
-              <button
-                type="button"
-                onClick={() => onToggleJournal(goalId)}
-                title={openJournal ? "Hide Journal" : "Show Journal"}
-                aria-label={openJournal ? "Hide Journal" : "Show Journal"}
-                className="h-6 px-2 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
-              >
-                {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-          <h4 className="font-bold text-sm mb-2">{title}</h4>
-          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${categoryColors[goalCategory]}`}>
-            {goalCategory}
+    <motion.div
+      layout
+      transition={{ layout: { duration: 0.2, ease: 'easeOut' } }}
+      className={`bg-secondary/5 border border-secondary/20 rounded-2xl hover:border-secondary/40 transition-colors ${
+        openJournal ? 'p-5' : 'px-4 py-3'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={() => onToggleJournal(goalId)}
+        title={openJournal ? "Hide Journal" : "Show Journal"}
+        aria-label={openJournal ? "Hide Journal" : "Show Journal"}
+        aria-expanded={openJournal}
+        className={`w-full flex justify-between items-center text-left rounded-lg transition-colors ${
+          openJournal ? 'mb-3' : 'mb-0'
+        } hover:bg-white/[0.03] focus:outline-none focus:ring-1 focus:ring-accent/40 px-1 py-1`}
+      >
+        <h4 className="font-bold text-sm pr-3 truncate">{title}</h4>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="h-6 inline-flex items-center text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
+            {type}
+          </span>
+          <span
+            aria-hidden="true"
+            className="h-8 w-8 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300"
+          >
+            {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </span>
         </div>
-      </div>
+      </button>
       
       <motion.div
         initial={false}
-        animate={{ height: openJournal ? 'auto' : 0, opacity: openJournal ? 1 : 0 }}
-        transition={{ duration: 0.22, ease: 'easeOut' }}
+        animate={{ height: openJournal ? 'auto' : 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         style={{ overflow: 'hidden' }}
       >
-        <div className="space-y-3 pt-3 border-t border-secondary/10">
+        <motion.div
+          initial={false}
+          animate={{ opacity: openJournal ? 1 : 0, y: openJournal ? 0 : -4 }}
+          transition={{ duration: 0.16, ease: 'easeOut' }}
+          className="space-y-3 pt-3 border-t border-secondary/10"
+        >
           <div>
             <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Did I Complete?</p>
             <p className="text-xs text-text/80">{didComplete}</p>
@@ -488,8 +486,8 @@ function GoalCard({
             <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Improvement</p>
             <p className="text-xs text-text/80">{improvement}</p>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

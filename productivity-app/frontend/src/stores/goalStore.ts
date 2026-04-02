@@ -7,13 +7,13 @@ interface GoalStore {
   selectedGoalId: string | null;
   loading: boolean;
   load: () => Promise<void>;
-  add: (frameworkId: string, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
+  add: (frameworkId: string | null, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
   remove: (id: string) => Promise<void>;
   removeSingle: (id: string) => Promise<void>;
   update: (id: string, data: Record<string, string>, goalType?: Goal['goalType'], category?: Goal['category']) => Promise<void>;
   patchStatus: (id: string, status: Goal['status']) => Promise<void>;
   select: (id: string | null) => void;
-  getByFramework: (frameworkId: string) => Goal[];
+  getByFramework: (frameworkId: string | null) => Goal[];
 }
 
 export const useGoalStore = create<GoalStore>((set, get) => ({
@@ -72,6 +72,9 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   select: (id) => set({ selectedGoalId: id }),
 
   getByFramework: (frameworkId) => {
-    return get().goals.filter(g => String(g.frameworkId) === String(frameworkId));
+    return get().goals.filter(g => {
+      if (frameworkId == null) return g.frameworkId == null;
+      return String(g.frameworkId) === String(frameworkId);
+    });
   },
 }));

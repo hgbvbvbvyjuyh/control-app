@@ -32,7 +32,7 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
   useEffect(() => {
     if (open) {
       if (editingGoal) {
-        setSelectedFw(editingGoal.frameworkId);
+        setSelectedFw(editingGoal.frameworkId || '');
         setGoalType(editingGoal.goalType);
         setCategory(editingGoal.category || 'health');
         setData(editingGoal.data);
