@@ -75,10 +75,7 @@ export const Journal = () => {
     return matchesCategory && matchesTimeframe;
   });
 
-  const getGoalInfo = (goalId: string) => {
-    const goal = goals.find(g => String(g.id) === String(goalId));
-    return goal ? { title: Object.values(goal.data)[0], type: goal.goalType } : { title: 'Unknown Goal', type: 'daily' };
-  };
+  // getGoalInfo removed: cards are built directly from `goals` + `entries`
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col w-full max-w-5xl mx-auto pb-12 overflow-y-auto no-scrollbar">
@@ -403,9 +400,9 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
   };
   const [openJournal, setOpenJournal] = useState(false);
 
-  const title = Object.values(goal.data)[0] || 'Untitled';
-  const type = goal.goalType;
-  const goalCategory = goal.category || 'health';
+  const title = String(Object.values(goal.data)[0] || 'Untitled');
+  const type = String(goal.goalType || 'daily');
+  const goalCategory = String(goal.category || 'health');
 
   const answers = entry?.content?.answers ?? null;
   const q1 = answers?.q1 ?? entry?.content?.goals ?? '';
@@ -415,7 +412,7 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
   const mistakes = (typeof q2 === 'string' ? q2.trim() : '') || '-';
   const improvement = (typeof q3 === 'string' ? q3.trim() : '') || '-';
 
-  const dateLabel = entry?.date || '-';
+  const dateLabel = String(entry?.date || '-');
 
   return (
     <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 hover:border-secondary/40 transition-colors">

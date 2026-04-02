@@ -1,14 +1,6 @@
 import jsPDF from 'jspdf';
-import type { Goal, Session, JournalEntry } from '../db';
+import type { Goal } from '../db';
 import type { GoalPlanData } from './goalPlan';
-
-function slugifyFileName(input: string): string {
-  return input
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
 
 function wrapText(doc: jsPDF, text: string, maxWidth: number): string[] {
   const words = text.split(/\s+/).filter(Boolean);

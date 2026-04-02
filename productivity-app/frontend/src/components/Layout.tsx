@@ -14,6 +14,7 @@ import { exportAllData } from '../utils/dataExport';
 import { useSessionStore } from '../stores/sessionStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import type { JournalEntry } from '../db';
+import type { DailySimpleSession } from '../stores/dailySimpleSessionStore';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -72,7 +73,7 @@ export const Layout = () => {
         });
 
       const timerSessions = await loadSessionsForGoal(goalId);
-      let simpleSessions = [];
+      let simpleSessions: DailySimpleSession[] = [];
       if (selected.goalType === 'daily') {
         await loadSimpleSessionsForGoal(goalId);
         simpleSessions = useDailySimpleSessionStore.getState().byGoalId[goalId] ?? [];
