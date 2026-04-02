@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import { useJournalStore } from "../stores/journalStore";
 import { useGoalStore } from "../stores/goalStore";
 import { useToastStore } from "../stores/toastStore";
 
-const analyticsTabs = ["Daily", "Weekly", "Monthly", "Yearly", "ALL"];
+const analyticsTabs = ["ALL", "Daily", "Weekly", "Monthly", "Yearly"];
 const analyticsCategories = ["all", "spirituality", "finance", "health", "relation"];
 
 export const Journal = () => {
@@ -431,13 +432,15 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
           <button
             type="button"
             onClick={() => setOpenJournal((prev) => !prev)}
-            className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+            title={openJournal ? "Hide Journal" : "Show Journal"}
+            aria-label={openJournal ? "Hide Journal" : "Show Journal"}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
               openJournal
-                ? 'bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(6,182,212,0.15)]'
-                : 'bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/30 hover:text-text'
+                ? 'bg-accent/20 border-accent text-accent'
+                : 'bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/30 hover:text-text hover:bg-secondary/10'
             }`}
           >
-            {openJournal ? 'Hide' : 'Show'}
+            {openJournal ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
       </div>

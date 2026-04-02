@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +32,19 @@ export const Layout = () => {
   const { goals, selectedGoalId, load: loadGoals } = useGoalStore();
   const { loadForGoal: loadSessionsForGoal } = useSessionStore();
   const { loadForGoal: loadSimpleSessionsForGoal } = useDailySimpleSessionStore();
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (!exportRef.current) return;
+      const t = e.target as Node;
+      if (!exportRef.current.contains(t)) setExportOpen(false);
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [exportOpen]);
 
   const handleExportSummaryPdf = async () => {
     try {
@@ -225,25 +239,44 @@ export const Layout = () => {
         </nav>
 
         <div className="mt-auto flex flex-col gap-3 pt-8 border-t border-white/5">
-          <motion.button 
-            whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }} 
-            whileTap={{ scale: 0.98 }} 
-            onClick={handleExportSummaryPdf} 
-            className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl"
-          >
-            <Download size={14} className="opacity-50" />
-            <span>Export Summary (PDF)</span>
-          </motion.button>
-          
-          <motion.button
-            whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleExportFullBackupJson}
-            className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl"
-          >
-            <Download size={14} className="opacity-50" />
-            <span>Export Full Backup (JSON)</span>
-          </motion.button>
+          <div ref={exportRef} className="relative">
+            <motion.button
+              whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setExportOpen((prev) => !prev)}
+              className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl w-full"
+              type="button"
+            >
+              <Download size={14} className="opacity-50" />
+              <span>Export</span>
+              <span className="ml-auto opacity-60">{exportOpen ? '▲' : '▼'}</span>
+            </motion.button>
+
+            {exportOpen && (
+              <div className="absolute left-0 right-0 mt-2 bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportOpen(false);
+                    void handleExportSummaryPdf();
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-secondary hover:bg-white/5 transition-colors"
+                >
+                  Export Summary (PDF)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExportOpen(false);
+                    void handleExportFullBackupJson();
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-secondary hover:bg-white/5 transition-colors border-t border-white/5"
+                >
+                  Export Full Backup (JSON)
+                </button>
+              </div>
+            )}
+          </div>
           
           <motion.button 
             whileHover={{ x: 4, backgroundColor: 'rgba(239,68,68,0.05)', color: '#EF4444' }} 
