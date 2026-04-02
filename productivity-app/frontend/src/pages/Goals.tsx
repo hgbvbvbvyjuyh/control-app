@@ -9,6 +9,7 @@ import { type Goal } from '../db';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FrameworkModal } from '../components/FrameworkModal';
 import { GoalModal } from '../components/GoalModal';
+import { GoalPlanSection } from '../components/GoalPlanSection';
 import { JournalModal, type CompletionIntent, type JournalAnswers } from '../components/JournalModal';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
@@ -19,8 +20,6 @@ import { getActiveGoals } from '../utils/goalListHelpers';
 
 const BTN_SECONDARY =
   'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
-const BTN_ACCENT_OUTLINE =
-  'text-xs font-semibold px-3 py-2 rounded-lg border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/20';
 import {
   type GoalPlanData,
   buildChildGoalRowData,
@@ -55,7 +54,6 @@ export const Goals = () => {
   const [showFwModal, setShowFwModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>(undefined);
-  const [subGoalParentContext, setSubGoalParentContext] = useState<{ parentId: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
   const [showFrameworkData, setShowFrameworkData] = useState(false);
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
@@ -194,9 +192,6 @@ export const Goals = () => {
   };
   const selectedFw = selectedGoal ? frameworks.find(f => f.id === selectedGoal.frameworkId) : null;
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
-  const subGoalParent = subGoalParentContext
-    ? goals.find(g => String(g.id) === subGoalParentContext.parentId)
-    : null;
   const childGoalsUnderSelected = selectedGoal
     ? goals
         .filter(g => g.parentId != null && String(g.parentId) === String(selectedGoal.id))
@@ -225,12 +220,12 @@ export const Goals = () => {
       <AnimatePresence>{showGoalModal && (
         <GoalModal 
           open 
-          onClose={() => { setShowGoalModal(false); setEditingGoal(undefined); setSubGoalParentContext(null); }} 
-          frameworkId={subGoalParent ? subGoalParent.frameworkId : null} 
+          onClose={() => { setShowGoalModal(false); setEditingGoal(undefined); }} 
+          frameworkId={null} 
           editingGoal={editingGoal}
           initialType={activeCategory || 'daily'}
-          parentGoalId={subGoalParentContext?.parentId ?? null}
-          allowFreeGoalType={!!subGoalParentContext}
+          parentGoalId={null}
+          allowFreeGoalType={false}
         />
       )}</AnimatePresence>
       <JournalModal
@@ -295,7 +290,7 @@ export const Goals = () => {
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowFwModal(true)} className="text-xs bg-surface/50 border border-white/10 text-secondary hover:text-white px-4 py-2 rounded-xl transition-colors shadow-sm hover:bg-surface/80">
                     + Framework
                   </motion.button>
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setSubGoalParentContext(null); setEditingGoal(undefined); setShowGoalModal(true); }} className="bg-accent text-background px-5 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] text-sm font-bold">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditingGoal(undefined); setShowGoalModal(true); }} className="bg-accent text-background px-5 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] text-sm font-bold">
                     + Goal
                   </motion.button>
                 </div>
@@ -402,20 +397,6 @@ export const Goals = () => {
                       </h2>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0 justify-end max-md:w-full max-md:justify-start">
-                      {selectedGoal.goalType !== 'daily' && (
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setEditingGoal(undefined);
-                          setSubGoalParentContext({ parentId: String(selectedGoal.id) });
-                          setShowGoalModal(true);
-                        }}
-                        className={BTN_SECONDARY}
-                      >
-                        Add Sub Goal
-                      </motion.button>
-                      )}
                       {selectedGoal.goalType === 'daily' && (
                         <>
                           <motion.button
@@ -557,62 +538,21 @@ export const Goals = () => {
                 )}
               </div>
 
-              {/* Plan (optional) */}
+              {/* Plan (optional, toggle to reduce clutter) */}
               {selectedGoal && isPlannableGoalType(selectedGoal.goalType) && (
-              <div className="bg-background/50 rounded-xl border border-secondary/20 p-4">
-                <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
-                  <h4 className="text-xs font-semibold text-accent uppercase tracking-wider">Plan</h4>
-                  {planDraft === null && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const gt = selectedGoal.goalType;
-                        if (!isPlannableGoalType(gt)) return;
-                        setPlanDraft(emptyPlanForGoalType(gt));
-                      }}
-                      className={BTN_ACCENT_OUTLINE}
-                    >
-                      Add Plan
-                    </button>
-                  )}
-                </div>
-                {planDraft !== null && (
-                  <>
-                    <div className="flex flex-col gap-2 mb-3 max-h-64 overflow-y-auto no-scrollbar">
-                      {planDraft.items.map((item, idx) => (
-                        <div key={`${item.label}-${idx}`} className="flex flex-col gap-1">
-                          <label className="text-[10px] text-secondary uppercase font-bold tracking-wide">{item.label}</label>
-                          <input
-                            value={item.text}
-                            onChange={e => setPlanItemText(idx, e.target.value)}
-                            className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-text"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSavePlan}
-                        className={`${BTN_SECONDARY} text-xs py-2`}
-                      >
-                        Save Plan
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleGenerateSubGoalsFromPlan}
-                        disabled={!generateSubGoalsUnlocked}
-                        className={BTN_ACCENT_OUTLINE}
-                      >
-                        Generate Sub Goals
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-secondary/60 mt-2 leading-snug">
-                      Sub-goals: {childTypeForPlannedParent(selectedGoal.goalType)}, one per plan row (save plan first; all items required). Skipped if any such child already exists (same parent and type).
-                    </p>
-                  </>
-                )}
-              </div>
+                <GoalPlanSection
+                  selectedGoal={selectedGoal}
+                  planDraft={planDraft}
+                  onAddPlan={() => {
+                    const gt = selectedGoal.goalType;
+                    if (!isPlannableGoalType(gt)) return;
+                    setPlanDraft(emptyPlanForGoalType(gt));
+                  }}
+                  onPlanItemChange={setPlanItemText}
+                  onSavePlan={handleSavePlan}
+                  onGenerateSubGoals={handleGenerateSubGoalsFromPlan}
+                  generateSubGoalsDisabled={!generateSubGoalsUnlocked}
+                />
               )}
 
               {/* Sub goals */}
@@ -622,7 +562,9 @@ export const Goals = () => {
                   <p className="text-secondary text-sm">
                     {selectedGoal.goalType === 'daily'
                       ? 'No sub goals yet.'
-                      : 'No sub goals yet. Use "Add Sub Goal" above.'}
+                      : isPlannableGoalType(selectedGoal.goalType)
+                        ? 'No sub goals yet. Save a plan and use Generate Sub Goals.'
+                        : 'No sub goals yet.'}
                   </p>
                 ) : (
                   <div className="flex flex-col gap-2">
