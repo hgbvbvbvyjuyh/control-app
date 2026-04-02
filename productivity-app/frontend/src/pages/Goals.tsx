@@ -413,25 +413,20 @@ export const Goals = () => {
                         Add Sub Goal
                       </motion.button>
                       )}
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setEditingGoal(selectedGoal); setSubGoalParentContext(null); setShowGoalModal(true); }}
-                        className={BTN_SECONDARY}
-                      >
-                        Edit
-                      </motion.button>
                       {selectedGoal.goalType === 'daily' && (
                         <>
                           <motion.button
+                            type="button"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={async () => {
+                              const gid = selectedGoal.id;
+                              if (gid == null || gid === '') return;
                               try {
-                                await addSimpleSession(String(selectedGoal.id));
-                                showToast('Session added');
+                                await addSimpleSession(String(gid));
+                                showToast('Session added', 'success');
                               } catch {
-                                showToast('Could not add session');
+                                showToast('Could not add session', 'error');
                               }
                             }}
                             className={BTN_SECONDARY}
