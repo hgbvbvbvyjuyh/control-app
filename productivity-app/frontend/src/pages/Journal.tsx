@@ -434,13 +434,9 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
             onClick={() => setOpenJournal((prev) => !prev)}
             title={openJournal ? "Hide Journal" : "Show Journal"}
             aria-label={openJournal ? "Hide Journal" : "Show Journal"}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 border ${
-              openJournal
-                ? 'bg-accent/20 border-accent/40 text-accent hover:bg-accent/25 hover:border-accent/50'
-                : 'bg-white/5 border-white/10 text-secondary hover:bg-white/10 hover:border-white/20 hover:text-text'
-            }`}
+            className="h-6 px-2 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
           >
-            {openJournal ? <EyeOff size={16} /> : <Eye size={16} />}
+            {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
       </div>
