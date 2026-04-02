@@ -4,7 +4,7 @@ import { useJournalStore } from "../stores/journalStore";
 import { useGoalStore } from "../stores/goalStore";
 import { useToastStore } from "../stores/toastStore";
 
-const analyticsTabs = ["Daily", "Weekly", "Monthly", "Yearly"];
+const analyticsTabs = ["Daily", "Weekly", "Monthly", "Yearly", "ALL"];
 const analyticsCategories = ["all", "spirituality", "finance", "health", "relation"];
 
 export const Journal = () => {
@@ -64,12 +64,15 @@ export const Journal = () => {
   // 1. DAILY JOURNAL: Life Journal Only (No Goals)
   const lifeJournalEntries = entries.filter(e => !e.goalId);
 
-  // 2. GOALS SECTION: Filtered by timeframe and category
-  const filteredGoalEntries = entries.filter(e => {
-    if (!e.goalId) return false;
-    const matchesTimeframe = e.type.toLowerCase() === timeframe.toLowerCase();
-    const matchesCategory = category === 'all' || e.category === category;
-    return matchesTimeframe && matchesCategory;
+  // 2. GOALS SECTION: show all goals (even if journal is empty)
+  // - No sorting: preserve the original order from `goals` in the store
+  // - Journal matching uses the current goal's own goalType as the journal `type`
+  const visibleGoals = goals.filter((g) => {
+    const goalCategory = g.category || 'health';
+    const matchesCategory = category === 'all' || goalCategory === category;
+    const matchesTimeframe =
+      timeframe === 'ALL' || g.goalType.toLowerCase() === timeframe.toLowerCase();
+    return matchesCategory && matchesTimeframe;
   });
 
   const getGoalInfo = (goalId: string) => {
@@ -362,15 +365,22 @@ export const Journal = () => {
 
           {/* FILTERED GOAL LIST */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGoalEntries.length === 0 ? (
+            {visibleGoals.length === 0 ? (
               <div className="md:col-span-2 lg:col-span-3 py-40 text-center border-2 border-dashed border-secondary/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 animate-in zoom-in-95 duration-300">
                 <span className="text-4xl opacity-20">🎯</span>
-                <p className="text-sm italic text-secondary/40">No goal journals found for {timeframe} / {category}.<br/>Create them in the Goals section.</p>
+                <p className="text-sm italic text-secondary/40">No goals found for {timeframe} / {category}.<br/>Create them in the Goals section.</p>
               </div>
             ) : (
-              filteredGoalEntries.map(e => {
-                const info = getGoalInfo(e.goalId!);
-                return <GoalCard key={e.id} entry={e} title={info.title} type={info.type} />;
+              visibleGoals.map((g) => {
+                const goalId = String(g.id);
+                const matchingEntry = entries.find(
+                  (e) =>
+                    e.goalId != null &&
+                    String(e.goalId) === goalId &&
+                    e.type.toLowerCase() === g.goalType.toLowerCase()
+                );
+
+                return <GoalCard key={goalId} goal={g} entry={matchingEntry ?? null} />;
               })
             )}
           </div>
@@ -384,43 +394,78 @@ export const Journal = () => {
 /* SUB-COMPONENTS            */
 /* ========================= */
 
-function GoalCard({ entry, title, type }: { entry: any; title: string; type: string }) {
+function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
   const categoryColors: Record<string, string> = {
     spirituality: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     finance: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30",
     health: "bg-green-500/20 text-green-400 border-green-500/30",
     relation: "bg-pink-500/20 text-pink-400 border-pink-500/30",
   };
+  const [openJournal, setOpenJournal] = useState(false);
+
+  const title = Object.values(goal.data)[0] || 'Untitled';
+  const type = goal.goalType;
+  const goalCategory = goal.category || 'health';
+
+  const answers = entry?.content?.answers ?? null;
+  const q1 = answers?.q1 ?? entry?.content?.goals ?? '';
+  const q2 = answers?.q2 ?? entry?.content?.problems ?? '';
+  const q3 = answers?.q3 ?? entry?.content?.ideas ?? '';
+  const didComplete = (typeof q1 === 'string' ? q1.trim() : '') || '-';
+  const mistakes = (typeof q2 === 'string' ? q2.trim() : '') || '-';
+  const improvement = (typeof q3 === 'string' ? q3.trim() : '') || '-';
+
+  const dateLabel = entry?.date || '-';
 
   return (
     <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 hover:border-secondary/40 transition-colors">
       <div className="flex justify-between items-start mb-4">
         <div className="w-full">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[10px] font-bold text-secondary uppercase opacity-50">{entry.date}</span>
+            <span className="text-[10px] font-bold text-secondary uppercase opacity-50">{dateLabel}</span>
             <span className="text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">{type}</span>
           </div>
           <h4 className="font-bold text-sm mb-2">{title}</h4>
-          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${categoryColors[entry.category || 'health']}`}>
-            {entry.category || 'health'}
+          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${categoryColors[goalCategory]}`}>
+            {goalCategory}
           </span>
+        </div>
+        <div className="ml-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setOpenJournal((prev) => !prev)}
+            className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+              openJournal
+                ? 'bg-accent/20 border-accent text-accent shadow-[0_0_10px_rgba(6,182,212,0.15)]'
+                : 'bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/30 hover:text-text'
+            }`}
+          >
+            {openJournal ? 'Hide' : 'Show'}
+          </button>
         </div>
       </div>
       
-      <div className="space-y-3 pt-3 border-t border-secondary/10">
-        <div>
-          <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Did I Complete?</p>
-          <p className="text-xs text-text/80">{entry.content.goals || '—'}</p>
+      <motion.div
+        initial={false}
+        animate={{ height: openJournal ? 'auto' : 0, opacity: openJournal ? 1 : 0 }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+        style={{ overflow: 'hidden' }}
+      >
+        <div className="space-y-3 pt-3 border-t border-secondary/10">
+          <div>
+            <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Did I Complete?</p>
+            <p className="text-xs text-text/80">{didComplete}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Mistakes</p>
+            <p className="text-xs text-text/80">{mistakes}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Improvement</p>
+            <p className="text-xs text-text/80">{improvement}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Mistakes</p>
-          <p className="text-xs text-text/80">{entry.content.problems || '—'}</p>
-        </div>
-        <div>
-          <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Improvement</p>
-          <p className="text-xs text-text/80">{entry.content.ideas || '—'}</p>
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

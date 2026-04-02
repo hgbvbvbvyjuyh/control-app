@@ -10,6 +10,10 @@ import { api } from '../utils/api';
 import { useGoalStore } from '../stores/goalStore';
 import { parseGoalPlan } from '../utils/goalPlan';
 import { exportGoalPlanPdf } from '../utils/planPdfExport';
+import { exportAllData } from '../utils/dataExport';
+import { useSessionStore } from '../stores/sessionStore';
+import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
+import type { JournalEntry } from '../db';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -24,11 +28,13 @@ export const Layout = () => {
   const { showToast } = useToastStore();
   const location = useLocation();
   const { goals, selectedGoalId, load: loadGoals } = useGoalStore();
+  const { loadForGoal: loadSessionsForGoal } = useSessionStore();
+  const { loadForGoal: loadSimpleSessionsForGoal } = useDailySimpleSessionStore();
 
-  const handleExport = async () => {
+  const handleExportSummaryPdf = async () => {
     try {
       if (!selectedGoalId) {
-        showToast('Select a goal to export its plan', 'error');
+        showToast('Select a goal to export its summary', 'error');
         return;
       }
 
@@ -46,19 +52,74 @@ export const Layout = () => {
       const plan = parseGoalPlan(selected.data);
       if (!plan) showToast('No saved plan found for this goal; exporting PDF anyway', 'info');
 
-      const goalTitle = Object.values(selected.data)[0] || 'Untitled';
-      const subGoals = goals.filter(
-        g => g.parentId != null && String(g.parentId) === String(selected!.id)
-      );
+      const goalId = String(selected.id);
+      const subGoals = goals.filter(g => g.parentId != null && String(g.parentId) === goalId);
 
+      const journals = await api.get<JournalEntry[]>(
+        `/journals?goalId=${encodeURIComponent(goalId)}`
+      );
+      const journalAnswers = journals
+        .map(j => ({
+          date: j.date,
+          q1: j.content?.answers?.q1,
+          q2: j.content?.answers?.q2,
+          q3: j.content?.answers?.q3,
+        }))
+        .filter(j => {
+          const any =
+            (j.q1 ?? '').trim() !== '' || (j.q2 ?? '').trim() !== '' || (j.q3 ?? '').trim() !== '';
+          return any;
+        });
+
+      const timerSessions = await loadSessionsForGoal(goalId);
+      let simpleSessions = [];
+      if (selected.goalType === 'daily') {
+        await loadSimpleSessionsForGoal(goalId);
+        simpleSessions = useDailySimpleSessionStore.getState().byGoalId[goalId] ?? [];
+      }
+
+      const total = (timerSessions?.length ?? 0) + (simpleSessions?.length ?? 0);
+      const completed =
+        (timerSessions ?? []).filter(s => s.status === 'completed').length +
+        (simpleSessions ?? []).filter(s => s.status === 'done').length;
+      const missed =
+        (timerSessions ?? []).filter(s => s.status === 'skipped').length +
+        (simpleSessions ?? []).filter(s => s.status === 'missed').length;
+      const pendingOrActive =
+        (timerSessions ?? []).filter(s => s.status === 'active').length +
+        (simpleSessions ?? []).filter(s => s.status === 'pending').length;
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
       exportGoalPlanPdf({
-        goalTitle,
-        goalType: selected.goalType,
+        fileName: `summary-${dateStamp}.pdf`,
+        goal: selected,
         plan,
         subGoals,
+        journalAnswers,
+        sessionSummary: total === 0 ? undefined : { total, completed, missed, pendingOrActive },
       });
 
-      showToast('Plan exported as PDF', 'success');
+      showToast('Summary exported as PDF', 'success');
+    } catch (err) {
+      console.error('Export failed:', err);
+      showToast('Export failed. Please try again.', 'error');
+    }
+  };
+
+  const handleExportFullBackupJson = async () => {
+    try {
+      const json = await exportAllData();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `backup-${dateStamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Backup exported successfully', 'success');
     } catch (err) {
       console.error('Export failed:', err);
       showToast('Export failed. Please try again.', 'error');
@@ -166,11 +227,21 @@ export const Layout = () => {
           <motion.button 
             whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }} 
             whileTap={{ scale: 0.98 }} 
-            onClick={handleExport} 
+            onClick={handleExportSummaryPdf} 
             className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl"
           >
             <Download size={14} className="opacity-50" />
-            <span>Export Plan</span>
+            <span>Export Summary (PDF)</span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleExportFullBackupJson}
+            className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl"
+          >
+            <Download size={14} className="opacity-50" />
+            <span>Export Full Backup (JSON)</span>
           </motion.button>
           
           <motion.button 

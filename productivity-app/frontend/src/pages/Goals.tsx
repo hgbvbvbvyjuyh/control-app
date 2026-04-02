@@ -37,7 +37,7 @@ import { useToastStore } from '../stores/toastStore';
 
 // ---- Goals Page ----
 export const Goals = () => {
-  const { goals, load: loadGoals, selectedGoalId, select, patchStatus, add, update, remove, removeSingle } = useGoalStore();
+  const { goals, load: loadGoals, selectedGoalId, select, patchStatus, add, update, remove } = useGoalStore();
   const { add: addJournal, load: loadJournals } = useJournalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
   const { sessions, load: loadSessions, remove: removeSession } = useSessionStore();
@@ -166,23 +166,15 @@ export const Goals = () => {
     );
   };
 
-  const handleDeleteSelectedGoal = async () => {
+  const handleDeleteDailyGoal = async () => {
     if (!selectedGoal?.id) return;
-    const isRoot = selectedGoal.parentId == null;
     confirm(
-      isRoot ? 'Delete Goal' : 'Delete Sub Goal',
-      isRoot
-        ? 'This will delete the goal and all generated sub-goals.'
-        : 'This will delete only the selected sub-goal.',
+      'Delete Goal',
+      'This action cannot be undone. The goal and all associated data will be removed.',
       async () => {
         try {
-          if (isRoot) {
-            await remove(String(selectedGoal.id));
-            showToast('Goal deleted', 'info');
-          } else {
-            await removeSingle(String(selectedGoal.id));
-            showToast('Sub goal deleted', 'info');
-          }
+          await remove(String(selectedGoal.id));
+          showToast('Goal deleted', 'info');
           select(null);
           setPlanDraft(null);
           setSimpleSessionPlanOpenId(null);
@@ -466,6 +458,19 @@ export const Goals = () => {
                 <div className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-white/10 p-6 pb-4 shrink-0">
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
+                      {selectedGoal.goalType === 'daily' && (
+                        <motion.button
+                          type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleDeleteDailyGoal}
+                          className="z-50 text-error/90 hover:text-error w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-colors mb-3"
+                          aria-label="Delete goal"
+                          title="Delete goal"
+                        >
+                          ✕
+                        </motion.button>
+                      )}
                       <button
                         type="button"
                         onClick={() => select(null)}
@@ -523,15 +528,6 @@ export const Goals = () => {
                           </motion.button>
                         </>
                       )}
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleDeleteSelectedGoal}
-                        className="text-sm font-semibold px-4 py-2 rounded-xl border border-error/30 bg-error/10 text-error hover:bg-error/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Delete
-                      </motion.button>
                     </div>
                   </div>
                 </div>
