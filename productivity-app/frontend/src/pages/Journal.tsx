@@ -417,7 +417,7 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
 
   return (
     <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 hover:border-secondary/40 transition-colors">
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-center mb-4">
         <div className="w-full">
           <div className="flex justify-between items-center mb-1">
             <span className="text-[10px] font-bold text-secondary uppercase opacity-50">{dateLabel}</span>
@@ -428,16 +428,16 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
             {goalCategory}
           </span>
         </div>
-        <div className="ml-3 shrink-0">
+        <div className="ml-2 shrink-0 flex items-center">
           <button
             type="button"
             onClick={() => setOpenJournal((prev) => !prev)}
             title={openJournal ? "Hide Journal" : "Show Journal"}
             aria-label={openJournal ? "Hide Journal" : "Show Journal"}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 border ${
               openJournal
-                ? 'bg-accent/20 border-accent text-accent'
-                : 'bg-secondary/5 border-secondary/20 text-secondary hover:border-secondary/30 hover:text-text hover:bg-secondary/10'
+                ? 'bg-accent/20 border-accent/40 text-accent hover:bg-accent/25 hover:border-accent/50'
+                : 'bg-white/5 border-white/10 text-secondary hover:bg-white/10 hover:border-white/20 hover:text-text'
             }`}
           >
             {openJournal ? <EyeOff size={16} /> : <Eye size={16} />}
