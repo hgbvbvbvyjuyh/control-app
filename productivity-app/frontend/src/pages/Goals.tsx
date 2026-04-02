@@ -224,19 +224,11 @@ export const Goals = () => {
     });
   };
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
-  const childGoalsUnderSelected = selectedGoal
-    ? goals
-        .filter(g => g.parentId != null && String(g.parentId) === String(selectedGoal.id))
-        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-    : [];
-
   const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
 
   const activeGoalsInCategory =
     activeCategory !== null
-      ? getActiveGoals(goals).filter(
-          g => g.goalType === activeCategory && g.parentId == null
-        )
+      ? getActiveGoals(goals).filter(g => g.goalType === activeCategory)
       : [];
 
   return (
@@ -340,7 +332,9 @@ export const Goals = () => {
                   className={`p-4 cursor-pointer border rounded-[20px] transition-all duration-300 ${
                     String(selectedGoalId) === String(goal.id) 
                       ? 'border-primary/50 bg-primary/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_20px_rgba(59,130,246,0.15)] scale-[1.02]' 
-                      : 'border-white/5 bg-surface/30 backdrop-blur-md hover:border-white/20 hover:bg-surface/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:scale-[1.01]'
+                      : `border-white/5 bg-surface/30 backdrop-blur-md hover:border-white/20 hover:bg-surface/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:scale-[1.01] ${
+                          goal.parentId != null ? 'opacity-85' : ''
+                        }`
                   }`}
                 >
                   <div className="flex-1">
@@ -357,6 +351,28 @@ export const Goals = () => {
                             }`}>
                               {goal.status.replace('_', ' ')}
                             </span>
+                          )}
+                          {/* Sub-goal indicator (flat list; no nested UI) */}
+                          {goal.parentId != null && (
+                            (() => {
+                              const parentGoal = goals.find(
+                                g => g.id != null && String(g.id) === String(goal.parentId)
+                              );
+                              const parentTitle =
+                                parentGoal ? Object.values(parentGoal.data)[0] || 'Untitled' : 'Unknown';
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    select(parentGoal?.id ?? null);
+                                  }}
+                                  className="text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none border border-secondary/20 bg-secondary/10 text-secondary hover:border-accent/40 hover:bg-secondary/20 transition-colors"
+                                >
+                                  From: {parentTitle}
+                                </button>
+                              );
+                            })()
                           )}
                         </div>
                         <h3 className="font-semibold text-lg mt-0.5 flex items-center gap-2 text-white">
@@ -578,47 +594,6 @@ export const Goals = () => {
                   onGenerateSubGoals={handleGenerateSubGoalsFromPlan}
                 />
               )}
-
-              {/* Sub goals */}
-              <div>
-                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Sub goals</h3>
-                {childGoalsUnderSelected.length === 0 ? (
-                  <p className="text-secondary text-sm">
-                    {selectedGoal.goalType === 'daily'
-                      ? 'No sub goals yet.'
-                      : isPlannableGoalType(selectedGoal.goalType)
-                        ? 'No sub goals yet. Save a plan and use Generate Sub Goals.'
-                        : 'No sub goals yet.'}
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {childGoalsUnderSelected.map((child) => (
-                      <button
-                        key={child.id}
-                        type="button"
-                        onClick={() => select(child.id ?? null)}
-                        className="text-left w-full bg-background/50 rounded-xl border border-secondary/20 p-3 hover:border-accent/40 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-text truncate">
-                            {Object.values(child.data)[0] || 'Untitled'}
-                          </span>
-                          {child.status && child.status !== 'active' && (
-                            <span className={`text-[9px] uppercase font-bold shrink-0 px-2 py-0.5 rounded ${
-                              child.status === 'done' ? 'bg-success/15 text-success' :
-                              child.status === 'not_done' ? 'bg-error/15 text-error' :
-                              'bg-secondary/15 text-secondary'
-                            }`}>
-                              {child.status.replace('_', ' ')}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-secondary mt-0.5 block capitalize">{child.goalType}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* Simple sessions (90 min, pending | done | missed) */}
               {selectedGoal.goalType === 'daily' && (
