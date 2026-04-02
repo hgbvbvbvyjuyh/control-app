@@ -303,8 +303,6 @@ export const Goals = () => {
   };
 
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
-  const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
-
   const activeGoalsInCategory =
     activeCategory !== null
       ? getActiveGoals(goals).filter(g => g.goalType === activeCategory)
