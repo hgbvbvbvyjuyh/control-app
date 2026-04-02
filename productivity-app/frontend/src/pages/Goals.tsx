@@ -645,11 +645,20 @@ export const Goals = () => {
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">{selectedGoal.goalType || 'daily'}</span>
                         {selectedFw ? (
-                          <span className="text-[10px] text-secondary font-medium tracking-wide">{selectedFw.name}</span>
-                        ) : (
-                          <span className="text-[10px] uppercase tracking-widest text-secondary/70 font-semibold bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-md">
-                            Independent
+                          <span className="text-[10px] uppercase tracking-widest text-secondary/80 font-semibold bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-md">
+                            {selectedFw.name}
                           </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingGoal(selectedGoal);
+                              setShowGoalModal(true);
+                            }}
+                            className="text-[10px] uppercase tracking-widest text-secondary/80 font-semibold bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-md hover:text-text hover:border-secondary/40 transition-colors"
+                          >
+                            Select Framework
+                          </button>
                         )}
                       </div>
                     </div>

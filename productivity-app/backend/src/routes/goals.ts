@@ -131,6 +131,7 @@ router.put('/:id', (req, res, next) => {
     const updatedAt = Date.now();
     const data = body.data ? JSON.stringify(body.data) : (existing['data'] as string);
     const goalType = body.goalType ?? existing['goalType'];
+    const frameworkId = body.frameworkId !== undefined ? body.frameworkId : existing['frameworkId'];
     const category = body.category ?? existing['category'];
     const parentId = body.parentId !== undefined ? body.parentId : existing['parentId'];
     const isIndependent = body.isIndependent !== undefined ? (body.isIndependent ? 1 : 0) : existing['isIndependent'];
@@ -151,8 +152,8 @@ router.put('/:id', (req, res, next) => {
 
     run(
       `UPDATE goals SET data = ?, goalType = ?, parentId = ?, isIndependent = ?,
-       category = ?, status = ?, progress = ?, completedAt = ?, updatedAt = ? WHERE id = ?`,
-      [data, goalType, parentId ?? null, isIndependent, category || 'health', status, progress, completedAt, updatedAt, req.params['id']]
+       frameworkId = ?, category = ?, status = ?, progress = ?, completedAt = ?, updatedAt = ? WHERE id = ?`,
+      [data, goalType, parentId ?? null, isIndependent, frameworkId ?? null, category || 'health', status, progress, completedAt, updatedAt, req.params['id']]
     );
     recalcPortfolioProgress(Date.now(), getRecalcTimeZone());
     const updated = parseGoal(queryOne('SELECT * FROM goals WHERE id = ?', [req.params['id']])!);

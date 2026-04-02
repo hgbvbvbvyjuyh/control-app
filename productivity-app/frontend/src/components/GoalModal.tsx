@@ -4,6 +4,7 @@ import { useGoalStore } from '../stores/goalStore';
 import { useToastStore } from '../stores/toastStore';
 import { type Goal } from '../db';
 import { motion } from 'framer-motion';
+import { emptyPlanForGoalType, isPlannableGoalType, serializeGoalPlan } from '../utils/goalPlan';
 
 interface GoalModalProps {
   open: boolean;
@@ -29,6 +30,20 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
 
   const fw = frameworks.find(f => String(f.id) === String(selectedFw));
 
+  const buildGoalDataFromFramework = (
+    framework: NonNullable<typeof fw>,
+    type: Goal['goalType']
+  ): Record<string, string> => {
+    const next: Record<string, string> = {};
+    framework.keys.forEach((k) => {
+      next[k.key] = '';
+    });
+    if (isPlannableGoalType(type)) {
+      next.plan = serializeGoalPlan(emptyPlanForGoalType(type));
+    }
+    return next;
+  };
+
   useEffect(() => {
     if (open) {
       if (editingGoal) {
@@ -47,22 +62,31 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
 
   useEffect(() => {
     if (!fw || editingGoal) return;
-    const initial: Record<string, string> = {};
-    fw.keys.forEach(k => {
-      initial[k.key] = '';
-    });
-    setData(initial);
-  }, [selectedFw, fw, editingGoal]);
+    setData(buildGoalDataFromFramework(fw, goalType));
+  }, [selectedFw, fw, editingGoal, goalType]);
+
+  useEffect(() => {
+    if (!fw || !editingGoal || editingGoal.frameworkId != null) return;
+    setData(buildGoalDataFromFramework(fw, goalType));
+  }, [selectedFw, fw, editingGoal, goalType]);
 
   const handleSave = async () => {
     if (!selectedFw) { setError('Select a framework'); return; }
     if (!fw) return;
-    const empty = fw.keys.find(k => !data[k.key]?.trim());
-    if (empty) { setError(`"${empty.label}" cannot be empty`); return; }
+    const isFrameworkAttachFlow = Boolean(editingGoal && editingGoal.frameworkId == null);
+    if (!isFrameworkAttachFlow) {
+      const empty = fw.keys.find(k => !data[k.key]?.trim());
+      if (empty) { setError(`"${empty.label}" cannot be empty`); return; }
+    }
     
     try {
       if (editingGoal) {
-        await update(editingGoal.id!, { ...editingGoal.data, ...data }, goalType, category);
+        if (isFrameworkAttachFlow) {
+          const initialized = buildGoalDataFromFramework(fw, goalType);
+          await update(editingGoal.id!, initialized, goalType, category, selectedFw);
+        } else {
+          await update(editingGoal.id!, { ...editingGoal.data, ...data }, goalType, category);
+        }
         showToast('Goal updated successfully');
       } else {
         const pid = parentGoalId?.trim() ? parentGoalId : null;
@@ -148,6 +172,7 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
             <input
               value={data[k.key] || ''}
               onChange={e => setData({ ...data, [k.key]: e.target.value })}
+              autoFocus={fw.keys[0]?.key === k.key}
               className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-sm text-text focus:outline-none focus:border-accent"
               placeholder={k.label}
             />

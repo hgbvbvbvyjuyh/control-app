@@ -10,7 +10,13 @@ interface GoalStore {
   add: (frameworkId: string | null, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
   remove: (id: string) => Promise<void>;
   removeSingle: (id: string) => Promise<void>;
-  update: (id: string, data: Record<string, string>, goalType?: Goal['goalType'], category?: Goal['category']) => Promise<void>;
+  update: (
+    id: string,
+    data: Record<string, string>,
+    goalType?: Goal['goalType'],
+    category?: Goal['category'],
+    frameworkId?: string | null
+  ) => Promise<void>;
   patchStatus: (id: string, status: Goal['status']) => Promise<void>;
   select: (id: string | null) => void;
   getByFramework: (frameworkId: string | null) => Goal[];
@@ -51,8 +57,10 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     void get().load();
   },
 
-  update: async (id, data, goalType, category) => {
-    const updated = await api.put<Goal>(`/goals/${id}`, { data, goalType, category });
+  update: async (id, data, goalType, category, frameworkId) => {
+    const payload: Record<string, unknown> = { data, goalType, category };
+    if (frameworkId !== undefined) payload.frameworkId = frameworkId;
+    const updated = await api.put<Goal>(`/goals/${id}`, payload);
     set({
       goals: get().goals.map(g =>
         String(g.id) === String(id) ? updated : g
