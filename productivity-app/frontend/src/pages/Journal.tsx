@@ -25,6 +25,8 @@ export const Journal = () => {
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
+  // Per-goal journal visibility (keyed by goalId)
+  const [openJournalByGoalId, setOpenJournalByGoalId] = useState<Record<string, boolean>>({});
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -41,6 +43,10 @@ export const Journal = () => {
     setTimeframe(newTimeframe);
     // Reset category when timeframe changes (Optional: first item)
     setCategory("all");
+  };
+
+  const toggleGoalJournal = (goalId: string) => {
+    setOpenJournalByGoalId((prev) => ({ ...prev, [goalId]: !prev[goalId] }));
   };
 
   const handleSaveLifeJournal = async () => {
@@ -378,7 +384,16 @@ export const Journal = () => {
                     e.type.toLowerCase() === g.goalType.toLowerCase()
                 );
 
-                return <GoalCard key={goalId} goal={g} entry={matchingEntry ?? null} />;
+                return (
+                  <GoalCard
+                    key={goalId}
+                    goalId={goalId}
+                    goal={g}
+                    entry={matchingEntry ?? null}
+                    openJournal={!!openJournalByGoalId[goalId]}
+                    onToggleJournal={toggleGoalJournal}
+                  />
+                );
               })
             )}
           </div>
@@ -392,14 +407,25 @@ export const Journal = () => {
 /* SUB-COMPONENTS            */
 /* ========================= */
 
-function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
+function GoalCard({
+  goalId,
+  goal,
+  entry,
+  openJournal,
+  onToggleJournal,
+}: {
+  goalId: string;
+  goal: any;
+  entry: any | null;
+  openJournal: boolean;
+  onToggleJournal: (goalId: string) => void;
+}) {
   const categoryColors: Record<string, string> = {
     spirituality: "bg-blue-500/20 text-blue-400 border-blue-500/30",
     finance: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30",
     health: "bg-green-500/20 text-green-400 border-green-500/30",
     relation: "bg-pink-500/20 text-pink-400 border-pink-500/30",
   };
-  const [openJournal, setOpenJournal] = useState(false);
 
   const title = String(Object.values(goal.data)[0] || 'Untitled');
   const type = String(goal.goalType || 'daily');
@@ -427,7 +453,7 @@ function GoalCard({ goal, entry }: { goal: any; entry: any | null }) {
               </span>
               <button
                 type="button"
-                onClick={() => setOpenJournal((prev) => !prev)}
+                onClick={() => onToggleJournal(goalId)}
                 title={openJournal ? "Hide Journal" : "Show Journal"}
                 aria-label={openJournal ? "Hide Journal" : "Show Journal"}
                 className="h-6 px-2 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"

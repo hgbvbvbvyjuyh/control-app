@@ -13,9 +13,8 @@ import { GoalPlanSection } from '../components/GoalPlanSection';
 import { JournalModal, type CompletionIntent, type JournalAnswers } from '../components/JournalModal';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
-import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle } from 'lucide-react';
+import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle, Pencil } from 'lucide-react';
 
-import { calculateGoalProgress } from '../utils/aggregation';
 import { getActiveGoals } from '../utils/goalListHelpers';
 
 const BTN_SECONDARY =
@@ -55,6 +54,8 @@ export const Goals = () => {
   const [showFwModal, setShowFwModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>(undefined);
+  const [inlineTitleEditByGoalId, setInlineTitleEditByGoalId] = useState<Record<string, string>>({});
+  const [hidePencilByGoalId, setHidePencilByGoalId] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
   const [showFrameworkData, setShowFrameworkData] = useState(false);
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
@@ -267,6 +268,40 @@ export const Goals = () => {
       return { ...prev, items };
     });
   };
+  const startInlineTitleEdit = (goal: Goal) => {
+    const goalId = String(goal.id);
+    const currentTitle = String(Object.values(goal.data)[0] || '');
+    setInlineTitleEditByGoalId(prev => ({ ...prev, [goalId]: currentTitle }));
+  };
+
+  const saveInlineTitleEdit = async (goal: Goal) => {
+    if (!goal.id) return;
+    const goalId = String(goal.id);
+    const draft = (inlineTitleEditByGoalId[goalId] ?? '').trim();
+    if (!draft) return;
+
+    const firstKey = Object.keys(goal.data)[0];
+    if (!firstKey) return;
+
+    try {
+      await update(
+        goalId,
+        { ...goal.data, [firstKey]: draft },
+        goal.goalType,
+        goal.category
+      );
+      setInlineTitleEditByGoalId(prev => {
+        const next = { ...prev };
+        delete next[goalId];
+        return next;
+      });
+      setHidePencilByGoalId(prev => ({ ...prev, [goalId]: true }));
+      showToast('Title updated', 'success');
+    } catch {
+      showToast('Could not update title', 'error');
+    }
+  };
+
   const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
   const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
 
@@ -274,6 +309,73 @@ export const Goals = () => {
     activeCategory !== null
       ? getActiveGoals(goals).filter(g => g.goalType === activeCategory)
       : [];
+
+  const resolveDailyExpectedSessions = (data: Record<string, string>): number | null => {
+    const preferredKeys = [
+      'plannedSessions',
+      'sessionTarget',
+      'targetSessions',
+      'sessionsPerDay',
+      'expectedSessions',
+    ];
+    for (const key of preferredKeys) {
+      const raw = data[key];
+      if (!raw) continue;
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0) return Math.floor(n);
+    }
+    return null;
+  };
+
+  const getGoalDrivenProgress = () => {
+    if (!selectedGoal?.id) return { hasData: false, pct: 0, completed: 0, total: 0, unitLabel: 'Task' };
+    const goalId = String(selectedGoal.id);
+
+    if (selectedGoal.goalType === 'daily') {
+      const list = simpleSessionsByGoal[goalId] ?? [];
+      const total = resolveDailyExpectedSessions(selectedGoal.data);
+      if (!total || total <= 0) return { hasData: false, pct: 0, completed: 0, total: 0, unitLabel: 'Sessions' };
+      const completed = list.filter(s => s.status === 'done').length;
+      const pct = Math.round((Math.min(completed, total) / total) * 100);
+      return { hasData: true, pct, completed: Math.min(completed, total), total, unitLabel: 'Sessions' };
+    }
+
+    const childType =
+      selectedGoal.goalType === 'weekly'
+        ? 'daily'
+        : selectedGoal.goalType === 'monthly'
+          ? 'weekly'
+          : selectedGoal.goalType === 'yearly'
+            ? 'monthly'
+            : null;
+    const total =
+      selectedGoal.goalType === 'weekly'
+        ? 7
+        : selectedGoal.goalType === 'monthly'
+          ? 4
+          : selectedGoal.goalType === 'yearly'
+            ? 12
+            : 0;
+    const unitLabel =
+      selectedGoal.goalType === 'weekly'
+        ? 'Days'
+        : selectedGoal.goalType === 'monthly'
+          ? 'Weeks'
+          : selectedGoal.goalType === 'yearly'
+            ? 'Months'
+            : 'Task';
+    if (!childType || total === 0) return { hasData: false, pct: 0, completed: 0, total: 0, unitLabel };
+
+    const children = goals.filter(
+      g => g.parentId != null && String(g.parentId) === goalId && g.goalType === childType
+    );
+    // Require full generation (7/4/12). Partial generation is treated as no plan to avoid misleading percentages.
+    if (children.length !== total) return { hasData: false, pct: 0, completed: 0, total, unitLabel };
+
+    const completed = children.filter(g => g.status === 'done').length;
+    const pct = Math.round((completed / total) * 100);
+    return { hasData: true, pct, completed, total, unitLabel };
+  };
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col md:flex-row gap-6 w-full max-w-7xl mx-auto">
@@ -385,7 +487,6 @@ export const Goals = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] uppercase tracking-widest text-primary/80 font-bold leading-none">{getFrameworkName(goal.frameworkId)}</span>
                           {/* Goal status badge */}
                           {goal.status && goal.status !== 'active' && (
                             <span className={`text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none border ${
@@ -428,7 +529,49 @@ export const Goals = () => {
                           }`}>
                             {goal.category || 'health'}
                           </span>
-                          {Object.values(goal.data)[0] || 'Untitled'}
+                          {inlineTitleEditByGoalId[String(goal.id)] !== undefined ? (
+                            <>
+                              <input
+                                value={inlineTitleEditByGoalId[String(goal.id)]}
+                                onChange={(e) =>
+                                  setInlineTitleEditByGoalId(prev => ({
+                                    ...prev,
+                                    [String(goal.id)]: e.target.value,
+                                  }))
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                                className="bg-background/50 border border-white/10 rounded px-2 py-1 text-sm text-text min-w-[12rem]"
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  void saveInlineTitleEdit(goal);
+                                }}
+                                className="text-[10px] font-bold uppercase px-2 py-1 rounded-md border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-colors"
+                              >
+                                Save
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <span>{Object.values(goal.data)[0] || 'Untitled'}</span>
+                              {!hidePencilByGoalId[String(goal.id)] && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startInlineTitleEdit(goal);
+                                  }}
+                                  className="w-6 h-6 rounded-md flex items-center justify-center text-secondary hover:text-text hover:bg-white/10 transition-colors"
+                                  title="Edit title"
+                                  aria-label="Edit title"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                              )}
+                            </>
+                          )}
                         </h3>
                       </div>
                     </div>
@@ -482,17 +625,6 @@ export const Goals = () => {
                         <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">{selectedGoal.goalType || 'daily'}</span>
                         <span className="text-[10px] text-secondary font-medium tracking-wide">{selectedFw?.name}</span>
                       </div>
-                      <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-                        <span className={`text-[12px] uppercase font-bold px-2 py-0.5 rounded leading-none ${
-                            (selectedGoal.category || 'health') === 'spirituality' ? 'bg-blue-500/20 text-blue-400' :
-                            (selectedGoal.category || 'health') === 'finance' ? 'bg-yellow-500/20 text-yellow-500' :
-                            (selectedGoal.category || 'health') === 'relation' ? 'bg-pink-500/20 text-pink-400' :
-                            'bg-green-500/20 text-green-400'
-                          }`}>
-                            {selectedGoal.category || 'health'}
-                        </span>
-                        {Object.values(selectedGoal.data)[0] || 'Untitled'}
-                      </h2>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0 justify-end max-md:w-full max-md:justify-start">
                       {selectedGoal.goalType === 'daily' && (
@@ -534,81 +666,76 @@ export const Goals = () => {
 
                 <div className="p-6 flex flex-col gap-6">
 
-              {/* Progress Cards — Daily / Weekly / Monthly / Yearly */}
+              {/* Progress (goal-driven) */}
               <div>
                 <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-1">Progress</h3>
-                <p className="text-[10px] text-secondary/60 mb-3 leading-snug">
-                  <strong className="text-secondary/80">Weekly · Monthly · Yearly</strong> show{' '}
-                  <strong>overall portfolio</strong> progress (identical on every goal). Current calendar week uses a{' '}
-                  <strong>7-day average</strong> (days without completed sessions count as 0%). Metrics follow your device time zone.
-                </p>
-                <div className="flex justify-center items-center py-4">
+                <div className="flex justify-center items-center py-6">
                   {(() => {
-                    const results = calculateGoalProgress(selectedGoal, goals, sessions);
-                    return ([selectedGoal.goalType || 'daily'] as const).map((period) => {
-                      const { pct, count, hasData } = results[period];
-                      const colorClass = !hasData
+                    const { hasData, pct, completed, total, unitLabel } = getGoalDrivenProgress();
+                    const colorClass =
+                      !hasData || pct === 0
                         ? 'text-secondary/40'
-                        : pct >= 75
+                        : pct >= 100
                           ? 'text-success'
-                          : pct >= 40
-                            ? 'text-accent'
-                            : 'text-secondary';
-                            
-                      const detail =
-                        period === 'daily' && hasData
-                          ? `${Math.round((pct / 100) * count)}/${count} achieved`
-                          : !hasData
-                            ? 'No data'
-                            : period === 'daily'
-                              ? 'Portfolio today'
-                              : period === 'weekly'
-                                ? `${count} active day(s) · overall`
-                                : period === 'monthly'
-                                  ? `${count} active week(s) · overall`
-                                  : `${count} active month(s) · overall`;
-                      
-                      const radius = 60;
-                      const circumference = 2 * Math.PI * radius;
-                      const strokeDashoffset = circumference - ((hasData ? pct : 0) / 100) * circumference;
+                          : 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500';
 
-                      return (
-                        <div key={period} className="flex flex-col items-center">
-                          <div className="relative flex items-center justify-center mb-4">
-                            <svg width="160" height="160" className="-rotate-90 transform">
-                              <circle
-                                cx="80"
-                                cy="80"
-                                r={radius}
-                                className="stroke-secondary/20"
-                                strokeWidth="12"
-                                fill="none"
-                              />
-                              <motion.circle
-                                cx="80"
-                                cy="80"
-                                r={radius}
-                                className={`stroke-current ${colorClass}`}
-                                strokeWidth="12"
-                                fill="none"
-                                strokeLinecap="round"
-                                strokeDasharray={circumference}
-                                initial={{ strokeDashoffset: circumference }}
-                                animate={{ strokeDashoffset }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-[2px]">
-                              <span className="text-[10px] uppercase tracking-wider text-secondary leading-none mb-1">{period}</span>
-                              <span className={`text-3xl font-black tracking-tight leading-none ${colorClass}`}>
-                                {hasData ? `${pct}%` : '—'}
-                              </span>
-                            </div>
+                    const radius = 60;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset = circumference - ((hasData ? pct : 0) / 100) * circumference;
+
+                    return (
+                      <div className="flex flex-col items-center">
+                        <div className="relative flex items-center justify-center mb-3">
+                          <svg width="160" height="160" className="-rotate-90 transform">
+                            <defs>
+                              <linearGradient id="goalProgressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#60a5fa" />
+                                <stop offset="100%" stopColor="#a855f7" />
+                              </linearGradient>
+                            </defs>
+                            <circle
+                              cx="80"
+                              cy="80"
+                              r={radius}
+                              className="stroke-secondary/20"
+                              strokeWidth="12"
+                              fill="none"
+                            />
+                            <motion.circle
+                              cx="80"
+                              cy="80"
+                              r={radius}
+                              strokeWidth="12"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeDasharray={circumference}
+                              stroke={
+                                !hasData || pct === 0
+                                  ? '#6b7280'
+                                  : pct >= 100
+                                    ? '#10b981'
+                                    : 'url(#goalProgressGradient)'
+                              }
+                              initial={{ strokeDashoffset: circumference }}
+                              animate={{ strokeDashoffset }}
+                              transition={{ duration: 0.9, ease: 'easeOut' }}
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-[2px]">
+                            <span className={`text-3xl font-black tracking-tight leading-none ${colorClass}`}>
+                              {hasData ? `${pct}%` : 'No plan'}
+                            </span>
                           </div>
-                          <span className="text-xs text-secondary/70 bg-background/50 px-3 py-1.5 rounded-full border border-secondary/20">{detail}</span>
                         </div>
-                      );
-                    });
+
+                        <div className="text-center leading-tight">
+                          <div className="text-[11px] uppercase tracking-wider text-secondary/70 font-bold">{unitLabel}</div>
+                          <div className="text-sm text-secondary/80 font-semibold">
+                            {hasData ? `${completed} / ${total}` : '—'}
+                          </div>
+                        </div>
+                      </div>
+                    );
                   })()}
                 </div>
               </div>
