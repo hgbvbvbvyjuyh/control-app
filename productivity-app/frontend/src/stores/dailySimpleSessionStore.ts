@@ -8,6 +8,7 @@ export interface DailySimpleSession {
   goalId: string;
   duration: number;
   status: DailySimpleSessionStatus;
+  note: string;
   createdAt: number;
 }
 
@@ -16,6 +17,7 @@ interface DailySimpleSessionStore {
   loadForGoal: (goalId: string) => Promise<void>;
   add: (goalId: string) => Promise<void>;
   setStatus: (sessionId: string, goalId: string, status: 'done' | 'missed') => Promise<void>;
+  updateNote: (sessionId: string, goalId: string, note: string) => Promise<void>;
 }
 
 export const useDailySimpleSessionStore = create<DailySimpleSessionStore>((set, get) => ({
@@ -36,6 +38,17 @@ export const useDailySimpleSessionStore = create<DailySimpleSessionStore>((set, 
 
   setStatus: async (sessionId, goalId, status) => {
     const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { status });
+    const cur = get().byGoalId[goalId] ?? [];
+    set(s => ({
+      byGoalId: {
+        ...s.byGoalId,
+        [goalId]: cur.map(x => (String(x.id) === String(sessionId) ? updated : x)),
+      },
+    }));
+  },
+
+  updateNote: async (sessionId, goalId, note) => {
+    const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { note });
     const cur = get().byGoalId[goalId] ?? [];
     set(s => ({
       byGoalId: {

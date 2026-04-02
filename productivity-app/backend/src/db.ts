@@ -164,6 +164,7 @@ export async function initDb() {
       goalId    INTEGER NOT NULL,
       duration  INTEGER NOT NULL DEFAULT 90,
       status    TEXT    NOT NULL DEFAULT 'pending',
+      note      TEXT    NOT NULL DEFAULT '',
       createdAt INTEGER NOT NULL,
       deletedAt INTEGER
     );
@@ -199,6 +200,8 @@ export async function initDb() {
 
   // Journals table migrations
   safeAlter('ALTER TABLE journals ADD COLUMN category TEXT');
+
+  safeAlter("ALTER TABLE daily_simple_sessions ADD COLUMN note TEXT NOT NULL DEFAULT ''");
 
   // Soft Delete migrations
   safeAlter('ALTER TABLE frameworks ADD COLUMN deletedAt INTEGER');

@@ -9,5 +9,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), viteSingleFile()],
   server: {
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
 })

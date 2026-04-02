@@ -1,4 +1,13 @@
 {
+  "name": "mine-software",
+  "private": true,
+  "description": "Monorepo-style workspace. Productivity app lives in productivity-app/.",
+  "scripts": {
+    "dev:api": "npm run dev --prefix \"productivity-app/backend\"",
+    "dev:app": "npm run dev --prefix \"productivity-app/frontend\"",
+    "build:api": "npm run build --prefix \"productivity-app/backend\"",
+    "build:app": "npm run build --prefix \"productivity-app/frontend\""
+  },
   "dependencies": {
     "recharts": "^3.8.1"
   }

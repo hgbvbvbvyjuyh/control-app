@@ -47,6 +47,7 @@ export const Goals = () => {
     loadForGoal: loadSimpleSessionsForGoal,
     add: addSimpleSession,
     setStatus: setSimpleSessionStatus,
+    updateNote: updateSimpleSessionNote,
   } = useDailySimpleSessionStore();
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
@@ -58,6 +59,8 @@ export const Goals = () => {
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
   const [showFrameworkData, setShowFrameworkData] = useState(false);
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
+  const [simpleSessionPlanOpenId, setSimpleSessionPlanOpenId] = useState<string | null>(null);
+  const [simpleSessionPlanText, setSimpleSessionPlanText] = useState('');
 
   // ── Goal journal modal state ──
   const [journalModalOpen, setJournalModalOpen] = useState(false);
@@ -425,8 +428,11 @@ export const Goals = () => {
                               try {
                                 await addSimpleSession(String(gid));
                                 showToast('Session added', 'success');
-                              } catch {
-                                showToast('Could not add session', 'error');
+                              } catch (err) {
+                                console.error('addSimpleSession failed', err);
+                                const msg =
+                                  err instanceof Error ? err.message : 'Could not add session';
+                                showToast(msg, 'error');
                               }
                             }}
                             className={BTN_SECONDARY}
@@ -677,7 +683,46 @@ export const Goals = () => {
                             {s.status}
                           </span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (simpleSessionPlanOpenId === s.id) {
+                              setSimpleSessionPlanOpenId(null);
+                            } else {
+                              setSimpleSessionPlanText(s.note || '');
+                              setSimpleSessionPlanOpenId(s.id);
+                            }
+                          }}
+                          className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded shrink-0"
+                        >
+                          {simpleSessionPlanOpenId === s.id ? 'Hide Plan' : 'Show Plan'}
+                        </button>
                       </div>
+                      {simpleSessionPlanOpenId === s.id && (
+                        <div className="flex flex-col gap-2 mb-2">
+                          <textarea
+                            value={simpleSessionPlanText}
+                            onChange={e => setSimpleSessionPlanText(e.target.value)}
+                            rows={3}
+                            className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-text resize-y min-h-[4.5rem]"
+                            placeholder="Optional session plan…"
+                          />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await updateSimpleSessionNote(s.id, String(selectedGoal.id), simpleSessionPlanText);
+                                showToast('Plan saved', 'success');
+                              } catch {
+                                showToast('Could not save plan', 'error');
+                              }
+                            }}
+                            className={`${BTN_SECONDARY} text-xs py-1.5 self-start`}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      )}
                       {s.status === 'pending' && (
                         <div className="flex flex-wrap gap-2">
                           <button

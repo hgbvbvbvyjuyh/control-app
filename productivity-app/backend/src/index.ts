@@ -60,6 +60,7 @@ initDb().then(() => {
     console.log('   CRUD /api/frameworks');
     console.log('   CRUD /api/goals');
     console.log('   CRUD /api/sessions');
+    console.log('   GET/POST/PUT /api/daily-simple-sessions');
     console.log('   CRUD /api/journals');
     console.log('   CRUD /api/failures');
     console.log('   CRUD /api/users');
