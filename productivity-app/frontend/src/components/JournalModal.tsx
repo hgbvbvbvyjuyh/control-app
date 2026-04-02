@@ -96,7 +96,10 @@ export const JournalModal = ({
       {open && (
         <div
           className="fixed inset-0 z-[130] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-          onClick={handleClose}
+          onClick={e => {
+            if (e.target !== e.currentTarget) return;
+            if (!isGoal) handleClose();
+          }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
@@ -104,7 +107,8 @@ export const JournalModal = ({
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             onClick={e => e.stopPropagation()}
-            className="bg-surface/50 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 md:p-10 w-full max-w-md shadow-2xl shadow-black/80 relative overflow-hidden"
+            tabIndex={-1}
+            className="bg-surface/50 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 md:p-10 w-full max-w-md shadow-2xl shadow-black/80 relative overflow-hidden outline-none"
           >
             {/* Top accent bar */}
             <div
@@ -139,7 +143,6 @@ export const JournalModal = ({
                       rows={2}
                       value={completed}
                       onChange={e => setCompleted(e.target.value)}
-                      placeholder="Reflect on your goal completion…"
                       className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
                     />
                   </div>
@@ -151,7 +154,6 @@ export const JournalModal = ({
                       rows={2}
                       value={mistakes}
                       onChange={e => setMistakes(e.target.value)}
-                      placeholder="Be honest about what went wrong…"
                       className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
                     />
                   </div>
@@ -163,7 +165,6 @@ export const JournalModal = ({
                       rows={2}
                       value={improvement}
                       onChange={e => setImprovement(e.target.value)}
-                      placeholder="What will you do differently?"
                       className="w-full bg-background/50 border border-white/10 rounded-2xl p-3 text-sm text-text focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/20 focus:bg-surface/80 transition-all resize-none shadow-inner"
                     />
                   </div>

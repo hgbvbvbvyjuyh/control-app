@@ -158,6 +158,15 @@ export async function initDb() {
       isDefault INTEGER NOT NULL DEFAULT 0,
       createdAt INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS daily_simple_sessions (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      goalId    INTEGER NOT NULL,
+      duration  INTEGER NOT NULL DEFAULT 90,
+      status    TEXT    NOT NULL DEFAULT 'pending',
+      createdAt INTEGER NOT NULL,
+      deletedAt INTEGER
+    );
   `);
 
   // ---- Idempotent column migrations (for existing databases) ----

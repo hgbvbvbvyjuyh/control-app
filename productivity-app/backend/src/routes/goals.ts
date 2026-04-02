@@ -6,6 +6,30 @@ import { getRecalcTimeZone } from '../middleware/clientTimezone';
 
 const router = Router();
 
+/** All goal ids in the subtree (including root), non-deleted children only for expansion */
+function collectGoalTreeIds(rootId: string): number[] {
+  const rootNum = Number(rootId);
+  if (Number.isNaN(rootNum)) return [];
+  const seen = new Set<number>([rootNum]);
+  let frontier: number[] = [rootNum];
+  while (frontier.length > 0) {
+    const ph = frontier.map(() => '?').join(',');
+    const rows = queryAll(
+      `SELECT id FROM goals WHERE deletedAt IS NULL AND parentId IN (${ph})`,
+      frontier
+    );
+    frontier = [];
+    for (const r of rows) {
+      const cid = Number(r['id']);
+      if (!seen.has(cid)) {
+        seen.add(cid);
+        frontier.push(cid);
+      }
+    }
+  }
+  return [...seen];
+}
+
 function parseGoal(row: Record<string, unknown>): Goal {
   const hasDataCol = row['progressHasData'];
   const progressHasData =
@@ -136,26 +160,38 @@ router.put('/:id', (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// DELETE
+// DELETE — soft-delete goal, all descendants, related sessions/journals/simple-sessions/failures
 router.delete('/:id', (req, res, next) => {
   try {
     const id = req.params['id'];
+    const existing = queryOne('SELECT id FROM goals WHERE id = ? AND deletedAt IS NULL', [id]);
+    if (!existing) { res.status(404).json({ error: 'Goal not found' }); return; }
+
     const now = Date.now();
-    
-    // Perform cascading soft-deletions
-    run('UPDATE sessions SET deletedAt = ? WHERE goalId = ?', [now, id]);
-    run('UPDATE journals SET deletedAt = ? WHERE goalId = ?', [now, id]);
-    run('UPDATE failures SET deletedAt = ? WHERE type = ? AND linkedId = ?', [now, 'goal', id]);
-    
-    // Also delete failures tied to sessions of this goal
-    const sessionIds = queryAll('SELECT id FROM sessions WHERE goalId = ?', [id]).map(s => s['id']);
-    if (sessionIds.length > 0) {
-      const placeholders = sessionIds.map(() => '?').join(',');
-      run(`UPDATE failures SET deletedAt = ? WHERE type = 'session' AND linkedId IN (${placeholders})`, [now, ...sessionIds]);
+    const allIds = collectGoalTreeIds(id);
+
+    for (const gid of allIds) {
+      run('UPDATE sessions SET deletedAt = ? WHERE goalId = ? AND deletedAt IS NULL', [now, gid]);
+      run('UPDATE journals SET deletedAt = ? WHERE goalId = ? AND deletedAt IS NULL', [now, gid]);
+      run('UPDATE daily_simple_sessions SET deletedAt = ? WHERE goalId = ? AND deletedAt IS NULL', [now, gid]);
+      run(
+        'UPDATE failures SET deletedAt = ? WHERE type = ? AND linkedId = ? AND deletedAt IS NULL',
+        [now, 'goal', String(gid)]
+      );
+
+      const sessionIds = queryAll('SELECT id FROM sessions WHERE goalId = ?', [gid]).map(s => s['id']);
+      if (sessionIds.length > 0) {
+        const placeholders = sessionIds.map(() => '?').join(',');
+        run(
+          `UPDATE failures SET deletedAt = ? WHERE type = 'session' AND linkedId IN (${placeholders}) AND deletedAt IS NULL`,
+          [now, ...sessionIds]
+        );
+      }
     }
-    
-    const { changes } = run('UPDATE goals SET deletedAt = ? WHERE id = ?', [now, id]);
-    if (changes === 0) { res.status(404).json({ error: 'Goal not found' }); return; }
+
+    for (const gid of allIds) {
+      run('UPDATE goals SET deletedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, gid]);
+    }
 
     recalcPortfolioProgress(Date.now(), getRecalcTimeZone());
     res.status(204).send();

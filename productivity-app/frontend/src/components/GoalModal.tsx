@@ -11,9 +11,13 @@ interface GoalModalProps {
   frameworkId: string | null;
   initialType?: 'daily' | 'weekly' | 'monthly' | 'yearly';
   editingGoal?: Goal;
+  /** When set (create flow only), new goal is saved with this parentId and isIndependent false */
+  parentGoalId?: string | null;
+  /** When true (create flow), goal type is user-selectable instead of hidden */
+  allowFreeGoalType?: boolean;
 }
 
-export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', editingGoal }: GoalModalProps) => {
+export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', editingGoal, parentGoalId = null, allowFreeGoalType = false }: GoalModalProps) => {
   const { frameworks } = useFrameworkStore();
   const { add, update } = useGoalStore();
   const { showToast } = useToastStore();
@@ -58,11 +62,12 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
     
     try {
       if (editingGoal) {
-        await update(editingGoal.id!, data, goalType, category);
+        await update(editingGoal.id!, { ...editingGoal.data, ...data }, goalType, category);
         showToast('Goal updated successfully');
       } else {
-        await add(selectedFw, data, goalType, null, true, category);
-        showToast('New goal created');
+        const pid = parentGoalId?.trim() ? parentGoalId : null;
+        await add(selectedFw, data, goalType, pid, pid ? false : true, category);
+        showToast(pid ? 'Sub goal created' : 'New goal created');
       }
       onClose();
     } catch (err) {
@@ -81,11 +86,13 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
         onClick={e => e.stopPropagation()}
         className="bg-background border border-secondary/30 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto no-scrollbar"
       >
-        <h2 className="text-xl font-bold mb-4">{editingGoal ? 'Edit Goal' : 'Create Goal'}</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {editingGoal ? 'Edit Goal' : parentGoalId ? 'Create Sub Goal' : 'Create Goal'}
+        </h2>
         {error && <p className="text-error text-sm mb-3 bg-error/10 p-2 rounded">{error}</p>}
 
-        {/* Goal Type - Only show if not pre-locked by a category view OR if editing an existing goal */}
-        {(!initialType || editingGoal) && (
+        {/* Goal Type - category view locks type unless allowFreeGoalType (e.g. sub-goal); always show when editing */}
+        {(editingGoal || allowFreeGoalType || !initialType) && (
           <div className="mb-4">
             <label className="text-xs text-secondary font-semibold uppercase tracking-wider block mb-2">Goal Type</label>
             <div className="flex gap-2">

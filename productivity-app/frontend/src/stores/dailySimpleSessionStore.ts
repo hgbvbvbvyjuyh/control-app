@@ -1,0 +1,47 @@
+import { create } from 'zustand';
+import { api } from '../utils/api';
+
+export type DailySimpleSessionStatus = 'pending' | 'done' | 'missed';
+
+export interface DailySimpleSession {
+  id: string;
+  goalId: string;
+  duration: number;
+  status: DailySimpleSessionStatus;
+  createdAt: number;
+}
+
+interface DailySimpleSessionStore {
+  byGoalId: Record<string, DailySimpleSession[]>;
+  loadForGoal: (goalId: string) => Promise<void>;
+  add: (goalId: string) => Promise<void>;
+  setStatus: (sessionId: string, goalId: string, status: 'done' | 'missed') => Promise<void>;
+}
+
+export const useDailySimpleSessionStore = create<DailySimpleSessionStore>((set, get) => ({
+  byGoalId: {},
+
+  loadForGoal: async goalId => {
+    const list = await api.get<DailySimpleSession[]>(
+      `/daily-simple-sessions?goalId=${encodeURIComponent(goalId)}`
+    );
+    set(s => ({ byGoalId: { ...s.byGoalId, [goalId]: list } }));
+  },
+
+  add: async goalId => {
+    const created = await api.post<DailySimpleSession>('/daily-simple-sessions', { goalId });
+    const cur = get().byGoalId[goalId] ?? [];
+    set(s => ({ byGoalId: { ...s.byGoalId, [goalId]: [created, ...cur] } }));
+  },
+
+  setStatus: async (sessionId, goalId, status) => {
+    const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { status });
+    const cur = get().byGoalId[goalId] ?? [];
+    set(s => ({
+      byGoalId: {
+        ...s.byGoalId,
+        [goalId]: cur.map(x => (String(x.id) === String(sessionId) ? updated : x)),
+      },
+    }));
+  },
+}));

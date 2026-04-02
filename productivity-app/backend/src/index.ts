@@ -6,6 +6,7 @@ import { initDb } from './db';
 import frameworksRouter from './routes/frameworks';
 import goalsRouter from './routes/goals';
 import sessionsRouter from './routes/sessions';
+import dailySimpleSessionsRouter from './routes/dailySimpleSessions';
 import journalsRouter from './routes/journals';
 import failuresRouter from './routes/failures';
 import usersRouter from './routes/users';
@@ -37,6 +38,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/frameworks', frameworksRouter);
 app.use('/api/goals', goalsRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/daily-simple-sessions', dailySimpleSessionsRouter);
 app.use('/api/journals', journalsRouter);
 app.use('/api/failures', failuresRouter);
 app.use('/api/users', usersRouter);

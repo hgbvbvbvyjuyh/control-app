@@ -1,7 +1,6 @@
 // src/pages/Dashboard.tsx
 import { useEffect, useState } from "react";
 import { useGoalStore } from "../stores/goalStore";
-import { useSessionStore } from "../stores/sessionStore";
 import { calculateDashboardStats } from "../utils/goalStatusDashboard";
 import { 
   XAxis, 
@@ -78,12 +77,10 @@ function Card({ title, pct, text }: { title: string; pct: number; text: string }
 
 export const Dashboard = () => {
   const { goals, load: loadGoals } = useGoalStore();
-  const { load: loadSessions } = useSessionStore();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<ReturnType<typeof calculateDashboardStats> | null>(null);
 
   useEffect(() => {
     loadGoals();
-    loadSessions();
   }, []);
 
   useEffect(() => {
@@ -128,7 +125,10 @@ export const Dashboard = () => {
             Daily Progress: <span className="text-white font-black">{stats.daily.pct}%</span>
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <span className="text-[8px] bg-white/5 text-secondary border border-white/10 px-2.5 py-1 rounded-full font-black uppercase tracking-widest">
+            Streak: {stats.streakDays}d
+          </span>
           <span className="text-[8px] bg-accent/10 text-accent border border-accent/20 px-2.5 py-1 rounded-full font-black uppercase tracking-widest">
             {stats.daily.progressText}
           </span>
@@ -159,8 +159,8 @@ export const Dashboard = () => {
               % completion rate
             </span>
           </div>
-          <div className="flex-1 min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="flex-1 min-h-0 w-full min-h-[220px] h-[min(40vh,320px)] md:h-full">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <AreaChart data={stats.chartData} margin={{ top: 10, left: 15, right: 15, bottom: 20 }}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -208,6 +208,8 @@ export const Dashboard = () => {
                   fillOpacity={1} 
                   fill="url(#colorValue)" 
                   animationDuration={1500}
+                  connectNulls
+                  baseLine={0}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -225,14 +227,14 @@ export const Dashboard = () => {
               Active Goals
             </h3>
           </div>
-          <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar flex-1">
-            {goals.filter(g => g.status === 'active').length === 0 ? (
+          <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar flex-1 min-h-0">
+            {goals.filter(g => g.status === 'active' && !g.deletedAt && (g.parentId == null || g.parentId === '')).length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-secondary/20 gap-2">
                 <span className="text-2xl">🎯</span>
                 <p className="text-[8px] font-black uppercase tracking-widest">No active goals</p>
               </div>
             ) : (
-              goals.filter(g => g.status === 'active').slice(0, 12).map((g) => (
+              goals.filter(g => g.status === 'active' && !g.deletedAt && (g.parentId == null || g.parentId === '')).slice(0, 12).map((g) => (
                 <div
                   key={g.id}
                   className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors group shrink-0"

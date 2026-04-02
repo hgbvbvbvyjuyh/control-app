@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AntiGravity } from '../components/AntiGravity';
 import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
@@ -11,34 +11,60 @@ import { FrameworkModal } from '../components/FrameworkModal';
 import { GoalModal } from '../components/GoalModal';
 import { JournalModal, type CompletionIntent, type JournalAnswers } from '../components/JournalModal';
 import { useConfirmStore } from '../stores/confirmStore';
+import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle } from 'lucide-react';
 
 import { calculateGoalProgress } from '../utils/aggregation';
+import { getActiveGoals } from '../utils/goalListHelpers';
+
+const BTN_SECONDARY =
+  'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
+const BTN_ACCENT_OUTLINE =
+  'text-xs font-semibold px-3 py-2 rounded-lg border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/20';
+import {
+  type GoalPlanData,
+  buildChildGoalRowData,
+  childTypeForPlannedParent,
+  emptyPlanForGoalType,
+  hasChildOfType,
+  isPlannableGoalType,
+  parseGoalPlan,
+  serializeGoalPlan,
+} from '../utils/goalPlan';
+import { useToastStore } from '../stores/toastStore';
 
 
 
 
 // ---- Goals Page ----
 export const Goals = () => {
-  const { goals, load: loadGoals, selectedGoalId, select, remove: removeGoal, patchStatus } = useGoalStore();
+  const { goals, load: loadGoals, selectedGoalId, select, patchStatus, add, update } = useGoalStore();
   const { add: addJournal, load: loadJournals } = useJournalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
   const { sessions, load: loadSessions, remove: removeSession } = useSessionStore();
+  const {
+    byGoalId: simpleSessionsByGoal,
+    loadForGoal: loadSimpleSessionsForGoal,
+    add: addSimpleSession,
+    setStatus: setSimpleSessionStatus,
+  } = useDailySimpleSessionStore();
   const { confirm } = useConfirmStore();
+  const { showToast } = useToastStore();
   const navigate = useNavigate();
   const [showFwModal, setShowFwModal] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>(undefined);
+  const [subGoalParentContext, setSubGoalParentContext] = useState<{ parentId: string } | null>(null);
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
   const [showFrameworkData, setShowFrameworkData] = useState(false);
+  const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
 
   // ── Goal journal modal state ──
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [journalTargetGoal, setJournalTargetGoal] = useState<Goal | null>(null);
   const [journalIntent, setJournalIntent] = useState<CompletionIntent>('completed');
 
-  const openGoalJournal = (goal: Goal, intent: CompletionIntent, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const openGoalJournal = (goal: Goal, intent: CompletionIntent) => {
     setJournalTargetGoal(goal);
     setJournalIntent(intent);
     setJournalModalOpen(true);
@@ -70,6 +96,10 @@ export const Goals = () => {
     const newStatus = journalIntent === 'completed' ? 'done' : 'not_done';
     await patchStatus(String(journalTargetGoal.id), newStatus);
 
+    if (String(selectedGoalId) === String(journalTargetGoal.id)) {
+      select(null);
+    }
+
     setJournalModalOpen(false);
     setJournalTargetGoal(null);
   };
@@ -82,25 +112,109 @@ export const Goals = () => {
   }, []);
 
   const selectedGoal = goals.find(g => String(g.id) === String(selectedGoalId));
-  const selectedFw = selectedGoal ? frameworks.find(f => f.id === selectedGoal.frameworkId) : null;
-  const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
 
-  const handleDelete = async (id: number) => {
-    confirm(
-      'Delete Goal',
-      'Are you sure? This will also soft-delete all associated sessions and journals.',
-      async () => {
-        try {
-          await removeGoal(id as any);
-          select(undefined as any);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    );
+  useEffect(() => {
+    if (!selectedGoal?.id || selectedGoal.goalType !== 'daily') return;
+    void loadSimpleSessionsForGoal(String(selectedGoal.id));
+  }, [selectedGoalId, selectedGoal?.id, selectedGoal?.goalType, loadSimpleSessionsForGoal]);
+
+  useEffect(() => {
+    if (!selectedGoal || !isPlannableGoalType(selectedGoal.goalType)) {
+      setPlanDraft(null);
+      return;
+    }
+    setPlanDraft(parseGoalPlan(selectedGoal.data));
+  }, [selectedGoalId, selectedGoal?.data?.plan]);
+
+  const handleSavePlan = async () => {
+    if (!selectedGoal?.id || !planDraft) return;
+    try {
+      await update(String(selectedGoal.id), {
+        ...selectedGoal.data,
+        plan: serializeGoalPlan(planDraft),
+      }, selectedGoal.goalType, selectedGoal.category);
+      showToast('Plan saved');
+    } catch {
+      showToast('Failed to save plan');
+    }
   };
 
+  const handleGenerateSubGoalsFromPlan = async () => {
+    if (!selectedGoal?.id || !selectedFw || !isPlannableGoalType(selectedGoal.goalType)) return;
+    const plan = parseGoalPlan(selectedGoal.data);
+    if (!plan) {
+      showToast('Save your plan first');
+      return;
+    }
+    const savedStr = typeof selectedGoal.data.plan === 'string' ? selectedGoal.data.plan : '';
+    if (
+      planDraft === null ||
+      savedStr === '' ||
+      savedStr !== serializeGoalPlan(planDraft)
+    ) {
+      showToast('Save your plan before generating sub-goals');
+      return;
+    }
+    if (plan.items.some(it => !it.text.trim())) {
+      showToast('All plan items must have text before generating sub-goals');
+      return;
+    }
+    const childType = childTypeForPlannedParent(selectedGoal.goalType);
+    if (hasChildOfType(goals, String(selectedGoal.id), childType)) {
+      showToast(`Sub-goals (${childType}) already exist for this goal`);
+      return;
+    }
+    try {
+      for (const item of plan.items) {
+        await add(
+          selectedGoal.frameworkId,
+          buildChildGoalRowData(selectedFw, item.text.trim()),
+          childType,
+          String(selectedGoal.id),
+          false,
+          selectedGoal.category || 'health'
+        );
+      }
+      showToast('Sub goals created from plan');
+    } catch {
+      showToast('Failed to create sub goals');
+    }
+  };
+
+  const setPlanItemText = (index: number, text: string) => {
+    setPlanDraft(prev => {
+      if (!prev) return prev;
+      const items = [...prev.items];
+      items[index] = { ...items[index]!, text };
+      return { ...prev, items };
+    });
+  };
+  const selectedFw = selectedGoal ? frameworks.find(f => f.id === selectedGoal.frameworkId) : null;
+  const goalSessions = selectedGoal ? sessions.filter(s => s.goalId === selectedGoal.id) : [];
+  const subGoalParent = subGoalParentContext
+    ? goals.find(g => String(g.id) === subGoalParentContext.parentId)
+    : null;
+  const childGoalsUnderSelected = selectedGoal
+    ? goals
+        .filter(g => g.parentId != null && String(g.parentId) === String(selectedGoal.id))
+        .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+    : [];
+
   const getFrameworkName = (fwId: string) => frameworks.find(f => f.id === fwId)?.name || 'Unknown';
+
+  const activeGoalsInCategory =
+    activeCategory !== null
+      ? getActiveGoals(goals).filter(
+          g => g.goalType === activeCategory && g.parentId == null
+        )
+      : [];
+
+  const savedPlanStr =
+    selectedGoal?.data && typeof selectedGoal.data.plan === 'string' ? selectedGoal.data.plan : '';
+  const generateSubGoalsUnlocked =
+    planDraft !== null &&
+    savedPlanStr !== '' &&
+    savedPlanStr === serializeGoalPlan(planDraft);
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col md:flex-row gap-6 w-full max-w-7xl mx-auto">
@@ -108,10 +222,12 @@ export const Goals = () => {
       <AnimatePresence>{showGoalModal && (
         <GoalModal 
           open 
-          onClose={() => { setShowGoalModal(false); setEditingGoal(undefined); }} 
-          frameworkId={null} 
+          onClose={() => { setShowGoalModal(false); setEditingGoal(undefined); setSubGoalParentContext(null); }} 
+          frameworkId={subGoalParent ? subGoalParent.frameworkId : null} 
           editingGoal={editingGoal}
           initialType={activeCategory || 'daily'}
+          parentGoalId={subGoalParentContext?.parentId ?? null}
+          allowFreeGoalType={!!subGoalParentContext}
         />
       )}</AnimatePresence>
       <JournalModal
@@ -158,7 +274,11 @@ export const Goals = () => {
       ) : (
         <>
           {/* Goal List */}
-          <div className="flex-1 h-full flex flex-col gap-3 overflow-y-auto no-scrollbar">
+          <div
+            className={`flex-1 h-full min-h-0 flex flex-col gap-3 overflow-y-auto no-scrollbar ${
+              selectedGoalId ? 'max-md:hidden' : ''
+            }`}
+          >
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
                 onClick={() => { setActiveCategory(null); select(undefined as any); }}
@@ -172,20 +292,20 @@ export const Goals = () => {
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowFwModal(true)} className="text-xs bg-surface/50 border border-white/10 text-secondary hover:text-white px-4 py-2 rounded-xl transition-colors shadow-sm hover:bg-surface/80">
                     + Framework
                   </motion.button>
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowGoalModal(true)} className="bg-accent text-background px-5 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] text-sm font-bold">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setSubGoalParentContext(null); setEditingGoal(undefined); setShowGoalModal(true); }} className="bg-accent text-background px-5 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] text-sm font-bold">
                     + Goal
                   </motion.button>
                 </div>
               </div>
             </div>
 
-            {goals.filter(g => g.goalType === activeCategory && g.status === 'active').length === 0 && (
+            {activeGoalsInCategory.length === 0 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-1 items-center justify-center h-full">
                 <p className="text-secondary text-sm text-center">No active {activeCategory} goals yet. Add one to get started.</p>
               </motion.div>
             )}
 
-            {goals.filter(g => g.goalType === activeCategory && g.status === 'active').map((goal, i) => (
+            {activeGoalsInCategory.map((goal, i) => (
               <motion.div
                 key={goal.id}
                 initial={{ opacity: 0, x: -20 }}
@@ -228,13 +348,6 @@ export const Goals = () => {
                           {Object.values(goal.data)[0] || 'Untitled'}
                         </h3>
                       </div>
-                      <button
-                        onClick={e => { 
-                          e.stopPropagation(); 
-                          handleDelete(goal.id as any);
-                        }}
-                        className="text-error/30 hover:text-error text-sm p-3 transition-colors relative z-20"
-                      >✕</button>
                     </div>
                     <p className="text-sm text-secondary truncate mt-1">
                       {Object.values(goal.data).slice(1).join(' · ') || '—'}
@@ -247,15 +360,28 @@ export const Goals = () => {
             ))}
           </div>
 
-          <div className="hidden md:flex flex-1 h-full flex-col bg-surface/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-2xl shadow-black/50 overflow-y-auto no-scrollbar relative overflow-hidden">
+          <div
+            className={`flex-1 h-full min-h-0 flex-col bg-surface/40 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-y-auto no-scrollbar relative overflow-hidden md:rounded-3xl ${
+              selectedGoalId
+                ? 'flex max-md:fixed max-md:inset-0 max-md:z-40 max-md:rounded-none'
+                : 'hidden md:flex'
+            }`}
+          >
             {!selectedGoal ? (
-              <div className="flex-1 flex items-center justify-center text-secondary/50 text-lg h-full">Select a goal to view details</div>
+              <div className="flex-1 flex items-center justify-center text-secondary/50 text-lg h-full min-h-[12rem]">Select a goal to view details</div>
             ) : (
-              <div className="flex flex-col gap-0 h-full relative z-10">
+              <div className="flex flex-col gap-0 h-full min-h-0 relative z-10">
                 {/* Header */}
-                <div className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-white/10 p-6 pb-4">
-                  <div className="flex justify-between items-start">
-                    <div>
+                <div className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-white/10 p-6 pb-4 shrink-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => select(null)}
+                        className="md:hidden flex items-center gap-1 text-secondary hover:text-text text-xs font-medium mb-3 -ml-1 px-2 py-1 rounded-lg hover:bg-white/5"
+                      >
+                        <ChevronLeft size={16} /> Back to list
+                      </button>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-[10px] uppercase tracking-widest text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">{selectedGoal.goalType || 'daily'}</span>
                         <span className="text-[10px] text-secondary font-medium tracking-wide">{selectedFw?.name}</span>
@@ -272,24 +398,53 @@ export const Goals = () => {
                         {Object.values(selectedGoal.data)[0] || 'Untitled'}
                       </h2>
                     </div>
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex flex-wrap gap-2 shrink-0 justify-end max-md:w-full max-md:justify-start">
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => { setEditingGoal(selectedGoal); setShowGoalModal(true); }}
-                        className="bg-surface/50 text-secondary hover:text-white border border-white/10 px-4 py-2 rounded-xl transition-colors text-sm font-semibold"
+                        onClick={() => {
+                          setEditingGoal(undefined);
+                          setSubGoalParentContext({ parentId: String(selectedGoal.id) });
+                          setShowGoalModal(true);
+                        }}
+                        className={BTN_SECONDARY}
+                      >
+                        Add Sub Goal
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => { setEditingGoal(selectedGoal); setSubGoalParentContext(null); setShowGoalModal(true); }}
+                        className={BTN_SECONDARY}
                       >
                         Edit
                       </motion.button>
                       {selectedGoal.goalType === 'daily' && (
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate(`/session?goalId=${selectedGoal.id}`)}
-                          className="bg-accent text-background font-bold py-2 px-5 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow text-sm"
-                        >
-                          + Session
-                        </motion.button>
+                        <>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={async () => {
+                              try {
+                                await addSimpleSession(String(selectedGoal.id));
+                                showToast('Session added');
+                              } catch {
+                                showToast('Could not add session');
+                              }
+                            }}
+                            className={BTN_SECONDARY}
+                          >
+                            Add Session
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate(`/session?goalId=${selectedGoal.id}`)}
+                            className="bg-accent text-background font-bold py-2 px-5 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            + Session
+                          </motion.button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -399,6 +554,165 @@ export const Goals = () => {
                 )}
               </div>
 
+              {/* Plan (optional) */}
+              {selectedGoal && isPlannableGoalType(selectedGoal.goalType) && (
+              <div className="bg-background/50 rounded-xl border border-secondary/20 p-4">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
+                  <h4 className="text-xs font-semibold text-accent uppercase tracking-wider">Plan</h4>
+                  {planDraft === null && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const gt = selectedGoal.goalType;
+                        if (!isPlannableGoalType(gt)) return;
+                        setPlanDraft(emptyPlanForGoalType(gt));
+                      }}
+                      className={BTN_ACCENT_OUTLINE}
+                    >
+                      Add Plan
+                    </button>
+                  )}
+                </div>
+                {planDraft !== null && (
+                  <>
+                    <div className="flex flex-col gap-2 mb-3 max-h-64 overflow-y-auto no-scrollbar">
+                      {planDraft.items.map((item, idx) => (
+                        <div key={`${item.label}-${idx}`} className="flex flex-col gap-1">
+                          <label className="text-[10px] text-secondary uppercase font-bold tracking-wide">{item.label}</label>
+                          <input
+                            value={item.text}
+                            onChange={e => setPlanItemText(idx, e.target.value)}
+                            className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-text"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSavePlan}
+                        className={`${BTN_SECONDARY} text-xs py-2`}
+                      >
+                        Save Plan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleGenerateSubGoalsFromPlan}
+                        disabled={!generateSubGoalsUnlocked}
+                        className={BTN_ACCENT_OUTLINE}
+                      >
+                        Generate Sub Goals
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-secondary/60 mt-2 leading-snug">
+                      Sub-goals: {childTypeForPlannedParent(selectedGoal.goalType)}, one per plan row (save plan first; all items required). Skipped if any such child already exists (same parent and type).
+                    </p>
+                  </>
+                )}
+              </div>
+              )}
+
+              {/* Sub goals */}
+              <div>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Sub goals</h3>
+                {childGoalsUnderSelected.length === 0 ? (
+                  <p className="text-secondary text-sm">No sub goals yet. Use &quot;Add Sub Goal&quot; above.</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {childGoalsUnderSelected.map((child) => (
+                      <button
+                        key={child.id}
+                        type="button"
+                        onClick={() => select(child.id ?? null)}
+                        className="text-left w-full bg-background/50 rounded-xl border border-secondary/20 p-3 hover:border-accent/40 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-text truncate">
+                            {Object.values(child.data)[0] || 'Untitled'}
+                          </span>
+                          {child.status && child.status !== 'active' && (
+                            <span className={`text-[9px] uppercase font-bold shrink-0 px-2 py-0.5 rounded ${
+                              child.status === 'done' ? 'bg-success/15 text-success' :
+                              child.status === 'not_done' ? 'bg-error/15 text-error' :
+                              'bg-secondary/15 text-secondary'
+                            }`}>
+                              {child.status.replace('_', ' ')}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-secondary mt-0.5 block capitalize">{child.goalType}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Simple sessions (90 min, pending | done | missed) */}
+              {selectedGoal.goalType === 'daily' && (
+              <div>
+                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Sessions</h3>
+                {(simpleSessionsByGoal[String(selectedGoal.id)] ?? []).length === 0 && (
+                  <p className="text-secondary text-sm mb-3">No sessions yet. Use &quot;Add Session&quot; above (90 min each).</p>
+                )}
+                <div className="flex flex-col gap-2">
+                  {(simpleSessionsByGoal[String(selectedGoal.id)] ?? []).map((s, i) => (
+                    <motion.div
+                      key={s.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      className="bg-background/50 rounded-xl border border-secondary/20 p-3"
+                    >
+                      <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                        <div>
+                          <span className="text-xs text-secondary">
+                            {s.duration} min · {new Date(s.createdAt).toLocaleString()}
+                          </span>
+                          <span className={`ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                            s.status === 'pending' ? 'bg-accent/15 text-accent' :
+                            s.status === 'done' ? 'bg-success/15 text-success' :
+                            'bg-error/15 text-error'
+                          }`}>
+                            {s.status}
+                          </span>
+                        </div>
+                      </div>
+                      {s.status === 'pending' && (
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await setSimpleSessionStatus(s.id, String(selectedGoal.id), 'done');
+                              } catch {
+                                showToast('Could not update session');
+                              }
+                            }}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-success/30 bg-success/15 text-success hover:bg-success/25 transition-colors disabled:opacity-40"
+                          >
+                            Completed
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await setSimpleSessionStatus(s.id, String(selectedGoal.id), 'missed');
+                              } catch {
+                                showToast('Could not update session');
+                              }
+                            }}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-error/30 bg-error/15 text-error hover:bg-error/25 transition-colors disabled:opacity-40"
+                          >
+                            Not Completed
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+              )}
+
               {/* Session History */}
               {selectedGoal.goalType === 'daily' && (
               <div>
@@ -469,8 +783,8 @@ export const Goals = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={(e) => openGoalJournal(selectedGoal, 'completed', e)}
-                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-success/10 border border-success/20 text-success font-bold hover:bg-success/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(34,197,94,0.1)]"
+                    onClick={() => openGoalJournal(selectedGoal, 'completed')}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-success/10 border border-success/20 text-success font-bold hover:bg-success/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(34,197,94,0.1)] disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <CheckCircle2 size={18} />
                     Completed
@@ -478,8 +792,8 @@ export const Goals = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={(e) => openGoalJournal(selectedGoal, 'not_completed', e)}
-                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-error/10 border border-error/20 text-error font-bold hover:bg-error/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                    onClick={() => openGoalJournal(selectedGoal, 'not_completed')}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-error/10 border border-error/20 text-error font-bold hover:bg-error/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(239,68,68,0.1)] disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <XCircle size={18} />
                     Not Completed

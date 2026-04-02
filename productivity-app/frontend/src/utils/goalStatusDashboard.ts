@@ -11,7 +11,9 @@ export interface DashboardStats {
   weekly: { pct: number; progressText: string };
   monthly: { pct: number; progressText: string };
   yearly: { pct: number; progressText: string };
-  chartData: { day: string; value: number }[]; // Last 7 days daily %
+  chartData: { day: string; value: number }[]; // Sat–Fri week, daily % (root daily goals only)
+  /** Consecutive calendar days (ending today) where all root daily goals were completed (100%). */
+  streakDays: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -36,8 +38,7 @@ function clampPct(value: number): number {
  * A daily goal counts as "done on day D" when:
  *   status === 'done'  AND  completedAt falls within [dayStart, dayEnd].
  *
- * NOTE: Only daily goals are used — category goals (weekly/monthly/yearly)
- *       are intentionally excluded from percentage calculations.
+ * NOTE: Only root daily goals are used — sub-goals and non-daily types are excluded.
  */
 function dailyPctForDay(
   dailyGoals: Goal[],
@@ -80,6 +81,27 @@ function rollingAvgDailyPct(
   return clampPct(total / days);
 }
 
+/** Root daily goals only: no parent (sub-goals excluded from portfolio %). */
+function isRootGoal(g: Goal): boolean {
+  return g.parentId == null || g.parentId === '';
+}
+
+/**
+ * Streak: count consecutive days from today backward where daily completion is 100%.
+ * If a day has zero root daily goals, completion is 0% → streak breaks.
+ */
+function computeDailyStreak(rootDailyGoals: Goal[], now: DateTime, zone: string): number {
+  if (rootDailyGoals.length === 0) return 0;
+  let streak = 0;
+  for (let i = 0; i < 400; i++) {
+    const day = now.minus({ days: i });
+    const pct = dailyPctForDay(rootDailyGoals, day, zone);
+    if (pct >= 100) streak++;
+    else break;
+  }
+  return streak;
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -101,8 +123,10 @@ export function calculateDashboardStats(
 ): DashboardStats {
   const now = DateTime.now().setZone(zone);
 
-  // ---- Daily goals only (used for ALL percentage calculations) ----
-  const dailyGoals = goals.filter((g) => g.goalType === 'daily' && !g.deletedAt);
+  // ---- Root daily goals only (used for ALL percentage calculations) ----
+  const dailyGoals = goals.filter(
+    (g) => g.goalType === 'daily' && !g.deletedAt && isRootGoal(g)
+  );
 
   // ---- Daily % (today) ----
   const todayPct = dailyPctForDay(dailyGoals, now, zone);
@@ -120,7 +144,9 @@ export function calculateDashboardStats(
 
   // ---- Category goal counts (display only — NOT used for %) ----
   const getCategoryStats = (type: 'weekly' | 'monthly' | 'yearly') => {
-    const catGoals = goals.filter((g) => g.goalType === type && !g.deletedAt);
+    const catGoals = goals.filter(
+      (g) => g.goalType === type && !g.deletedAt && isRootGoal(g)
+    );
     return {
       done: catGoals.filter((g) => g.status === 'done').length,
       total: catGoals.length,
@@ -144,6 +170,8 @@ export function calculateDashboardStats(
     };
   });
 
+  const streakDays = computeDailyStreak(dailyGoals, now, zone);
+
   return {
     daily: {
       pct: todayPct,
@@ -162,5 +190,6 @@ export function calculateDashboardStats(
       progressText: `${yearlyStats.done}/${yearlyStats.total} goals achieved`,
     },
     chartData,
+    streakDays,
   };
 }
