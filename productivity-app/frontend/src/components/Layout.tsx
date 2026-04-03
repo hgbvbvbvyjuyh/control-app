@@ -16,6 +16,7 @@ import { useSessionStore } from '../stores/sessionStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import type { JournalEntry } from '../db';
 import type { DailySimpleSession } from '../stores/dailySimpleSessionStore';
+import { APP_NAME } from '../constants/app';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -186,12 +187,10 @@ export const Layout = () => {
           className="mb-16 px-2"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
-              <div className="w-3 h-3 bg-white rounded-full blur-[1px]" />
-            </div>
+            <img src="/logo.svg" alt={APP_NAME} className="w-7 h-7" />
             <div>
               <h1 className="text-xl font-black tracking-tighter text-white leading-none">
-                Control.
+                {APP_NAME}
               </h1>
               <p className="text-[9px] text-secondary/40 uppercase tracking-[0.25em] font-bold mt-1">
                 v1.0.4
