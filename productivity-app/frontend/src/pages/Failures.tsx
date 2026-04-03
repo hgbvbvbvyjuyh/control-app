@@ -65,7 +65,7 @@ export const Failures = () => {
   const getLinkedLabel = (f: typeof failures[0]) => {
     if (f.type === 'goal') {
       const g = goals.find(g => g.id === f.linkedId);
-      return g ? Object.values(g.data)[0] || 'Goal' : f.linkedId;
+      return g ? g.title || 'Unknown' : f.linkedId;
     }
     return `Session ${f.linkedId}`;
   };
@@ -118,7 +118,7 @@ export const Failures = () => {
                         <option value="">Select...</option>
                         {type === 'session'
                           ? sessions.map(s => <option key={s.id} value={s.id}>Session {new Date(s.startTime).toLocaleString()}</option>)
-                          : goals.map(g => <option key={g.id} value={g.id}>{Object.values(g.data)[0] || g.id}</option>)
+                          : goals.map(g => <option key={g.id} value={g.id}>{g.title || g.id || 'Unknown'}</option>)
                         }
                       </select>
                     </div>

@@ -7,7 +7,15 @@ interface GoalStore {
   selectedGoalId: string | null;
   loading: boolean;
   load: () => Promise<void>;
-  add: (frameworkId: string | null, data: Record<string, string>, goalType?: Goal['goalType'], parentId?: string | null, isIndependent?: boolean, category?: Goal['category']) => Promise<Goal>;
+  add: (
+    frameworkId: string | null,
+    data: Record<string, string>,
+    goalType?: Goal['goalType'],
+    parentId?: string | null,
+    isIndependent?: boolean,
+    category?: Goal['category'],
+    title?: string
+  ) => Promise<Goal>;
   remove: (id: string) => Promise<void>;
   removeSingle: (id: string) => Promise<void>;
   update: (
@@ -15,7 +23,8 @@ interface GoalStore {
     data: Record<string, string>,
     goalType?: Goal['goalType'],
     category?: Goal['category'],
-    frameworkId?: string | null
+    frameworkId?: string | null,
+    title?: string
   ) => Promise<void>;
   patchStatus: (id: string, status: Goal['status']) => Promise<void>;
   select: (id: string | null) => void;
@@ -38,8 +47,8 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     }
   },
 
-  add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true, category = 'health') => {
-    const created = await api.post<Goal>('/goals', { frameworkId, data, goalType, parentId, isIndependent, category });
+  add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true, category = 'health', title) => {
+    const created = await api.post<Goal>('/goals', { title, frameworkId, data, goalType, parentId, isIndependent, category });
     set({ goals: [created, ...get().goals] });
     return created;
   },
@@ -57,9 +66,10 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     void get().load();
   },
 
-  update: async (id, data, goalType, category, frameworkId) => {
+  update: async (id, data, goalType, category, frameworkId, title) => {
     const payload: Record<string, unknown> = { data, goalType, category };
     if (frameworkId !== undefined) payload.frameworkId = frameworkId;
+    if (title !== undefined) payload.title = title;
     const updated = await api.put<Goal>(`/goals/${id}`, payload);
     set({
       goals: get().goals.map(g =>

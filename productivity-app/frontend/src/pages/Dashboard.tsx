@@ -244,7 +244,7 @@ export const Dashboard = () => {
                     style={{ background: catColor(g.category) }}
                   />
                   <span className="text-[11px] text-text/80 font-bold flex-1 truncate group-hover:text-white transition-colors">
-                    {Object.values(g.data)[0]}
+                    {g.title || 'Unknown'}
                   </span>
                   <span className="text-[7px] text-secondary font-black uppercase tracking-tighter bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
                     {g.goalType}

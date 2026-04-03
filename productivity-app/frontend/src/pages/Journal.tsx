@@ -420,7 +420,7 @@ function GoalCard({
   openJournal: boolean;
   onToggleJournal: (goalId: string) => void;
 }) {
-  const title = String(Object.values(goal.data)[0] || 'Untitled');
+  const title = String(goal.title || 'Unknown');
   const type = String(goal.goalType || 'daily');
   const answers = entry?.content?.answers ?? null;
   const q1 = answers?.q1 ?? entry?.content?.goals ?? '';

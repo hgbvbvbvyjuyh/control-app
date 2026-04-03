@@ -39,6 +39,7 @@ function parseGoal(row: Record<string, unknown>): Goal {
 
       return {
     id: String(row['id']),
+    title: typeof row['title'] === 'string' && row['title'].trim() ? String(row['title']) : 'Unknown',
     frameworkId: row['frameworkId'] == null ? null : String(row['frameworkId']),
     goalType: row['goalType'] as Goal['goalType'],
     parentId: row['parentId'] ? String(row['parentId']) : null,
@@ -90,7 +91,7 @@ router.get('/:id/children', (req, res, next) => {
 router.post('/', (req, res, next) => {
   try {
     const body = req.body as Partial<Goal>;
-    const { frameworkId, data, goalType, parentId, isIndependent, category } = body;
+    const { title, frameworkId, data, goalType, parentId, isIndependent, category } = body;
     if (!data) {
       res.status(400).json({ error: 'data is required' }); return;
     }
@@ -103,9 +104,10 @@ router.post('/', (req, res, next) => {
 
     const now = Date.now();
     const { lastInsertRowid } = run(
-      `INSERT INTO goals (frameworkId, goalType, parentId, isIndependent, category, data, progress, status, completedAt, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, 0, 'active', NULL, ?, ?)`,
+      `INSERT INTO goals (title, frameworkId, goalType, parentId, isIndependent, category, data, progress, status, completedAt, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', NULL, ?, ?)`,
       [
+        typeof title === 'string' && title.trim() ? title.trim() : 'Unknown',
         frameworkId,
         goalType || 'daily',
         parentId ?? null,
@@ -129,6 +131,10 @@ router.put('/:id', (req, res, next) => {
     if (!existing) { res.status(404).json({ error: 'Goal not found' }); return; }
 
     const updatedAt = Date.now();
+    const title =
+      body.title !== undefined
+        ? (typeof body.title === 'string' && body.title.trim() ? body.title.trim() : 'Unknown')
+        : (existing['title'] as string) ?? 'Unknown';
     const data = body.data ? JSON.stringify(body.data) : (existing['data'] as string);
     const goalType = body.goalType ?? existing['goalType'];
     const frameworkId = body.frameworkId !== undefined ? body.frameworkId : existing['frameworkId'];
@@ -151,9 +157,9 @@ router.put('/:id', (req, res, next) => {
     }
 
     run(
-      `UPDATE goals SET data = ?, goalType = ?, parentId = ?, isIndependent = ?,
+      `UPDATE goals SET title = ?, data = ?, goalType = ?, parentId = ?, isIndependent = ?,
        frameworkId = ?, category = ?, status = ?, progress = ?, completedAt = ?, updatedAt = ? WHERE id = ?`,
-      [data, goalType, parentId ?? null, isIndependent, frameworkId ?? null, category || 'health', status, progress, completedAt, updatedAt, req.params['id']]
+      [title, data, goalType, parentId ?? null, isIndependent, frameworkId ?? null, category || 'health', status, progress, completedAt, updatedAt, req.params['id']]
     );
     recalcPortfolioProgress(Date.now(), getRecalcTimeZone());
     const updated = parseGoal(queryOne('SELECT * FROM goals WHERE id = ?', [req.params['id']])!);

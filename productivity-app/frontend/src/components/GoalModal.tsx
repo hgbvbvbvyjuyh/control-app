@@ -90,7 +90,7 @@ export const GoalModal = ({ open, onClose, frameworkId, initialType = 'daily', e
         showToast('Goal updated successfully');
       } else {
         const pid = parentGoalId?.trim() ? parentGoalId : null;
-        await add(selectedFw, data, goalType, pid, pid ? false : true, category);
+        await add(selectedFw, data, goalType, pid, pid ? false : true, category, 'Unknown');
         showToast(pid ? 'Sub goal created' : 'New goal created');
       }
       onClose();

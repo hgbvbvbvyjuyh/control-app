@@ -25,7 +25,7 @@ function wrapText(doc: jsPDF, text: string, maxWidth: number): string[] {
 }
 
 function pickGoalTitle(goal: Goal): string {
-  return Object.values(goal.data)[0] || 'Untitled';
+  return goal.title || 'Unknown';
 }
 
 function formatDateLabel(isoOrTs: string | number | null | undefined): string {
@@ -92,7 +92,7 @@ export function exportGoalPlanPdf(args: {
     }
   };
 
-  drawLines([goalTitle || 'Untitled'], { fontSize: 18, fontStyle: 'bold' });
+  drawLines([goalTitle || 'Unknown'], { fontSize: 18, fontStyle: 'bold' });
   y += 4;
 
   drawLines(

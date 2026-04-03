@@ -13,6 +13,7 @@ export interface Framework {
 
 export interface Goal {
   id?: string;
+  title?: string;
   frameworkId: string | null;
   goalType: 'yearly' | 'monthly' | 'weekly' | 'daily';
   category?: 'spirituality' | 'finance' | 'health' | 'relation';

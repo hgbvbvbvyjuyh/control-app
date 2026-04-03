@@ -83,6 +83,7 @@ export async function initDb() {
 
     CREATE TABLE IF NOT EXISTS goals (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      title         TEXT    NOT NULL DEFAULT 'Unknown',
       frameworkId   INTEGER,
       goalType      TEXT    NOT NULL DEFAULT 'daily',
       parentId      INTEGER,
@@ -176,6 +177,7 @@ export async function initDb() {
   };
 
   // Goals table migrations
+  safeAlter("ALTER TABLE goals ADD COLUMN title TEXT NOT NULL DEFAULT 'Unknown'");
   safeAlter('ALTER TABLE goals ADD COLUMN goalType TEXT NOT NULL DEFAULT \'daily\'');
   safeAlter('ALTER TABLE goals ADD COLUMN parentId INTEGER');
   safeAlter('ALTER TABLE goals ADD COLUMN isIndependent INTEGER NOT NULL DEFAULT 1');
@@ -216,6 +218,7 @@ export async function initDb() {
       _db.run(`
         CREATE TABLE goals_new (
           id            INTEGER PRIMARY KEY AUTOINCREMENT,
+          title         TEXT    NOT NULL DEFAULT 'Unknown',
           frameworkId   INTEGER,
           goalType      TEXT    NOT NULL DEFAULT 'daily',
           parentId      INTEGER,
@@ -233,11 +236,11 @@ export async function initDb() {
       `);
       _db.run(`
         INSERT INTO goals_new (
-          id, frameworkId, goalType, parentId, isIndependent, category,
+          id, title, frameworkId, goalType, parentId, isIndependent, category,
           data, progress, status, completedAt, createdAt, updatedAt, deletedAt, progressHasData
         )
         SELECT
-          id, frameworkId, goalType, parentId, isIndependent, category,
+          id, COALESCE(NULLIF(title, ''), 'Unknown'), frameworkId, goalType, parentId, isIndependent, category,
           data, progress, status, completedAt, createdAt, updatedAt, deletedAt,
           COALESCE(progressHasData, 1)
         FROM goals;

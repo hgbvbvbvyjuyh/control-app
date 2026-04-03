@@ -266,7 +266,7 @@ export const Session = () => {
           <div className="text-center mb-8">
             <h2 className="text-2xl font-black tracking-tight mb-2">Initialize Session</h2>
             {goal ? (
-              <p className="text-slate-400 font-medium">Goal: <span className="text-cyan-400">{Object.values(goal.data)[0]}</span></p>
+              <p className="text-slate-400 font-medium">Goal: <span className="text-cyan-400">{goal.title || 'Unknown'}</span></p>
             ) : (
               <p className="text-rose-400 mb-4 text-sm font-bold">Please select a goal first.</p>
             )}
@@ -487,7 +487,7 @@ export const Session = () => {
             animate={{ opacity: 1 }} 
             className="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent"
           >
-            {Object.values(goal.data)[0]}
+            {goal.title || 'Unknown'}
           </motion.p>
         )}
       </div>

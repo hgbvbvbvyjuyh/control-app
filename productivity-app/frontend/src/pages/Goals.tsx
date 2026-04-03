@@ -14,6 +14,9 @@ import { JournalModal, type CompletionIntent, type JournalAnswers } from '../com
 import { useConfirmStore } from '../stores/confirmStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle, Pencil } from 'lucide-react';
+import FrameworkPreview from '../components/FrameworkPreview';
+import FrameworkFullView from '../components/FrameworkFullView';
+import { useExpand } from '../hooks/useExpand';
 
 import { getActiveGoals } from '../utils/goalListHelpers';
 
@@ -56,7 +59,6 @@ export const Goals = () => {
   const [inlineTitleEditByGoalId, setInlineTitleEditByGoalId] = useState<Record<string, string>>({});
   const [hidePencilByGoalId, setHidePencilByGoalId] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
-  const [showFrameworkData, setShowFrameworkData] = useState(false);
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
   const [simpleSessionPlanOpenId, setSimpleSessionPlanOpenId] = useState<string | null>(null);
   const [simpleSessionPlanText, setSimpleSessionPlanText] = useState('');
@@ -66,6 +68,7 @@ export const Goals = () => {
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [journalTargetGoal, setJournalTargetGoal] = useState<Goal | null>(null);
   const [journalIntent, setJournalIntent] = useState<CompletionIntent>('completed');
+  const { expandedId, toggle } = useExpand();
 
   const openGoalJournal = (goal: Goal, intent: CompletionIntent) => {
     setJournalTargetGoal(goal);
@@ -236,11 +239,12 @@ export const Goals = () => {
         console.log('[generateSubGoalsFromPlan] add() idea item', i, ideaText);
         await add(
           null,
-          { title: ideaText },
+          {},
           childType,
           String(selectedGoal.id),
           false,
-          selectedGoal.category || 'health'
+          selectedGoal.category || 'health',
+          ideaText
         );
       }
       console.log('[generateSubGoalsFromPlan] add() completed for all items');
@@ -261,7 +265,7 @@ export const Goals = () => {
   };
   const startInlineTitleEdit = (goal: Goal) => {
     const goalId = String(goal.id);
-    const currentTitle = String(Object.values(goal.data)[0] || '');
+    const currentTitle = String(goal.title || 'Unknown');
     setInlineTitleEditByGoalId(prev => ({ ...prev, [goalId]: currentTitle }));
   };
 
@@ -277,17 +281,16 @@ export const Goals = () => {
     if (!goal.id) return;
     const goalId = String(goal.id);
     const draft = (inlineTitleEditByGoalId[goalId] ?? '').trim();
-    if (!draft) return;
-
-    const firstKey = Object.keys(goal.data)[0];
-    if (!firstKey) return;
+    const nextTitle = draft || 'Unknown';
 
     try {
       await update(
         goalId,
-        { ...goal.data, [firstKey]: draft },
+        goal.data,
         goal.goalType,
-        goal.category
+        goal.category,
+        undefined,
+        nextTitle
       );
       setInlineTitleEditByGoalId(prev => {
         const next = { ...prev };
@@ -530,7 +533,7 @@ export const Goals = () => {
                                 g => g.id != null && String(g.id) === String(goal.parentId)
                               );
                               const parentTitle =
-                                parentGoal ? Object.values(parentGoal.data)[0] || 'Untitled' : 'Unknown';
+                                parentGoal ? parentGoal.title || 'Unknown' : 'Unknown';
                               return (
                                 <button
                                   type="button"
@@ -581,7 +584,7 @@ export const Goals = () => {
                             </>
                           ) : (
                             <>
-                              <span>{Object.values(goal.data)[0] || 'Untitled'}</span>
+                              <span>{goal.title || 'Unknown'}</span>
                               {!hidePencilByGoalId[String(goal.id)] && (
                                 <button
                                   type="button"
@@ -781,21 +784,19 @@ export const Goals = () => {
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="text-xs font-semibold text-accent uppercase tracking-wider mb-0">Framework Data</h4>
                   <button 
-                    onClick={() => setShowFrameworkData(!showFrameworkData)}
+                    onClick={() => selectedGoal?.id && toggle(String(selectedGoal.id))}
                     className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded"
                   >
-                    {showFrameworkData ? 'Hide Details' : 'Show Details'}
+                    {expandedId === String(selectedGoal?.id) ? 'Hide Details' : 'Show Details'}
                   </button>
                 </div>
-                {showFrameworkData && (
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    {selectedFw?.keys.map(k => (
-                      <div key={k.key}>
-                        <span className="text-secondary block text-xs mb-0.5">{k.label}</span>
-                        <span className="font-medium">{selectedGoal.data[k.key] || '—'}</span>
-                      </div>
-                    ))}
-                  </div>
+                {expandedId === String(selectedGoal?.id) ? (
+                  <FrameworkFullView content={selectedGoal.data?.frameworkText || ''} />
+                ) : (
+                  <FrameworkPreview
+                    content={selectedGoal.data?.frameworkText || ''}
+                    onClick={() => selectedGoal?.id && toggle(String(selectedGoal.id))}
+                  />
                 )}
               </div>
 

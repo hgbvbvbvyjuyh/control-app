@@ -59,7 +59,7 @@ export const Trash = () => {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
                   <p className="text-sm font-bold text-white truncate">
-                    {type === 'goal' ? (Object.values(item.data)[0] as string || 'Unnamed Goal') :
+                    {type === 'goal' ? (item.title || 'Unknown') :
                      type === 'session' ? `Session ${new Date(item.startTime).toLocaleDateString()}` :
                      type === 'journal' ? `${item.type} Journal (${item.date})` :
                      type === 'framework' ? item.name :
