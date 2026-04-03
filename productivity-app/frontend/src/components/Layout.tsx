@@ -17,6 +17,7 @@ import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import type { JournalEntry } from '../db';
 import type { DailySimpleSession } from '../stores/dailySimpleSessionStore';
 import { APP_NAME } from '../constants/app';
+import { useAuthStore } from '../stores/authStore';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -30,6 +31,7 @@ export const Layout = () => {
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
   const location = useLocation();
+  const { logout } = useAuthStore();
   const { goals, selectedGoalId, load: loadGoals } = useGoalStore();
   const { loadForGoal: loadSessionsForGoal } = useSessionStore();
   const { loadForGoal: loadSimpleSessionsForGoal } = useDailySimpleSessionStore();
@@ -238,6 +240,18 @@ export const Layout = () => {
         </nav>
 
         <div className="mt-auto flex flex-col gap-3 pt-8 border-t border-white/5">
+          <motion.button
+            whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              void logout();
+            }}
+            className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl w-full"
+            type="button"
+          >
+            <span className="opacity-50">⎋</span>
+            <span>Logout</span>
+          </motion.button>
           <div ref={exportRef} className="relative">
             <motion.button
               whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}

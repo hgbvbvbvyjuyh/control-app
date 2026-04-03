@@ -16,9 +16,13 @@ import exportRouter from './routes/export';
 import trashRouter from './routes/trash';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import { clientTimezoneMiddleware } from './middleware/clientTimezone';
+import { initFirebaseAdmin } from './firebaseAdmin';
+import { firebaseAuthMiddleware } from './middleware/firebaseAuth';
 
 const app = express();
 const PORT = process.env['PORT'] ?? 3001;
+
+initFirebaseAdmin();
 
 // ---- Middleware ----
 app.use(cors());
@@ -33,6 +37,9 @@ app.get('/health', (_req, res) => {
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
 });
+
+// ---- Auth (protect all /api/* except /api/health) ----
+app.use('/api', firebaseAuthMiddleware);
 
 // Routes
 app.use('/api/frameworks', frameworksRouter);

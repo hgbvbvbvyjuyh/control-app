@@ -1,4 +1,5 @@
 import { getBrowserIanaTimeZone } from './browserTimezone';
+import { getAuthToken } from '../stores/authStore';
 
 /** Trim env and strip trailing slashes so `/api/` + `/path` does not become `//path`. */
 function normalizeApiBase(raw: unknown): string {
@@ -31,6 +32,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   const url = buildApiUrl(path);
   const method = (options.method || 'GET').toUpperCase();
   const isDailySimplePost = path.includes('daily-simple-sessions') && method === 'POST';
+  const token = getAuthToken();
 
   const maxFetchAttempts = isDailySimplePost ? DAILY_SIMPLE_POST_MAX_ATTEMPTS : 1;
   let response!: Response;
@@ -44,6 +46,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
         headers: {
           'Content-Type': 'application/json',
           ...timezoneHeaders(),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...options.headers,
         },
       });

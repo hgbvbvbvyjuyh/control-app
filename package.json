@@ -9,6 +9,7 @@
     "build:app": "npm run build --prefix \"productivity-app/frontend\""
   },
   "dependencies": {
+    "firebase": "^12.11.0",
     "recharts": "^3.8.1"
   }
 }
