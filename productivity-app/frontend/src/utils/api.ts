@@ -79,7 +79,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     } catch {
       if (text.trim()) message = text.trim().slice(0, 2000);
     }
-    console.error('[api]', response.status, url, text.slice(0, 500));
+    if (import.meta.env.DEV) {
+      console.error('[api]', response.status, url, text.slice(0, 500));
+    } else {
+      console.error('[api]', response.status, path);
+    }
     throw new Error(message);
   }
 

@@ -35,7 +35,10 @@ export function initFirebaseAdmin() {
     console.log('[firebase-admin] initialized');
   } catch (e) {
     _initFailed = true;
-    console.error('[firebase-admin] Failed to initialize:', e);
+    console.error(
+      '[firebase-admin] Failed to initialize:',
+      e instanceof Error ? e.message : 'unknown error'
+    );
     return;
   }
 

@@ -62,18 +62,20 @@ app.use(errorHandler);
 initDb().then(() => {
   app.listen(PORT, () => {
     console.log(`\n🚀 Productivity API running at http://localhost:${PORT}`);
-    console.log('   Available routes:');
-    console.log('   GET  /api/health');
-    console.log('   CRUD /api/frameworks');
-    console.log('   CRUD /api/goals');
-    console.log('   CRUD /api/sessions');
-    console.log('   GET/POST/PUT /api/daily-simple-sessions');
-    console.log('   CRUD /api/journals');
-    console.log('   CRUD /api/failures');
-    console.log('   CRUD /api/users');
-    console.log('   GET  /api/progress/summary');
-    console.log('   CRUD /api/questions');
-    console.log('   GET  /api/export\n');
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.log('   Available routes:');
+      console.log('   GET  /api/health');
+      console.log('   CRUD /api/frameworks');
+      console.log('   CRUD /api/goals');
+      console.log('   CRUD /api/sessions');
+      console.log('   GET/POST/PUT /api/daily-simple-sessions');
+      console.log('   CRUD /api/journals');
+      console.log('   CRUD /api/failures');
+      console.log('   CRUD /api/users');
+      console.log('   GET  /api/progress/summary');
+      console.log('   CRUD /api/questions');
+      console.log('   GET  /api/export\n');
+    }
   });
 }).catch((err: Error) => {
   console.error('Failed to initialise database:', err);

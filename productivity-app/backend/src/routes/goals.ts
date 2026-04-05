@@ -145,15 +145,11 @@ router.put('/:id', (req, res, next) => {
     const progress = body.progress !== undefined ? body.progress : existing['progress'];
 
     let completedAt = existing['completedAt'] ? (existing['completedAt'] as string) : null;
-    
-    console.log(`Update Goal [${req.params['id']}]: current_status=${existing['status']}, new_status=${status}`);
 
     if (status === 'done' && existing['status'] !== 'done') {
       completedAt = new Date().toISOString();
-      console.log(`Setting completedAt to ${completedAt}`);
     } else if (status !== 'done' && existing['status'] === 'done') {
       completedAt = null;
-      console.log(`Clearing completedAt`);
     }
 
     run(

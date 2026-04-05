@@ -193,37 +193,25 @@ export const Goals = () => {
   };
 
   const handleGenerateSubGoalsFromPlan = async () => {
-    console.log('[generateSubGoalsFromPlan] start', { selectedGoal });
     if (!selectedGoal?.id) {
-      console.log('[generateSubGoalsFromPlan] validation: missing selectedGoal.id');
       return;
     }
     if (!isPlannableGoalType(selectedGoal.goalType)) {
-      console.log('[generateSubGoalsFromPlan] validation: goal type not plannable', selectedGoal.goalType);
       return;
     }
     const plan = parseGoalPlan(selectedGoal.data);
-    console.log('[generateSubGoalsFromPlan] parsed plan', plan, 'raw plan field:', selectedGoal.data?.plan);
     if (!plan) {
-      console.log('[generateSubGoalsFromPlan] validation: parseGoalPlan returned null');
       showToast('Save your plan first', 'error');
       return;
     }
     const savedStr = typeof selectedGoal.data.plan === 'string' ? selectedGoal.data.plan : '';
     const draftStr = planDraft === null ? null : serializeGoalPlan(planDraft);
-    console.log('[generateSubGoalsFromPlan] validation: save vs draft', {
-      savedStrLen: savedStr.length,
-      draftMatch: draftStr !== null && savedStr === draftStr,
-      planDraftNull: planDraft === null,
-    });
     if (planDraft === null || savedStr === '' || savedStr !== draftStr) {
-      console.log('[generateSubGoalsFromPlan] validation: saved plan missing or does not match editor draft');
       showToast('Save your plan first', 'error');
       return;
     }
     const childType = childTypeForPlannedParent(selectedGoal.goalType);
     if (hasChildOfType(goals, String(selectedGoal.id), childType)) {
-      console.log('[generateSubGoalsFromPlan] validation: children of type already exist', childType);
       showToast('Sub goals already exist', 'error');
       return;
     }
@@ -232,11 +220,9 @@ export const Goals = () => {
       showToast('Add at least one plan idea to generate sub goals', 'error');
       return;
     }
-    console.log('[generateSubGoalsFromPlan] passed validation; creating', ideaItems.length, 'sub-goals');
     try {
       for (let i = 0; i < ideaItems.length; i++) {
         const ideaText = ideaItems[i]!;
-        console.log('[generateSubGoalsFromPlan] add() idea item', i, ideaText);
         await add(
           null,
           {},
@@ -247,10 +233,11 @@ export const Goals = () => {
           ideaText
         );
       }
-      console.log('[generateSubGoalsFromPlan] add() completed for all items');
       showToast('Sub goals created from plan');
     } catch (e) {
-      console.error('[generateSubGoalsFromPlan] add() failed', e);
+      if (import.meta.env.DEV) {
+        console.error('[generateSubGoalsFromPlan] failed:', e instanceof Error ? e.message : e);
+      }
       showToast('Failed to create sub goals', 'error');
     }
   };
@@ -679,7 +666,12 @@ export const Goals = () => {
                                 await addSimpleSession(String(gid));
                                 showToast('Session added', 'success');
                               } catch (err) {
-                                console.error('addSimpleSession failed', err);
+                                if (import.meta.env.DEV) {
+                                  console.error(
+                                    'addSimpleSession failed',
+                                    err instanceof Error ? err.message : err
+                                  );
+                                }
                                 const msg =
                                   err instanceof Error ? err.message : 'Could not add session';
                                 showToast(msg, 'error');

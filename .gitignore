@@ -1,0 +1,4 @@
+# Repository root — local env files only (apps under productivity-app/ have their own rules)
+/.env
+/.env.*
+!/.env.example

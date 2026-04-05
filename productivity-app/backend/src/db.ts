@@ -64,10 +64,14 @@ export async function initDb() {
   if (fs.existsSync(dbPath)) {
     const fileContent = fs.readFileSync(dbPath);
     _db = new SQL.Database(fileContent);
-    console.log(`Database loaded from: ${dbPath}`);
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.log(`Database loaded from: ${dbPath}`);
+    }
   } else {
     _db = new SQL.Database();
-    console.log(`New database created at: ${dbPath}`);
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.log(`New database created at: ${dbPath}`);
+    }
   }
 
   // ---- Base schema (idempotent) ----
@@ -287,7 +291,9 @@ export async function initDb() {
         [fw.name, JSON.stringify(fw.keys), now]
       );
     }
-    console.log('Seeded default frameworks.');
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.log('Seeded default frameworks.');
+    }
   }
 
   // ---- Seed default journal questions ----
@@ -308,7 +314,9 @@ export async function initDb() {
         [q.category, q.question, now]
       );
     }
-    console.log('Seeded default journal questions.');
+    if (process.env['NODE_ENV'] !== 'production') {
+      console.log('Seeded default journal questions.');
+    }
   }
 
   save();

@@ -43,7 +43,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           }
         });
       } catch (e) {
-        console.error('[auth] Firebase auth failed to start:', e);
+        console.error(
+          '[auth] Firebase auth failed to start:',
+          e instanceof Error ? e.message : e
+        );
         set({ user: null, token: null, loading: false });
       }
     })();
