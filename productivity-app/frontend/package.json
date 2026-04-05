@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:testsprite": "vite --mode testsprite",
     "build": "tsc -b && vite build",
     "postbuild": "node scripts/verify-dist.mjs",
     "lint": "eslint .",

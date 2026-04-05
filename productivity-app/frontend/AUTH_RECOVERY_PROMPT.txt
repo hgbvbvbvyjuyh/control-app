@@ -1,0 +1,7 @@
+Recovery prompt (paste into Cursor when you want Firebase login again)
+
+Bangla:
+productivity-app/frontend-এ অস্থায়ী অথ বাইপাস তুলে নিয়ে আবার স্বাভাবিক Firebase লগইন চালু করো: (১) `.env.testsprite` বা `FORCE_AUTH_DISABLED_FOR_E2E` থাকলে সরাও বা `authFlags.ts`-এ `FORCE_AUTH_DISABLED_FOR_E2E` কে `false` রাখো। (২) `.env` / Vercel এ `VITE_AUTH_ENABLED=true` সেট করো বা `VITE_AUTH_ENABLED` লাইন মুছে দাও (খালি = ডিফল্ট অন)। (৩) ব্যাকএন্ড/Render এ `AUTH_ENABLED=true` করো। (৪) `npm run build` দিয়ে যাচাই করো যে লগইন পেজ ও গুগল/ইমেইল লগইন কাজ করছে।
+
+English:
+Re-enable Firebase auth: (1) Remove or keep false `FORCE_AUTH_DISABLED_FOR_E2E` in `src/config/authFlags.ts`. (2) In `.env` and Vercel, set `VITE_AUTH_ENABLED=true` or delete the line (empty defaults to auth on). (3) Set `AUTH_ENABLED=true` on the backend/Render API. (4) Run `npm run build` and verify login and Google/email sign-in.

@@ -1,7 +1,20 @@
 {
-  "status": "init",
-  "scope": "codebase",
+  "status": "commited",
   "type": "frontend",
-  "localEndpoint": "http://localhost:5173/",
-  "serverPort": 54286
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "loginUser": "test@example.com",
+  "loginPassword": "123456abc",
+  "executionArgs": {
+    "projectName": "mine software",
+    "projectPath": "E:/mine software",
+    "testIds": [],
+    "additionalInstruction": "DEPLOYED APP URL (primary): https://control-app-six.vercel.app/ — Prefer navigating this production URL for all Playwright/browser tests. App uses HashRouter: use paths like https://control-app-six.vercel.app/#/, #/goals, #/journal, #/failures, #/trash, #/session, #/login. If runner only supports localhost, use http://127.0.0.1:5173/ with same hash paths.\n\nAUTH BYPASS FOR LOCALHOST: Before testing against localhost, start the dev server from productivity-app/frontend with npm run dev:testsprite (loads committed .env.testsprite; VITE_AUTH_ENABLED=false). Plain npm run dev uses your local .env and may show Firebase login and rate limits.\n\nVERCEL PRODUCTION: For a deploy without login, the Vercel project must set VITE_AUTH_ENABLED=false at build time. If login appears on production, check Environment Variables and redeploy.\n\nCRITICAL: Do NOT stop testing if login fails or API returns errors. Skip auth: navigate directly to hash routes and explore protected UI shells; document any redirect to login.\n\nThoroughly verify: (1) Initial load and UI layout analysis. (2) All buttons and interactive elements clickable; detect blocked clicks (z-index overlays, pointer-events). (3) Navigate all pages: Dashboard, Goals, Journal, Failures, Trash (and Session). (4) Sidebar on desktop: nav links, Export dropdown open/close, Logout button layout and click, System Wipe modal cancel. (5) Mobile: bottom nav and responsiveness. (6) Modals, dropdowns, forms: open, close, submit where possible without valid API. (7) Console errors and failed network requests — log them. (8) Visual: overflow, alignment, spacing inconsistencies. (9) Performance: slow interactions, unnecessary re-renders if detectable.\n\nContinue through the full suite even when steps fail; capture screenshots and evidence for each issue.",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user--ZW4scTCo3fD_g3q7-3ywg_Qw_tWTh561mSLfI4KNn31-06xMvHBkjJpVDyxBkKaP5hWwvr23jDygI9K5pUkbBPvxP3-3VgJonysNpo9QoEh49Vb1iLoD1I7E0HEuZVnMOQ"
+    }
+  },
+  "serverPort": 64851,
+  "proxy": "http://90ead326-24a9-4b1b-a386-f7fe6b8569c7:soFYze4oApm7hP2r9jTAVXQYlIIixxYb@tun.testsprite.com:8080"
 }
