@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logClientError } from '../utils/logClientError';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,7 @@ export const JournalModal = ({
   const [improvement, setImprovement] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   // ── Derived ──
   const isGoal = journalType === 'goal';
@@ -60,7 +62,7 @@ export const JournalModal = ({
     ? completed.trim() !== '' && mistakes.trim() !== '' && improvement.trim() !== ''
     : didAchieveGoal !== null;
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setDidAchieveGoal(null);
     setMistake('');
     setImprovementSuggestion('');
@@ -68,7 +70,13 @@ export const JournalModal = ({
     setMistakes('');
     setImprovement('');
     setSubmitting(false);
-  };
+    setSubmitError('');
+  }, []);
+
+  /** Full reset whenever the shell closes (Cancel, success, or parent `open={false}`) so no stale fields reappear. */
+  useEffect(() => {
+    if (!open) reset();
+  }, [open, reset]);
 
   const handleClose = () => {
     reset();
@@ -83,10 +91,13 @@ export const JournalModal = ({
       ? { type: 'goal', completed, mistakes, improvement }
       : { type: 'session', didAchieveGoal, mistake, improvementSuggestion };
 
+    setSubmitError('');
     try {
       await onSubmit(answers);
       reset();
-    } catch {
+    } catch (err) {
+      logClientError('JournalModal.submit', err);
+      setSubmitError(err instanceof Error ? err.message : 'Could not save. Try again.');
       setSubmitting(false);
     }
   };
@@ -228,6 +239,12 @@ export const JournalModal = ({
                     />
                   </div>
                 </>
+              )}
+
+              {submitError && (
+                <p className="text-error text-sm bg-error/10 border border-error/20 rounded-xl px-3 py-2" role="alert">
+                  {submitError}
+                </p>
               )}
 
               {/* Submit */}

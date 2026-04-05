@@ -1,13 +1,20 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useSessionStore } from '../stores/sessionStore';
 import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
 import { motion } from 'framer-motion';
+import { logClientError } from '../utils/logClientError';
 
 
 
-const TimerDisplay = ({ seconds, isCountdown }: { seconds: number; isCountdown: boolean }) => {
+const TimerDisplay = memo(function TimerDisplay({
+  seconds,
+  isCountdown,
+}: {
+  seconds: number;
+  isCountdown: boolean;
+}) {
   const formatTime = (s: number): string => {
     const min = Math.floor(s / 60);
     const sec = s % 60;
@@ -24,8 +31,7 @@ const TimerDisplay = ({ seconds, isCountdown }: { seconds: number; isCountdown: 
       </h1>
     </div>
   );
-};
-
+});
 
 export const Session = () => {
   const [params] = useSearchParams();
@@ -52,6 +58,7 @@ export const Session = () => {
   const alarmFiredRef = useRef(false);
   // Ref to hold the stop function for the continuously looping alarm
   const stopAlarmRef = useRef<(() => void) | null>(null);
+  const playSoundRef = useRef<() => void>(() => undefined);
 
 
   // New features state
@@ -69,39 +76,10 @@ export const Session = () => {
   const goal = goals.find(g => String(g.id) === String(goalId));
 
   useEffect(() => {
-    loadGoals();
-    loadFrameworks();
-    restoreSession();
-  }, []);
-
-  useEffect(() => {
-    // Reset the alarm guard for each new session
-    alarmFiredRef.current = false;
-    setAlarmTriggered(false);
-    if (stopAlarmRef.current) stopAlarmRef.current();
-
-    if (activeSession && activeSession.status === 'active') {
-      const startMs = activeSession.startTime;
-      timerRef.current = setInterval(() => {
-        const newElapsed = Math.floor((Date.now() - startMs) / 1000);
-        setElapsed(newElapsed);
-
-        // Auto-alarm: fire once when countdown reaches zero
-        if (activeSession.workTime && activeSession.workTime > 0) {
-          const totalSeconds = activeSession.workTime * 60;
-          if (newElapsed >= totalSeconds && !alarmFiredRef.current) {
-            alarmFiredRef.current = true; // guard — ref change does NOT re-run this effect
-            setAlarmTriggered(true);       // UI only (red pulse)
-            playSound();
-          }
-        }
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (stopAlarmRef.current) stopAlarmRef.current();
-    };
-  }, [activeSession]); // ← only re-run when session changes, NOT on alarmTriggered
+    void loadGoals();
+    void loadFrameworks();
+    void restoreSession();
+  }, [loadGoals, loadFrameworks, restoreSession]);
 
   // Create (or resume) the AudioContext on user gesture — required by browser autoplay policy
   const initAudioCtx = () => {
@@ -197,15 +175,53 @@ export const Session = () => {
     stopAlarmRef.current = () => {
       masterGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
       setTimeout(() => {
-        nodesToStop.forEach(n => { try { n.stop(); n.disconnect(); } catch (e) {} });
+        nodesToStop.forEach((n) => {
+          try {
+            n.stop();
+            n.disconnect();
+          } catch (err) {
+            logClientError('Session.audioTeardown', err);
+          }
+        });
         if (intervalId) clearInterval(intervalId);
         masterGain.disconnect();
       }, 150);
     };
   };
 
+  playSoundRef.current = playSound;
+
+  useEffect(() => {
+    alarmFiredRef.current = false;
+    setAlarmTriggered(false);
+    if (stopAlarmRef.current) stopAlarmRef.current();
+
+    if (activeSession && activeSession.status === 'active') {
+      const startMs = activeSession.startTime;
+      const workTimeMin = activeSession.workTime;
+      timerRef.current = setInterval(() => {
+        const newElapsed = Math.floor((Date.now() - startMs) / 1000);
+        setElapsed(newElapsed);
+
+        if (workTimeMin && workTimeMin > 0) {
+          const totalSeconds = workTimeMin * 60;
+          if (newElapsed >= totalSeconds && !alarmFiredRef.current) {
+            alarmFiredRef.current = true;
+            setAlarmTriggered(true);
+            playSoundRef.current();
+          }
+        }
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (stopAlarmRef.current) stopAlarmRef.current();
+    };
+  }, [activeSession]);
+
   const handleStart = async () => {
-    if (!goalId) return;
+    const gid = goalId.trim();
+    if (!gid) return;
 
     // Initialize AudioContext on this user gesture — satisfies browser autoplay policy
     initAudioCtx();
@@ -216,7 +232,7 @@ export const Session = () => {
       if (input.key && input.value) data[input.key] = input.value;
     });
 
-    await start(goalId, data, workDuration, restDuration);
+    await start(gid, data, workDuration, restDuration);
   };
 
   const handleEnd = async () => {
@@ -511,7 +527,8 @@ export const Session = () => {
               (() => {
                 try {
                   return JSON.parse(activeSession.frameworkData as string) as Record<string, string>;
-                } catch {
+                } catch (err) {
+                  logClientError('Session.frameworkData', err);
                   return {} as Record<string, string>;
                 }
               })()

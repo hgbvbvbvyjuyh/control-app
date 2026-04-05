@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AntiGravity } from '../components/AntiGravity';
 import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
@@ -26,19 +26,30 @@ import {
   type GoalPlanData,
   childTypeForPlannedParent,
   emptyPlanForGoalType,
+  goalPlanDataEqual,
   hasChildOfType,
   isPlannableGoalType,
   parseGoalPlan,
   serializeGoalPlan,
 } from '../utils/goalPlan';
 import { useToastStore } from '../stores/toastStore';
+import { logClientError } from '../utils/logClientError';
 
 
 
 
 // ---- Goals Page ----
 export const Goals = () => {
-  const { goals, load: loadGoals, selectedGoalId, select, patchStatus, add, update, remove } = useGoalStore();
+  const {
+    goals,
+    load: loadGoals,
+    selectedGoalId,
+    select,
+    patchStatus,
+    add,
+    update,
+    remove,
+  } = useGoalStore();
   const { add: addJournal, load: loadJournals } = useJournalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
   const { sessions, load: loadSessions, remove: removeSession } = useSessionStore();
@@ -59,6 +70,7 @@ export const Goals = () => {
   const [inlineTitleEditByGoalId, setInlineTitleEditByGoalId] = useState<Record<string, string>>({});
   const [hidePencilByGoalId, setHidePencilByGoalId] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState<'daily' | 'weekly' | 'monthly' | 'yearly' | null>(null);
+
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
   const [simpleSessionPlanOpenId, setSimpleSessionPlanOpenId] = useState<string | null>(null);
   const [simpleSessionPlanText, setSimpleSessionPlanText] = useState('');
@@ -68,6 +80,9 @@ export const Goals = () => {
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [journalTargetGoal, setJournalTargetGoal] = useState<Goal | null>(null);
   const [journalIntent, setJournalIntent] = useState<CompletionIntent>('completed');
+  /** Invalidate in-flight journal writes when the modal closes (backdrop, navigation, etc.). */
+  const journalAsyncGenRef = useRef(0);
+  const journalWasOpenRef = useRef(false);
   const { expandedId, toggle } = useExpand();
 
   const openGoalJournal = (goal: Goal, intent: CompletionIntent) => {
@@ -76,33 +91,47 @@ export const Goals = () => {
     setJournalModalOpen(true);
   };
 
+  useEffect(() => {
+    if (journalWasOpenRef.current && !journalModalOpen) {
+      journalAsyncGenRef.current += 1;
+    }
+    journalWasOpenRef.current = journalModalOpen;
+  }, [journalModalOpen]);
+
   const handleGoalJournalSubmit = async (answers: JournalAnswers) => {
     if (!journalTargetGoal || answers.type !== 'goal') return;
+    const asyncGen = journalAsyncGenRef.current;
+    const targetId = String(journalTargetGoal.id);
     const today = new Date().toISOString().split('T')[0];
-    const goalType = journalTargetGoal.goalType as any;
-    const category = (journalTargetGoal.category || 'health') as any;
+    const goalType = journalTargetGoal.goalType;
+    const category = journalTargetGoal.category || 'health';
+    const intentSnapshot = journalIntent;
 
     await addJournal(
       goalType,
       today,
       {
-        type: "goal",
+        type: 'goal',
         goalId: journalTargetGoal.id,
         answers: {
           q1: answers.completed,
           q2: answers.mistakes,
-          q3: answers.improvement
+          q3: answers.improvement,
         },
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       },
       journalTargetGoal.id,
       category
     );
 
-    const newStatus = journalIntent === 'completed' ? 'done' : 'not_done';
-    await patchStatus(String(journalTargetGoal.id), newStatus);
+    if (journalAsyncGenRef.current !== asyncGen) return;
 
-    if (String(selectedGoalId) === String(journalTargetGoal.id)) {
+    const newStatus = intentSnapshot === 'completed' ? 'done' : 'not_done';
+    await patchStatus(targetId, newStatus);
+
+    if (journalAsyncGenRef.current !== asyncGen) return;
+
+    if (String(useGoalStore.getState().selectedGoalId) === targetId) {
       select(null);
     }
 
@@ -111,11 +140,11 @@ export const Goals = () => {
   };
 
   useEffect(() => {
-    loadGoals();
-    loadFrameworks();
-    loadSessions();
-    loadJournals();
-  }, []);
+    void loadGoals();
+    void loadFrameworks();
+    void loadSessions();
+    void loadJournals();
+  }, [loadGoals, loadFrameworks, loadSessions, loadJournals]);
 
   const selectedGoal = goals.find(g => String(g.id) === String(selectedGoalId));
 
@@ -124,13 +153,23 @@ export const Goals = () => {
     void loadSimpleSessionsForGoal(String(selectedGoal.id));
   }, [selectedGoalId, selectedGoal?.id, selectedGoal?.goalType, loadSimpleSessionsForGoal]);
 
+  /** Avoid re-applying the same server plan when `goals` array identity changes without data change. */
+  const planSyncFingerprintRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!selectedGoal || !isPlannableGoalType(selectedGoal.goalType)) {
+    const goal = goals.find((g) => String(g.id) === String(selectedGoalId));
+    const fp =
+      goal && isPlannableGoalType(goal.goalType)
+        ? `${String(selectedGoalId)}|${String(goal.data?.plan ?? '')}`
+        : `${String(selectedGoalId ?? '')}|__noplan__`;
+    if (fp === planSyncFingerprintRef.current) return;
+    planSyncFingerprintRef.current = fp;
+    if (!goal || !isPlannableGoalType(goal.goalType)) {
       setPlanDraft(null);
       return;
     }
-    setPlanDraft(parseGoalPlan(selectedGoal.data));
-  }, [selectedGoalId, selectedGoal?.data?.plan]);
+    setPlanDraft(parseGoalPlan(goal.data));
+  }, [goals, selectedGoalId]);
 
   const selectedFw = selectedGoal
     ? frameworks.find(f => String(f.id) === String(selectedGoal.frameworkId))
@@ -138,30 +177,41 @@ export const Goals = () => {
 
   const handleSavePlan = async () => {
     if (!selectedGoal?.id || !planDraft) return;
+    const goalId = String(selectedGoal.id);
     try {
-      await update(String(selectedGoal.id), {
-        ...selectedGoal.data,
-        plan: serializeGoalPlan(planDraft),
-      }, selectedGoal.goalType, selectedGoal.category);
+      await update(
+        goalId,
+        {
+          ...selectedGoal.data,
+          plan: serializeGoalPlan(planDraft),
+        },
+        selectedGoal.goalType,
+        selectedGoal.category
+      );
+      if (useGoalStore.getState().selectedGoalId !== goalId) return;
       showToast('Plan saved');
-    } catch {
+    } catch (err) {
+      logClientError('Goals.savePlan', err);
       showToast('Failed to save plan');
     }
   };
 
   const handleClearPlan = async () => {
     if (!selectedGoal?.id) return;
+    const goalId = String(selectedGoal.id);
+    const goalType = selectedGoal.goalType;
+    const category = selectedGoal.category;
+    const dataSnapshot = { ...selectedGoal.data };
     confirm(
       'Clear Plan',
       'This will remove the saved plan from this goal (sub-goals are not affected).',
       async () => {
         try {
-          await update(String(selectedGoal.id), {
-            ...selectedGoal.data,
-            plan: '',
-          }, selectedGoal.goalType, selectedGoal.category);
+          await update(goalId, { ...dataSnapshot, plan: '' }, goalType, category);
+          if (useGoalStore.getState().selectedGoalId !== goalId) return;
           showToast('Plan cleared', 'info');
-        } catch {
+        } catch (err) {
+          logClientError('Goals.clearPlan', err);
           showToast('Could not clear plan', 'error');
         }
       },
@@ -172,18 +222,20 @@ export const Goals = () => {
 
   const handleDeleteDailyGoal = async () => {
     if (!selectedGoal?.id) return;
+    const deleteGoalId = String(selectedGoal.id);
     confirm(
       'Delete Goal',
       'This action cannot be undone. The goal and all associated data will be removed.',
       async () => {
         try {
-          await remove(String(selectedGoal.id));
+          await remove(deleteGoalId);
           showToast('Goal deleted', 'info');
           select(null);
           setPlanDraft(null);
           setSimpleSessionPlanOpenId(null);
           setSimpleSessionPlanText('');
-        } catch {
+        } catch (err) {
+          logClientError('Goals.deleteDailyGoal', err);
           showToast('Could not delete goal', 'error');
         }
       },
@@ -199,17 +251,13 @@ export const Goals = () => {
     if (!isPlannableGoalType(selectedGoal.goalType)) {
       return;
     }
-    const plan = parseGoalPlan(selectedGoal.data);
-    if (!plan) {
+    const savedPlan = parseGoalPlan(selectedGoal.data);
+    if (!savedPlan || planDraft === null || !goalPlanDataEqual(savedPlan, planDraft)) {
       showToast('Save your plan first', 'error');
       return;
     }
-    const savedStr = typeof selectedGoal.data.plan === 'string' ? selectedGoal.data.plan : '';
-    const draftStr = planDraft === null ? null : serializeGoalPlan(planDraft);
-    if (planDraft === null || savedStr === '' || savedStr !== draftStr) {
-      showToast('Save your plan first', 'error');
-      return;
-    }
+    const plan = savedPlan;
+    const parentId = String(selectedGoal.id);
     const childType = childTypeForPlannedParent(selectedGoal.goalType);
     if (hasChildOfType(goals, String(selectedGoal.id), childType)) {
       showToast('Sub goals already exist', 'error');
@@ -222,18 +270,24 @@ export const Goals = () => {
     }
     try {
       for (let i = 0; i < ideaItems.length; i++) {
+        if (useGoalStore.getState().selectedGoalId !== parentId) {
+          showToast('Stopped: selection changed', 'info');
+          return;
+        }
         const ideaText = ideaItems[i]!;
         await add(
           null,
           {},
           childType,
-          String(selectedGoal.id),
+          parentId,
           false,
           selectedGoal.category || 'health',
           ideaText
         );
       }
-      showToast('Sub goals created from plan');
+      if (useGoalStore.getState().selectedGoalId === parentId) {
+        showToast('Sub goals created from plan');
+      }
     } catch (e) {
       if (import.meta.env.DEV) {
         console.error('[generateSubGoalsFromPlan] failed:', e instanceof Error ? e.message : e);
@@ -243,7 +297,7 @@ export const Goals = () => {
   };
 
   const setPlanItemText = (index: number, text: string) => {
-    setPlanDraft(prev => {
+    setPlanDraft((prev) => {
       if (!prev) return prev;
       const items = [...prev.items];
       items[index] = { ...items[index]!, text };
@@ -284,9 +338,12 @@ export const Goals = () => {
         delete next[goalId];
         return next;
       });
-      setHidePencilByGoalId(prev => ({ ...prev, [goalId]: true }));
-      showToast('Title updated', 'success');
-    } catch {
+      if (String(useGoalStore.getState().selectedGoalId) === goalId) {
+        setHidePencilByGoalId(prev => ({ ...prev, [goalId]: true }));
+        showToast('Title updated', 'success');
+      }
+    } catch (err) {
+      logClientError('Goals.saveInlineTitleEdit', err);
       showToast('Could not update title', 'error');
     }
   };
@@ -396,17 +453,18 @@ export const Goals = () => {
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col md:flex-row gap-6 w-full max-w-7xl mx-auto">
       <AnimatePresence>{showFwModal && <FrameworkModal open onClose={() => setShowFwModal(false)} />}</AnimatePresence>
-      <AnimatePresence>{showGoalModal && (
-        <GoalModal 
-          open 
-          onClose={() => { setShowGoalModal(false); setEditingGoal(undefined); }} 
-          frameworkId={null} 
-          editingGoal={editingGoal}
-          initialType={activeCategory || 'daily'}
-          parentGoalId={null}
-          allowFreeGoalType={false}
-        />
-      )}</AnimatePresence>
+      <GoalModal
+        open={showGoalModal}
+        onClose={() => {
+          setShowGoalModal(false);
+          setEditingGoal(undefined);
+        }}
+        frameworkId={null}
+        editingGoal={editingGoal}
+        initialType={activeCategory || 'daily'}
+        parentGoalId={null}
+        allowFreeGoalType={false}
+      />
       <JournalModal
         open={journalModalOpen}
         onClose={() => { setJournalModalOpen(false); setJournalTargetGoal(null); }}
@@ -458,7 +516,7 @@ export const Goals = () => {
           >
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
-                onClick={() => { setActiveCategory(null); select(undefined as any); }}
+                onClick={() => { setActiveCategory(null); select(null); }}
                 className="flex items-center gap-2 text-secondary hover:text-text transition-colors text-sm font-medium w-fit px-2 py-1 rounded-lg hover:bg-white/5"
               >
                 <ChevronLeft size={16} /> Back to Categories
@@ -600,7 +658,7 @@ export const Goals = () => {
           <div
             className={`flex-1 h-full min-h-0 flex-col bg-surface/40 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-y-auto no-scrollbar relative overflow-hidden md:rounded-3xl ${
               selectedGoalId
-                ? 'flex max-md:fixed max-md:inset-0 max-md:z-40 max-md:rounded-none'
+                ? 'flex max-md:fixed max-md:inset-0 max-md:z-[60] max-md:rounded-none'
                 : 'hidden md:flex'
             }`}
           >
@@ -864,7 +922,11 @@ export const Goals = () => {
                                   try {
                                     await removeSimpleSession(s.id!, String(selectedGoal.id));
                                     showToast('Session moved to trash', 'info');
-                                  } catch {
+                                  } catch (err) {
+                                    logClientError('Goals.removeSimpleSession', err, {
+                                      sessionId: s.id,
+                                      goalId: selectedGoal.id,
+                                    });
                                     showToast('Could not delete session', 'error');
                                   }
                                 },
@@ -894,7 +956,11 @@ export const Goals = () => {
                                 try {
                                   await updateSimpleSessionNote(s.id, String(selectedGoal.id), simpleSessionPlanText);
                                   showToast('Plan saved', 'success');
-                                } catch {
+                                } catch (err) {
+                                  logClientError('Goals.updateSimpleSessionNote', err, {
+                                    sessionId: s.id,
+                                    goalId: selectedGoal.id,
+                                  });
                                   showToast('Could not save plan', 'error');
                                 }
                               }}
@@ -949,7 +1015,11 @@ export const Goals = () => {
                             onClick={async () => {
                               try {
                                 await setSimpleSessionStatus(s.id, String(selectedGoal.id), 'done');
-                              } catch {
+                              } catch (err) {
+                                logClientError('Goals.setSimpleSessionStatus.done', err, {
+                                  sessionId: s.id,
+                                  goalId: selectedGoal.id,
+                                });
                                 showToast('Could not update session');
                               }
                             }}
@@ -962,7 +1032,11 @@ export const Goals = () => {
                             onClick={async () => {
                               try {
                                 await setSimpleSessionStatus(s.id, String(selectedGoal.id), 'missed');
-                              } catch {
+                              } catch (err) {
+                                logClientError('Goals.setSimpleSessionStatus.missed', err, {
+                                  sessionId: s.id,
+                                  goalId: selectedGoal.id,
+                                });
                                 showToast('Could not update session');
                               }
                             }}

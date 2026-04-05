@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { onAuthStateChanged, type User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { AUTH_ENABLED, DEV_MOCK_USER } from '../config/authFlags';
 import { getFirebaseAuth } from '../firebase';
+import { logClientError } from '../utils/logClientError';
 
 interface AuthState {
   user: User | null;
@@ -45,8 +46,8 @@ export const useAuthStore = create<AuthState>((set) => ({
           try {
             const token = await user.getIdToken();
             set({ user, token, loading: false });
-          } catch {
-            // If token retrieval fails, treat as logged out.
+          } catch (err) {
+            logClientError('authStore.getIdToken', err);
             set({ user: null, token: null, loading: false });
           }
         });

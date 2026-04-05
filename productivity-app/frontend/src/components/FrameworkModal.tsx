@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useFrameworkStore } from '../stores/frameworkStore';
+import { logClientError } from '../utils/logClientError';
 import { useGoalStore } from '../stores/goalStore';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useToastStore } from '../stores/toastStore';
@@ -24,9 +25,10 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
 
   const addKey = () => setKeys([...keys, { key: '', label: '', description: '' }]);
   const removeKey = (i: number) => setKeys(keys.filter((_, idx) => idx !== i));
-  const updateKey = (i: number, field: string, value: string) => {
+  type KeyField = 'key' | 'label' | 'description';
+  const updateKey = (i: number, field: KeyField, value: string) => {
     const updated = [...keys];
-    (updated[i] as any)[field] = value;
+    updated[i] = { ...updated[i], [field]: value };
     setKeys(updated);
   };
 
@@ -48,16 +50,17 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
       resetForm();
       onClose();
     } catch (err) {
+      logClientError('FrameworkModal.save', err);
       setError('Failed to save framework');
     }
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setEditingId(null);
     setName('');
     setKeys([{ key: '', label: '', description: '' }]);
     setError('');
-  };
+  }, []);
 
   const startEdit = (fw: Framework) => {
     setEditingId(fw.id!);
@@ -70,10 +73,14 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
     setError('');
   };
 
+  useEffect(() => {
+    if (!open) resetForm();
+  }, [open, resetForm]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

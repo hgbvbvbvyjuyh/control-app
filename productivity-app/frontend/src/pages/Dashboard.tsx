@@ -1,17 +1,13 @@
 // src/pages/Dashboard.tsx
-import { useEffect, useState } from "react";
+import { lazy, memo, Suspense, useEffect, useMemo } from "react";
 import { useGoalStore } from "../stores/goalStore";
 import { calculateDashboardStats } from "../utils/goalStatusDashboard";
-import { 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  AreaChart,
-  Area
-} from "recharts";
 import { motion } from "framer-motion";
+import type { Goal } from "../db";
+
+const DashboardTrendChart = lazy(() =>
+  import("../components/DashboardTrendChart").then((m) => ({ default: m.DashboardTrendChart }))
+);
 
 // ─── Helpers ───────────────────────────────────────────────────────────
 
@@ -36,9 +32,17 @@ const BAR_COLOR: Record<string, string> = {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Card({ title, pct, text }: { title: string; pct: number; text: string }) {
+const Card = memo(function StatCard({
+  title,
+  pct,
+  text,
+}: {
+  title: string;
+  pct: number;
+  text: string;
+}) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col gap-1 bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl px-4 py-2.5 hover:border-white/10 transition-colors shadow-lg"
@@ -73,30 +77,85 @@ function Card({ title, pct, text }: { title: string; pct: number; text: string }
       </span>
     </motion.div>
   );
+});
+
+const GoalRow = memo(function GoalRow({ goal }: { goal: Goal }) {
+  return (
+    <div className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors group shrink-0">
+      <div
+        className="w-1 h-1 rounded-full shrink-0 shadow-[0_0_6px_rgba(255,255,255,0.1)]"
+        style={{ background: catColor(goal.category) }}
+      />
+      <span className="text-[11px] text-text/80 font-bold flex-1 truncate group-hover:text-white transition-colors">
+        {goal.title || 'Unknown'}
+      </span>
+      <span className="text-[7px] text-secondary font-black uppercase tracking-tighter bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+        {goal.goalType}
+      </span>
+    </div>
+  );
+});
+
+function ChartFallback() {
+  return (
+    <div className="lg:col-span-2 flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 min-h-[280px] animate-pulse">
+      <div className="h-3 w-40 bg-white/10 rounded mb-4" />
+      <div className="flex-1 min-h-[200px] bg-white/5 rounded-xl" />
+    </div>
+  );
 }
 
 export const Dashboard = () => {
-  const { goals, load: loadGoals } = useGoalStore();
-  const [stats, setStats] = useState<ReturnType<typeof calculateDashboardStats> | null>(null);
+  const { goals, load: loadGoals, loading, loadError, clearLoadError } = useGoalStore();
+  const stats = useMemo(() => calculateDashboardStats(goals), [goals]);
 
   useEffect(() => {
-    loadGoals();
-  }, []);
+    void loadGoals();
+  }, [loadGoals]);
 
-  useEffect(() => {
-    const result = calculateDashboardStats(goals);
-    setStats(result);
-  }, [goals]);
-
-  if (!stats) return (
-    <div className="flex items-center justify-center h-full">
-      <div className="text-secondary animate-pulse font-black uppercase tracking-widest text-xs">Loading...</div>
-    </div>
+  const activeRoots = useMemo(
+    () =>
+      goals.filter(
+        (g) => g.status === 'active' && !g.deletedAt && (g.parentId == null || g.parentId === '')
+      ),
+    [goals]
   );
+
+  if (loading && goals.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-secondary animate-pulse font-black uppercase tracking-widest text-xs">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-7xl mx-auto h-screen max-h-screen overflow-hidden pt-10 pb-4 px-8">
-      {/* ── Page Header ── */}
+      {loadError && (
+        <div
+          className="shrink-0 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
+          role="alert"
+        >
+          <span className="font-medium">{loadError}</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => void loadGoals()}
+              className="rounded-lg bg-error/20 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-error hover:bg-error/30"
+            >
+              Retry
+            </button>
+            <button
+              type="button"
+              onClick={() => clearLoadError()}
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-secondary hover:text-text"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -113,8 +172,7 @@ export const Dashboard = () => {
         </div>
       </motion.div>
 
-      {/* ── Summary Bar ── */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         className="flex items-center justify-between bg-surface/40 backdrop-blur-2xl border border-white/5 rounded-xl px-5 py-2.5 shadow-xl shadow-black/20 shrink-0"
@@ -135,7 +193,6 @@ export const Dashboard = () => {
         </div>
       </motion.div>
 
-      {/* ── Stat Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 shrink-0">
         <Card title="Daily"   pct={stats.daily.pct}   text={stats.daily.progressText} />
         <Card title="Weekly"  pct={stats.weekly.pct}  text={stats.weekly.progressText} />
@@ -143,81 +200,12 @@ export const Dashboard = () => {
         <Card title="Yearly"  pct={stats.yearly.pct}  text={stats.yearly.progressText} />
       </div>
 
-      {/* ── Bottom Row ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0 mb-2">
-        {/* Trend Chart */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.99 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="lg:col-span-2 flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl min-h-0"
-        >
-          <div className="flex items-center justify-between mb-4 shrink-0">
-            <h3 className="text-[9px] font-black text-secondary uppercase tracking-[0.3em]">
-              7-Day Performance Trend
-            </h3>
-            <span className="text-[8px] bg-white/5 text-secondary/60 px-2 py-0.5 rounded-full border border-white/5">
-              % completion rate
-            </span>
-          </div>
-          <div className="flex-1 min-h-0 w-full min-h-[220px] h-[min(40vh,320px)] md:h-full">
-            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
-              <AreaChart data={stats.chartData} margin={{ top: 10, left: 15, right: 15, bottom: 20 }}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis 
-                  dataKey="day" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={(props) => {
-                    const { x, y, payload } = props;
-                    let textAnchor: "start" | "middle" | "end" = "middle";
-                    if (payload.index === 0) textAnchor = "start";
-                    if (payload.index === 6) textAnchor = "end";
-                    return (
-                      <text x={x} y={y} dy={16} fill="#94a3b8" fontSize={9} fontWeight={900} textAnchor={textAnchor}>
-                        {payload.value}
-                      </text>
-                    );
-                  }}
-                  interval={0}
-                />
-                <YAxis 
-                  hide 
-                  domain={[0, 100]}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#0f172a', 
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '12px',
-                    fontSize: '9px',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase'
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#22d3ee" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorValue)" 
-                  animationDuration={1500}
-                  connectNulls
-                  baseLine={0}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
+        <Suspense fallback={<ChartFallback />}>
+          <DashboardTrendChart chartData={stats.chartData} />
+        </Suspense>
 
-        {/* Active Goals / Info */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl overflow-hidden min-h-0"
@@ -228,29 +216,13 @@ export const Dashboard = () => {
             </h3>
           </div>
           <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar flex-1 min-h-0">
-            {goals.filter(g => g.status === 'active' && !g.deletedAt && (g.parentId == null || g.parentId === '')).length === 0 ? (
+            {activeRoots.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-secondary/20 gap-2">
                 <span className="text-2xl">🎯</span>
                 <p className="text-[8px] font-black uppercase tracking-widest">No active goals</p>
               </div>
             ) : (
-              goals.filter(g => g.status === 'active' && !g.deletedAt && (g.parentId == null || g.parentId === '')).slice(0, 12).map((g) => (
-                <div
-                  key={g.id}
-                  className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors group shrink-0"
-                >
-                  <div
-                    className="w-1 h-1 rounded-full shrink-0 shadow-[0_0_6px_rgba(255,255,255,0.1)]"
-                    style={{ background: catColor(g.category) }}
-                  />
-                  <span className="text-[11px] text-text/80 font-bold flex-1 truncate group-hover:text-white transition-colors">
-                    {g.title || 'Unknown'}
-                  </span>
-                  <span className="text-[7px] text-secondary font-black uppercase tracking-tighter bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
-                    {g.goalType}
-                  </span>
-                </div>
-              ))
+              activeRoots.slice(0, 12).map((g) => <GoalRow key={g.id} goal={g} />)
             )}
           </div>
         </motion.div>

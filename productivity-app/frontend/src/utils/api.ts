@@ -1,5 +1,7 @@
 import { getBrowserIanaTimeZone } from './browserTimezone';
+import { AUTH_ENABLED } from '../config/authFlags';
 import { getAuthToken } from '../stores/authStore';
+import { logClientError } from './logClientError';
 
 /** Trim env and strip trailing slashes so `/api/` + `/path` does not become `//path`. */
 function normalizeApiBase(raw: unknown): string {
@@ -76,12 +78,15 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     try {
       const data = JSON.parse(text) as { error?: string; message?: string };
       message = data.error || data.message || message;
-    } catch {
+    } catch (err) {
+      logClientError('api.parseErrorBody', err, { path, status: response.status });
       if (text.trim()) message = text.trim().slice(0, 2000);
     }
-    if (import.meta.env.DEV) {
+    const skipDevNoise =
+      !AUTH_ENABLED && (response.status === 401 || response.status === 403);
+    if (import.meta.env.DEV && !skipDevNoise) {
       console.error('[api]', response.status, url, text.slice(0, 500));
-    } else {
+    } else if (!import.meta.env.DEV) {
       console.error('[api]', response.status, path);
     }
     throw new Error(message);
@@ -94,7 +99,8 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   const okText = await response.text();
   try {
     return JSON.parse(okText) as T;
-  } catch {
+  } catch (err) {
+    logClientError('api.parseJson', err, { path });
     throw new Error('Invalid JSON in API response');
   }
 }

@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useJournalStore } from "../stores/journalStore";
 import { useGoalStore } from "../stores/goalStore";
 import { useToastStore } from "../stores/toastStore";
+import type { Goal, JournalEntry } from "../db";
 
 const analyticsTabs = ["ALL", "Daily", "Weekly", "Monthly", "Yearly"];
 const analyticsCategories = ["all", "spirituality", "finance", "health", "relation"];
@@ -35,9 +36,9 @@ export const Journal = () => {
   const [openIdeas, setOpenIdeas] = useState(false);
 
   useEffect(() => {
-    loadJournals();
-    loadGoals();
-  }, []);
+    void loadJournals();
+    void loadGoals();
+  }, [loadJournals, loadGoals]);
 
   const handleTimeframeChange = (newTimeframe: string) => {
     setTimeframe(newTimeframe);
@@ -415,8 +416,8 @@ function GoalCard({
   onToggleJournal,
 }: {
   goalId: string;
-  goal: any;
-  entry: any | null;
+  goal: Goal;
+  entry: JournalEntry | null;
   openJournal: boolean;
   onToggleJournal: (goalId: string) => void;
 }) {

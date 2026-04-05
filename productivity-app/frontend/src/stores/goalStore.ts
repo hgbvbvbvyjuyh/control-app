@@ -1,11 +1,16 @@
 import { create } from 'zustand';
 import { type Goal } from '../db';
+import { AUTH_ENABLED } from '../config/authFlags';
 import { api } from '../utils/api';
+import { logClientError } from '../utils/logClientError';
 
 interface GoalStore {
   goals: Goal[];
   selectedGoalId: string | null;
   loading: boolean;
+  /** Set when the last goals fetch failed (cleared on success). */
+  loadError: string | null;
+  clearLoadError: () => void;
   load: () => Promise<void>;
   add: (
     frameworkId: string | null,
@@ -35,15 +40,27 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   goals: [],
   selectedGoalId: null,
   loading: false,
+  loadError: null,
+
+  clearLoadError: () => set({ loadError: null }),
 
   load: async () => {
-    set({ loading: true });
+    set({ loading: true, loadError: null });
     try {
       const goals = await api.get<Goal[]>('/goals');
-      set({ goals, loading: false });
+      set({ goals, loading: false, loadError: null });
     } catch (error) {
-      console.error('Failed to load goals:', error);
-      set({ loading: false });
+      const msg = error instanceof Error ? error.message : String(error);
+      const expectedNoToken =
+        !AUTH_ENABLED &&
+        (msg.includes('401') ||
+          /authorization|missing.*token/i.test(msg));
+      if (!expectedNoToken) {
+        logClientError('goalStore.load', error);
+        set({ loadError: msg || 'Could not load goals', loading: false });
+      } else {
+        set({ loading: false, loadError: null });
+      }
     }
   },
 

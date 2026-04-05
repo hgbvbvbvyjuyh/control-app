@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import { type Session } from '../db';
 import { api } from '../utils/api';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
+import { logClientError } from '../utils/logClientError';
 import { useGoalStore } from './goalStore';
 
 const SESSION_LOCK_KEY = 'active_productivity_session';
@@ -110,7 +111,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       try {
         const session = JSON.parse(saved);
         set({ activeSession: session });
-      } catch {
+      } catch (err) {
+        logClientError('sessionStore.restoreSession.parse', err);
         localStorage.removeItem(SESSION_LOCK_KEY);
       }
     }

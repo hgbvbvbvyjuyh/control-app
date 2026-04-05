@@ -68,6 +68,20 @@ export function serializeGoalPlan(plan: GoalPlanData): string {
   return JSON.stringify(plan);
 }
 
+/** Structural equality for plans — avoids relying on JSON key order or whitespace in stored strings. */
+export function goalPlanDataEqual(a: GoalPlanData | null, b: GoalPlanData | null): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.type !== b.type) return false;
+  if (a.items.length !== b.items.length) return false;
+  for (let i = 0; i < a.items.length; i++) {
+    const x = a.items[i]!;
+    const y = b.items[i]!;
+    if (x.label !== y.label || x.text !== y.text) return false;
+  }
+  return true;
+}
+
 /** Sub-goal type produced when generating from a plannable parent */
 export function childTypeForPlannedParent(parentType: PlanGranularity): Goal['goalType'] {
   switch (parentType) {

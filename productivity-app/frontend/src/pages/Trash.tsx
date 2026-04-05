@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useTrashStore } from '../stores/trashStore';
+import { useTrashStore, type TrashEntity } from '../stores/trashStore';
+import type { Goal, Session, JournalEntry, Failure, Framework } from '../db';
 import { motion } from 'framer-motion';
 import { RefreshCcw, Trash2, ShieldAlert, Archive } from 'lucide-react';
 import { useConfirmStore } from '../stores/confirmStore';
@@ -14,12 +15,12 @@ export const Trash = () => {
     fetchTrash();
   }, [fetchTrash]);
 
-  const handleRestore = async (type: string, id: string) => {
+  const handleRestore = async (type: TrashEntity, id: string) => {
     confirm(
       `Restore ${type}?`,
       `This will move the ${type} back to your active lists.`,
       async () => {
-        await restore(type as any, id);
+        await restore(type, id);
         showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} restored`);
       },
       'Confirm Restore',
@@ -27,12 +28,33 @@ export const Trash = () => {
     );
   };
 
-  const handlePurge = async (type: string, id: string) => {
+  type TrashRow = Goal | Session | JournalEntry | Failure | Framework;
+
+  const trashItemLabel = (kind: TrashEntity, item: TrashRow): string => {
+    switch (kind) {
+      case 'goal':
+        return (item as Goal).title || 'Unknown';
+      case 'session':
+        return `Session ${new Date((item as Session).startTime ?? 0).toLocaleDateString()}`;
+      case 'journal': {
+        const j = item as JournalEntry;
+        return `${j.type} Journal (${j.date})`;
+      }
+      case 'framework':
+        return (item as Framework).name;
+      case 'failure':
+        return (item as Failure).note || 'Unnamed Item';
+      default:
+        return 'Item';
+    }
+  };
+
+  const handlePurge = async (type: TrashEntity, id: string) => {
     confirm(
       `PERMANENTLY delete this ${type}?`,
       'This action cannot be undone. All associated data will be wiped from the system.',
       async () => {
-        await purge(type as any, id);
+        await purge(type, id);
         showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} permanently deleted`, 'error');
       },
       'Delete Permanently',
@@ -40,7 +62,7 @@ export const Trash = () => {
     );
   };
 
-  const renderSection = (title: string, items: any[], type: string) => {
+  const renderSection = (title: string, items: TrashRow[], kind: TrashEntity) => {
     if (items.length === 0) return null;
 
     return (
@@ -49,9 +71,11 @@ export const Trash = () => {
           {title} <span className="text-[10px] bg-secondary/10 px-2 py-0.5 rounded-full">{items.length}</span>
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {items.map((item) => (
+          {items.map((item) => {
+            const rowId = String(item.id ?? '');
+            return (
             <motion.div
-              key={item.id}
+              key={rowId}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="p-4 bg-white/[0.03] border border-white/5 rounded-2xl hover:bg-white/[0.05] transition-all group"
@@ -59,11 +83,7 @@ export const Trash = () => {
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
                   <p className="text-sm font-bold text-white truncate">
-                    {type === 'goal' ? (item.title || 'Unknown') :
-                     type === 'session' ? `Session ${new Date(item.startTime).toLocaleDateString()}` :
-                     type === 'journal' ? `${item.type} Journal (${item.date})` :
-                     type === 'framework' ? item.name :
-                     item.note || 'Unnamed Item'}
+                    {trashItemLabel(kind, item)}
                   </p>
                   <p className="text-[10px] text-secondary mt-1">
                     Deleted {item.deletedAt ? new Date(item.deletedAt).toLocaleString() : 'Unknown date'}
@@ -73,20 +93,23 @@ export const Trash = () => {
               
               <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
                 <button
-                  onClick={() => handleRestore(type, item.id)}
+                  type="button"
+                  onClick={() => handleRestore(kind, rowId)}
                   className="flex-1 flex items-center justify-center gap-2 py-2 bg-accent/10 text-accent text-xs font-bold rounded-xl hover:bg-accent hover:text-background transition-all"
                 >
                   <RefreshCcw size={14} /> Restore
                 </button>
                 <button
-                  onClick={() => handlePurge(type, item.id)}
+                  type="button"
+                  onClick={() => handlePurge(kind, rowId)}
                   className="flex-1 flex items-center justify-center gap-2 py-2 bg-error/10 text-error text-xs font-bold rounded-xl hover:bg-error hover:text-white transition-all"
                 >
                   <Trash2 size={14} /> Purge
                 </button>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );

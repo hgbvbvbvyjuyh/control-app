@@ -20,4 +20,19 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  /**
+   * Legitimate sync from props / modal lifecycle (reset when closed, clear errors).
+   * Scoped so the rest of the app still benefits from the rule where enabled by the preset.
+   */
+  {
+    files: [
+      'src/components/JournalModal.tsx',
+      'src/components/GoalModal.tsx',
+      'src/components/FrameworkModal.tsx',
+      'src/pages/Goals.tsx',
+    ],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
 ])

@@ -2,3 +2,6 @@
 /.env
 /.env.*
 !/.env.example
+
+# Test / MCP scratch (do not commit)
+**/testsprite_tests/tmp/*.log

@@ -3,6 +3,8 @@ import { AntiGravity } from '../components/AntiGravity';
 import { useFailureStore } from '../stores/failureStore';
 import { useGoalStore } from '../stores/goalStore';
 import { useSessionStore } from '../stores/sessionStore';
+import type { Failure } from '../db';
+import { logClientError } from '../utils/logClientError';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useToastStore } from '../stores/toastStore';
@@ -22,10 +24,10 @@ export const Failures = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    load();
-    loadGoals();
-    loadSessions();
-  }, []);
+    void load();
+    void loadGoals();
+    void loadSessions();
+  }, [load, loadGoals, loadSessions]);
 
   const handleSave = async () => {
     if (!editingId && !linkedId) { setError('Select a linked item'); return; }
@@ -42,6 +44,7 @@ export const Failures = () => {
       resetForm();
       setShowModal(false);
     } catch (err) {
+      logClientError('Failures.save', err);
       setError('Failed to save failure log');
     }
   };
@@ -55,7 +58,7 @@ export const Failures = () => {
 
   const startEdit = (f: typeof failures[0]) => {
     setEditingId(f.id!);
-    setType(f.type as any);
+    setType(f.type);
     setLinkedId(f.linkedId);
     setNote(f.note);
     setError('');
@@ -101,7 +104,10 @@ export const Failures = () => {
                       <label className="text-sm text-secondary block mb-1">Type</label>
                       <select
                         value={type}
-                        onChange={e => { setType(e.target.value as any); setLinkedId(''); }}
+                        onChange={e => {
+                          setType(e.target.value as Failure['type']);
+                          setLinkedId('');
+                        }}
                         className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-text text-sm focus:outline-none focus:border-accent"
                       >
                         <option value="session">Session</option>

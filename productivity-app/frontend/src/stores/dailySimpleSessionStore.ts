@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../utils/api';
+import { logClientError } from '../utils/logClientError';
 
 export type DailySimpleSessionStatus = 'pending' | 'done' | 'missed';
 
@@ -21,52 +22,64 @@ interface DailySimpleSessionStore {
   updateNote: (sessionId: string, goalId: string, note: string) => Promise<void>;
 }
 
-export const useDailySimpleSessionStore = create<DailySimpleSessionStore>((set, get) => ({
-  byGoalId: {},
+export const useDailySimpleSessionStore = create<DailySimpleSessionStore>((set, get) => {
+  /** Latest in-flight load token per goal — ignore stale responses when requests overlap or selection changes quickly. */
+  const loadTokens: Record<string, number> = {};
 
-  loadForGoal: async goalId => {
-    const list = await api.get<DailySimpleSession[]>(
-      `/daily-simple-sessions?goalId=${encodeURIComponent(goalId)}`
-    );
-    set(s => ({ byGoalId: { ...s.byGoalId, [goalId]: list } }));
-  },
+  return {
+    byGoalId: {},
 
-  add: async goalId => {
-    const created = await api.post<DailySimpleSession>('/daily-simple-sessions', { goalId });
-    const cur = get().byGoalId[goalId] ?? [];
-    set(s => ({ byGoalId: { ...s.byGoalId, [goalId]: [created, ...cur] } }));
-  },
+    loadForGoal: async (goalId) => {
+      const token = (loadTokens[goalId] = (loadTokens[goalId] ?? 0) + 1);
+      try {
+        const list = await api.get<DailySimpleSession[]>(
+          `/daily-simple-sessions?goalId=${encodeURIComponent(goalId)}`
+        );
+        if (loadTokens[goalId] !== token) return;
+        set((s) => ({ byGoalId: { ...s.byGoalId, [goalId]: list } }));
+      } catch (err) {
+        if (loadTokens[goalId] !== token) return;
+        logClientError('dailySimpleSessionStore.loadForGoal', err);
+      }
+    },
 
-  remove: async (sessionId, goalId) => {
-    await api.delete(`/daily-simple-sessions/${sessionId}`);
-    const cur = get().byGoalId[goalId] ?? [];
-    set(s => ({
-      byGoalId: {
-        ...s.byGoalId,
-        [goalId]: cur.filter(x => String(x.id) !== String(sessionId)),
-      },
-    }));
-  },
+    add: async (goalId) => {
+      const created = await api.post<DailySimpleSession>('/daily-simple-sessions', { goalId });
+      const cur = get().byGoalId[goalId] ?? [];
+      set((s) => ({ byGoalId: { ...s.byGoalId, [goalId]: [created, ...cur] } }));
+    },
 
-  setStatus: async (sessionId, goalId, status) => {
-    const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { status });
-    const cur = get().byGoalId[goalId] ?? [];
-    set(s => ({
-      byGoalId: {
-        ...s.byGoalId,
-        [goalId]: cur.map(x => (String(x.id) === String(sessionId) ? updated : x)),
-      },
-    }));
-  },
+    remove: async (sessionId, goalId) => {
+      await api.delete(`/daily-simple-sessions/${sessionId}`);
+      const cur = get().byGoalId[goalId] ?? [];
+      set((s) => ({
+        byGoalId: {
+          ...s.byGoalId,
+          [goalId]: cur.filter((x) => String(x.id) !== String(sessionId)),
+        },
+      }));
+    },
 
-  updateNote: async (sessionId, goalId, note) => {
-    const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { note });
-    const cur = get().byGoalId[goalId] ?? [];
-    set(s => ({
-      byGoalId: {
-        ...s.byGoalId,
-        [goalId]: cur.map(x => (String(x.id) === String(sessionId) ? updated : x)),
-      },
-    }));
-  },
-}));
+    setStatus: async (sessionId, goalId, status) => {
+      const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { status });
+      const cur = get().byGoalId[goalId] ?? [];
+      set((s) => ({
+        byGoalId: {
+          ...s.byGoalId,
+          [goalId]: cur.map((x) => (String(x.id) === String(sessionId) ? updated : x)),
+        },
+      }));
+    },
+
+    updateNote: async (sessionId, goalId, note) => {
+      const updated = await api.put<DailySimpleSession>(`/daily-simple-sessions/${sessionId}`, { note });
+      const cur = get().byGoalId[goalId] ?? [];
+      set((s) => ({
+        byGoalId: {
+          ...s.byGoalId,
+          [goalId]: cur.map((x) => (String(x.id) === String(sessionId) ? updated : x)),
+        },
+      }));
+    },
+  };
+});
