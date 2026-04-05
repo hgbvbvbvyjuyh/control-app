@@ -32,6 +32,26 @@ export function formatFirebaseAuthError(error: unknown): string {
     ].join(' ');
   }
 
+  if (
+    code === 'auth/invalid-credential' ||
+    code === 'auth/wrong-password' ||
+    code === 'auth/user-not-found'
+  ) {
+    return 'Invalid email or password.';
+  }
+  if (code === 'auth/invalid-email') {
+    return 'Enter a valid email address.';
+  }
+  if (code === 'auth/email-already-in-use') {
+    return 'An account already exists for this email. Try signing in instead.';
+  }
+  if (code === 'auth/weak-password') {
+    return 'Password is too weak. Use at least 6 characters.';
+  }
+  if (code === 'auth/too-many-requests') {
+    return 'Too many attempts. Try again in a few minutes.';
+  }
+
   if (error instanceof Error && error.message) return error.message;
   return 'Authentication failed.';
 }

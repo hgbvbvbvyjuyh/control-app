@@ -8,11 +8,16 @@ import { Session } from './pages/Session';
 import { Trash } from './pages/Trash';
 import { Login } from './pages/Login';
 import { useEffect } from 'react';
+import { AUTH_ENABLED } from './config/authFlags';
 import { useAuthStore } from './stores/authStore';
 import { Navigate } from 'react-router-dom';
 
 const AuthGate = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuthStore();
+
+  if (!AUTH_ENABLED) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -38,7 +43,10 @@ function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/login"
+          element={AUTH_ENABLED ? <Login /> : <Navigate to="/" replace />}
+        />
         <Route
           path="/"
           element={
