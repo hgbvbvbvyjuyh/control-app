@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirebaseAuth } from '../firebase';
 import { useAuthStore } from '../stores/authStore';
+import { formatFirebaseAuthError } from '../utils/firebaseAuthError';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -36,8 +37,7 @@ export const Login = () => {
       }
       navigate('/', { replace: true });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Authentication failed';
-      setError(msg);
+      setError(formatFirebaseAuthError(e));
     } finally {
       setSubmitting(false);
     }
@@ -65,7 +65,7 @@ export const Login = () => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-2xl border border-error/30 bg-error/10 text-error text-sm">
+          <div className="mb-4 p-3 rounded-2xl border border-error/30 bg-error/10 text-error text-sm text-left whitespace-normal break-words">
             {error}
           </div>
         )}
@@ -138,8 +138,7 @@ export const Login = () => {
                 await loginWithGoogle();
                 navigate('/', { replace: true });
               } catch (e) {
-                const msg = e instanceof Error ? e.message : 'Google login failed';
-                setError(msg);
+                setError(formatFirebaseAuthError(e));
               } finally {
                 setSubmitting(false);
               }
