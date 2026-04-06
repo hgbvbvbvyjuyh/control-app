@@ -29,8 +29,7 @@ export const Journal = () => {
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
-  /** Per rendered row — key includes list index so duplicate goal ids cannot share one toggle. */
-  const [openJournalByCardKey, setOpenJournalByCardKey] = useState<Record<string, boolean>>({});
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -49,8 +48,11 @@ export const Journal = () => {
     setCategory("all");
   };
 
-  const toggleGoalJournal = (cardKey: string) => {
-    setOpenJournalByCardKey((prev) => ({ ...prev, [cardKey]: !prev[cardKey] }));
+  const toggle = (key: string) => {
+    setOpenMap((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   const handleSaveLifeJournal = async () => {
@@ -400,7 +402,7 @@ export const Journal = () => {
           </div>
 
           {/* FILTERED GOAL LIST */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
             {visibleGoals.length === 0 ? (
               <div className="md:col-span-2 lg:col-span-3 py-40 text-center border-2 border-dashed border-secondary/10 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 animate-in zoom-in-95 duration-300">
                 <span className="text-4xl opacity-20">🎯</span>
@@ -408,11 +410,8 @@ export const Journal = () => {
               </div>
             ) : (
               visibleGoals.map((g, index) => {
+                const key = `${g.id || 'no-id'}-${index}`;
                 const rawGoalId = g.id != null && String(g.id) !== '' ? String(g.id) : null;
-                /** Stable per grid row: duplicate backend ids would otherwise share expand state. */
-                const cardKey = rawGoalId
-                  ? `${rawGoalId}#${index}`
-                  : `__row_${index}_${g.createdAt ?? 0}_${g.goalType}`;
                 const matchingEntry = rawGoalId
                   ? entries.find(
                       (e) =>
@@ -421,15 +420,15 @@ export const Journal = () => {
                         e.type.toLowerCase() === g.goalType.toLowerCase()
                     )
                   : null;
+                const isOpen = !!openMap[key];
 
                 return (
                   <GoalCard
-                    key={cardKey}
-                    cardKey={cardKey}
+                    key={key}
                     goal={g}
                     entry={matchingEntry ?? null}
-                    openJournal={Boolean(openJournalByCardKey[cardKey])}
-                    onToggleJournal={toggleGoalJournal}
+                    openJournal={isOpen}
+                    onToggle={() => toggle(key)}
                   />
                 );
               })
@@ -446,17 +445,15 @@ export const Journal = () => {
 /* ========================= */
 
 function GoalCard({
-  cardKey,
   goal,
   entry,
   openJournal,
-  onToggleJournal,
+  onToggle,
 }: {
-  cardKey: string;
   goal: Goal;
   entry: JournalEntry | null;
   openJournal: boolean;
-  onToggleJournal: (cardKey: string) => void;
+  onToggle: () => void;
 }) {
   const title = String(goal.title || 'Unknown');
   const type = String(goal.goalType || 'daily');
@@ -480,7 +477,7 @@ function GoalCard({
       >
         <button
           type="button"
-          onClick={() => onToggleJournal(cardKey)}
+          onClick={onToggle}
           title={openJournal ? 'Hide Journal' : 'Show Journal'}
           aria-label={openJournal ? 'Hide Journal' : 'Show Journal'}
           aria-expanded={openJournal}
