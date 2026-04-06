@@ -17,7 +17,6 @@ import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import type { JournalEntry } from '../db';
 import type { DailySimpleSession } from '../stores/dailySimpleSessionStore';
 import { APP_NAME } from '../constants/app';
-import { AUTH_ENABLED } from '../config/authFlags';
 import { useAuthStore } from '../stores/authStore';
 
 const navItems = [
@@ -33,7 +32,6 @@ export const Layout = () => {
   const { showToast } = useToastStore();
   const location = useLocation();
   const { logout, user } = useAuthStore();
-  const showAuthChrome = AUTH_ENABLED;
   const { goals, selectedGoalId, load: loadGoals } = useGoalStore();
   const { loadForGoal: loadSessionsForGoal } = useSessionStore();
   const { loadForGoal: loadSimpleSessionsForGoal } = useDailySimpleSessionStore();
