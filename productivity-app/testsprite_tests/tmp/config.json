@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "executionArgs": {
+    "projectName": "productivity-app",
+    "projectPath": "e:\\mine software\\productivity-app",
+    "testIds": [],
+    "additionalInstruction": "App uses HashRouter: base URL is http://localhost:5173/ with routes at #/, #/goals, #/journal, #/failures, #/session, #/trash. Do NOT require login: VITE_AUTH_ENABLED=false in testsprite mode. Skip /login unless testing auth explicitly. On API/network failure, continue UI exploration and assert graceful empty/error states. Prefer mobile viewport checks for overflow and tap targets.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user--ZW4scTCo3fD_g3q7-3ywg_Qw_tWTh561mSLfI4KNn31-06xMvHBkjJpVDyxBkKaP5hWwvr23jDygI9K5pUkbBPvxP3-3VgJonysNpo9QoEh49Vb1iLoD1I7E0HEuZVnMOQ"
+    }
+  },
+  "serverPort": 56094,
+  "proxy": "http://b043bc18-9a0b-404b-8d5a-9e4cfed1f293:dctJDZ70VUO8b8201ylNUZi2w9btuWga@tun.testsprite.com:8080"
+}

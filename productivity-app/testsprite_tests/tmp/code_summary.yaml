@@ -1,0 +1,110 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - React 19
+  - Vite 8
+  - Tailwind CSS 4
+  - Zustand
+  - Dexie (IndexedDB)
+  - Firebase Auth (optional when VITE_AUTH_ENABLED=true)
+  - Chart.js / Recharts
+routes:
+  - path: /login
+    file: frontend/src/pages/Login.tsx
+    auth_required: true
+    description: Firebase email/password login; skipped when VITE_AUTH_ENABLED=false (redirects to /)
+  - path: /
+    file: frontend/src/pages/Dashboard.tsx
+    auth_required: false
+    description: Dashboard overview (HashRouter; use #/)
+  - path: /goals
+    file: frontend/src/pages/Goals.tsx
+    auth_required: false
+    description: Goals list and goal planning
+  - path: /journal
+    file: frontend/src/pages/Journal.tsx
+    auth_required: false
+    description: Journal entries per goal
+  - path: /failures
+    file: frontend/src/pages/Failures.tsx
+    auth_required: false
+    description: Failure tracking
+  - path: /session
+    file: frontend/src/pages/Session.tsx
+    auth_required: false
+    description: Session timer and daily simple sessions
+  - path: /trash
+    file: frontend/src/pages/Trash.tsx
+    auth_required: false
+    description: Deleted items restore/purge
+features:
+  - name: Goals and sub-goals
+    description: CRUD goals, frameworks, plan PDF export, local Dexie sync with backend API when authenticated
+    files:
+      - frontend/src/pages/Goals.tsx
+      - frontend/src/stores/goalStore.ts
+      - frontend/src/utils/api.ts
+    entry_route: /goals
+    user_interactions:
+      - Navigate to Goals from sidebar
+      - Create or edit a goal
+      - Open goal modal and save
+    api_calls:
+      - method: GET
+        endpoint: /api/goals
+      - method: POST
+        endpoint: /api/goals
+      - method: PUT
+        endpoint: /api/goals/:id
+      - method: DELETE
+        endpoint: /api/goals/:id
+    auth_required: false
+  - name: Journal
+    description: Daily journal Q&A per goal
+    files:
+      - frontend/src/pages/Journal.tsx
+      - frontend/src/stores/journalStore.ts
+    entry_route: /journal
+    user_interactions:
+      - Select goal and date
+      - Answer journal questions and save
+    api_calls:
+      - method: GET
+        endpoint: /api/journals
+      - method: POST
+        endpoint: /api/journals
+    auth_required: false
+  - name: Sessions
+    description: Timer sessions and daily simple session streaks
+    files:
+      - frontend/src/pages/Session.tsx
+      - frontend/src/stores/sessionStore.ts
+      - frontend/src/stores/dailySimpleSessionStore.ts
+    entry_route: /session
+    user_interactions:
+      - Start or end a session
+      - Mark daily session done or missed
+    api_calls:
+      - method: GET
+        endpoint: /api/sessions
+      - method: POST
+        endpoint: /api/sessions
+      - method: POST
+        endpoint: /api/daily-simple-sessions
+    auth_required: false
+  - name: Firebase login
+    description: Email/password sign-in when VITE_AUTH_ENABLED=true
+    files:
+      - frontend/src/pages/Login.tsx
+      - frontend/src/stores/authStore.ts
+    entry_route: /login
+    user_interactions:
+      - Enter email and password
+      - Submit login form
+    api_calls: []
+    auth_required: true
+known_limitations:
+  - issue: Production Vercel build may use VITE_AUTH_ENABLED=true; local testsprite uses VITE_AUTH_ENABLED=false via dev:testsprite
+    location: frontend/.env.testsprite
+    impact: E2E should use hash routes without login when auth is disabled

@@ -1,0 +1,1074 @@
+[
+  {
+    "id": "TC001",
+    "title": "Record a completed timed focus session for a goal",
+    "description": "Verifies a user can complete a timed focus session, mark achieved with notes, and the session is recorded for the selected goal.",
+    "category": "Sessions (timed focus & daily simple sessions)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a valid type and title"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /session"
+      },
+      {
+        "type": "action",
+        "description": "Start a timed focus session for the created goal"
+      },
+      {
+        "type": "action",
+        "description": "Complete the session and proceed to save"
+      },
+      {
+        "type": "action",
+        "description": "Mark the goal as achieved and fill unique text into the notes field"
+      },
+      {
+        "type": "action",
+        "description": "Save the session record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session is listed as recorded for the goal"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Create a new goal and see it in the goals list",
+    "description": "Verifies a user can create a goal with required fields and it appears in the goals list.",
+    "category": "Goals and sub-goals",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Select a goal type"
+      },
+      {
+        "type": "action",
+        "description": "Fill unique text into the goal title field"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the newly created goal appears in the goals list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Spawn child goals from a parent plan and see hierarchy updated",
+    "description": "Verifies a user can add a plan to a parent goal, spawn child goals, and the spawned children appear under the parent in the hierarchy.",
+    "category": "Goals and sub-goals",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new parent goal with a valid type and title"
+      },
+      {
+        "type": "action",
+        "description": "Open the parent goal"
+      },
+      {
+        "type": "action",
+        "description": "Add a plan to the parent goal with at least one child item suitable for spawning"
+      },
+      {
+        "type": "action",
+        "description": "Spawn child goals from the plan"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify spawned child goals are displayed under the parent goal in the hierarchy"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Add a daily simple session and mark it done",
+    "description": "Verifies a user can add a daily simple session for a daily goal and mark it done with the status updated.",
+    "category": "Sessions (timed focus & daily simple sessions)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new daily goal with a valid title"
+      },
+      {
+        "type": "action",
+        "description": "Open the daily goal details"
+      },
+      {
+        "type": "action",
+        "description": "Add a daily simple session"
+      },
+      {
+        "type": "action",
+        "description": "Mark the daily simple session as done"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the daily simple session shows a done status for the day"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Dashboard rollups persist across reload",
+    "description": "Verifies dashboard rollups computed from local data remain present after a page reload.",
+    "category": "Dashboard (overview & trends)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a valid type and title"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /session"
+      },
+      {
+        "type": "action",
+        "description": "Start a timed focus session for the created goal"
+      },
+      {
+        "type": "action",
+        "description": "Complete the session and save it with achieved status and notes"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Reload the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard aggregates reflect the recorded session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard displays trends for the recorded activity"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Edit an existing goal and see updates reflected in the list",
+    "description": "Verifies a user can update a goal and the goals list reflects the saved changes.",
+    "category": "Goals and sub-goals",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a valid type and title"
+      },
+      {
+        "type": "action",
+        "description": "Open the created goal for editing"
+      },
+      {
+        "type": "action",
+        "description": "Update the goal title with new unique text"
+      },
+      {
+        "type": "action",
+        "description": "Save changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the goals list shows the updated goal title"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Add a daily simple session and mark it missed with a note",
+    "description": "Verifies a user can add a daily simple session, mark it missed, provide a note, and see the missed status updated.",
+    "category": "Sessions (timed focus & daily simple sessions)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new daily goal with a valid title"
+      },
+      {
+        "type": "action",
+        "description": "Open the daily goal details"
+      },
+      {
+        "type": "action",
+        "description": "Add a daily simple session"
+      },
+      {
+        "type": "action",
+        "description": "Mark the daily simple session as missed"
+      },
+      {
+        "type": "action",
+        "description": "Fill unique text into the missed note field"
+      },
+      {
+        "type": "action",
+        "description": "Save the daily simple session update"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the daily simple session shows a missed status for the day"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Record an early-ended timed session as skipped with a reason",
+    "description": "Verifies a user can end a timed session early, mark it skipped with a required reason, and the saved record shows as skipped.",
+    "category": "Sessions (timed focus & daily simple sessions)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a valid type and title"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /session"
+      },
+      {
+        "type": "action",
+        "description": "Start a timed focus session for the created goal"
+      },
+      {
+        "type": "action",
+        "description": "End the session early"
+      },
+      {
+        "type": "action",
+        "description": "Mark the session as skipped and fill unique text into the skip reason field"
+      },
+      {
+        "type": "action",
+        "description": "Save the session record"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the session is recorded as skipped for the goal"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Save a daily life journal entry with content",
+    "description": "Verifies a user can enter content into at least one daily life journal field, save, and then see the saved entry for the current date.",
+    "category": "Journal (life & goal-linked)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /journal"
+      },
+      {
+        "type": "action",
+        "description": "Click to open the Daily journal section"
+      },
+      {
+        "type": "action",
+        "description": "Fill a short sentence into one life journal field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the daily life journal entry"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a saved daily life journal entry is displayed for the current date"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "Create a failure attached to a goal with a required note",
+    "description": "Verifies a user can log a failure linked to a specific goal with a required note and see it appear in the failures list with goal context.",
+    "category": "Failures (explicit setback logging)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Failure Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /failures"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new failure entry"
+      },
+      {
+        "type": "action",
+        "description": "Select the option to link the failure to a goal"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal titled Failure Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Fill a clear sentence into the failure note field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new failure appears in the list and indicates it is linked to the selected goal"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Restore a deleted goal from Trash back to active goals",
+    "description": "Verifies a user can delete a goal, find it in Trash under the correct grouping, restore it, and see it available again in the active goals list.",
+    "category": "Trash (soft-delete, restore, purge)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Trash Restore Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Delete the goal titled Trash Restore Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /trash"
+      },
+      {
+        "type": "action",
+        "description": "Browse the trash grouping for goals"
+      },
+      {
+        "type": "action",
+        "description": "Select the deleted item for Trash Restore Goal 1 to restore"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the restore action"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the goal titled Trash Restore Goal 1 is present in the active goals list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Save a goal-linked journal Q&A for a selected timeframe and goal",
+    "description": "Verifies a user can select a timeframe and a goal, answer the goal journal questions, save, and see the entry listed as linked to the chosen goal and date.",
+    "category": "Journal (life & goal-linked)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Goal Journal Target 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /journal"
+      },
+      {
+        "type": "action",
+        "description": "Click to open the Goals journal section"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid timeframe option"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal titled Goal Journal Target 1"
+      },
+      {
+        "type": "action",
+        "description": "Fill in answers for the goal journal questions"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the goal-linked journal entry"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a goal-linked journal entry is displayed in the list for the selected goal and date"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Create a failure attached to a specific session with a required note",
+    "description": "Verifies a user can create a focus session, then log a failure linked to that session with a required note and see it appear with session context.",
+    "category": "Failures (explicit setback logging)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Session Failure Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /session"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal titled Session Failure Goal 1 for the session"
+      },
+      {
+        "type": "action",
+        "description": "Start a timed focus session"
+      },
+      {
+        "type": "action",
+        "description": "End the session using the in-app completion/stop control"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /failures"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new failure entry"
+      },
+      {
+        "type": "action",
+        "description": "Select the option to link the failure to a session"
+      },
+      {
+        "type": "action",
+        "description": "Select the most recent session for Session Failure Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Fill a clear sentence into the failure note field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new failure appears in the list and indicates it is linked to the selected session"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Restore a deleted session from Trash back to sessions history",
+    "description": "Verifies a user can create and end a session, delete it, restore it from Trash, and see it return to the session list linked to its goal.",
+    "category": "Trash (soft-delete, restore, purge)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Trash Restore Session Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /session"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal titled Trash Restore Session Goal 1 for the session"
+      },
+      {
+        "type": "action",
+        "description": "Start a timed focus session"
+      },
+      {
+        "type": "action",
+        "description": "End the session using the in-app completion/stop control"
+      },
+      {
+        "type": "action",
+        "description": "Delete the most recent session from the session list/history"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /trash"
+      },
+      {
+        "type": "action",
+        "description": "Browse the trash grouping for sessions"
+      },
+      {
+        "type": "action",
+        "description": "Select the deleted session item to restore"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the restore action"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /session"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the restored session is visible in the session list and associated with Trash Restore Session Goal 1"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC015",
+    "title": "View dashboard overview with aggregates and trends",
+    "description": "Verifies the dashboard loads and displays aggregate progress and trend visualizations for the current timeframe.",
+    "category": "Dashboard (overview & trends)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard aggregate metrics are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one trends visualization is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC016",
+    "title": "Export a full JSON backup of user data",
+    "description": "This test verifies a user can export a full JSON backup from the export controls and the browser initiates a download.",
+    "category": "Export and data control (PDF summary, full backup, system wipe)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with title Backup Seed Goal and a valid timeframe"
+      },
+      {
+        "type": "action",
+        "description": "Open the layout export controls from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Choose Export Full Backup"
+      },
+      {
+        "type": "action",
+        "description": "Confirm export"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a JSON backup export is generated and a download is initiated"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC017",
+    "title": "Export a PDF summary for a selected goal",
+    "description": "This test verifies a user can create a goal and generate a PDF summary export for that goal from the export controls.",
+    "category": "Export and data control (PDF summary, full backup, system wipe)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with title Goal Export Target and a valid timeframe"
+      },
+      {
+        "type": "action",
+        "description": "Open the layout export controls from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Choose Export Summary (PDF)"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal named Goal Export Target for export"
+      },
+      {
+        "type": "action",
+        "description": "Generate the PDF summary"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a PDF export is generated and a download is initiated"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC018",
+    "title": "Filter dashboard by timeframe and see updated trends",
+    "description": "Verifies changing the selected timeframe updates the dashboard aggregates and trend visualizations accordingly.",
+    "category": "Dashboard (overview & trends)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a different timeframe filter on the dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the displayed aggregate metrics update to reflect the selected timeframe"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the trend visualization updates to reflect the selected timeframe"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC019",
+    "title": "Edit an existing failure note and context",
+    "description": "Verifies a user can open a previously created failure, change its note or linked context, save, and see the updated failure reflected in the list.",
+    "category": "Failures (explicit setback logging)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Failure Edit Goal A"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Failure Edit Goal B"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /failures"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new failure entry"
+      },
+      {
+        "type": "action",
+        "description": "Select the option to link the failure to a goal"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal titled Failure Edit Goal A"
+      },
+      {
+        "type": "action",
+        "description": "Fill a note like Initial failure note into the failure note field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the failure"
+      },
+      {
+        "type": "action",
+        "description": "Open the newly created failure for editing"
+      },
+      {
+        "type": "action",
+        "description": "Update the failure note to a different sentence"
+      },
+      {
+        "type": "action",
+        "description": "Change the linked goal to Failure Edit Goal B"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the edited failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the failure list shows the updated note and that the failure is now linked to Failure Edit Goal B"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC020",
+    "title": "System wipe clears local data and reloads to empty state",
+    "description": "This test verifies a user can complete the explicit system wipe confirmation flow and the app reloads with local data cleared to an empty state.",
+    "category": "Export and data control (PDF summary, full backup, system wipe)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with title Wipe Me Goal and a valid timeframe"
+      },
+      {
+        "type": "action",
+        "description": "Open the layout export controls from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Choose System Wipe"
+      },
+      {
+        "type": "action",
+        "description": "Read the confirmation instructions"
+      },
+      {
+        "type": "action",
+        "description": "Confirm the wipe explicitly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the app reloads and shows an empty state with no existing goals"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC021",
+    "title": "Prevent saving a goal without a required title",
+    "description": "Verifies the goal form blocks saving when the required title is missing and shows a validation error.",
+    "category": "Goals and sub-goals",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Select a goal type"
+      },
+      {
+        "type": "action",
+        "description": "Leave the goal title field empty"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the goal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a title validation error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new goal is not added to the goals list"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC022",
+    "title": "Purge items permanently from Trash with explicit confirmation",
+    "description": "Verifies a user can permanently purge one or more trashed items after explicit confirmation and they no longer appear in Trash.",
+    "category": "Trash (soft-delete, restore, purge)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Trash Purge Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Delete the goal titled Trash Purge Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /trash"
+      },
+      {
+        "type": "action",
+        "description": "Select the trashed item for Trash Purge Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Choose the action to purge permanently"
+      },
+      {
+        "type": "action",
+        "description": "Complete the explicit confirmation required to permanently purge"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the purged item no longer appears in the trash list"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC023",
+    "title": "System wipe cancellation leaves data intact",
+    "description": "This test verifies cancelling the system wipe flow leaves existing local data intact and available in the app.",
+    "category": "Export and data control (PDF summary, full backup, system wipe)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with title Keep Me Goal and a valid timeframe"
+      },
+      {
+        "type": "action",
+        "description": "Open the layout export controls from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Choose System Wipe"
+      },
+      {
+        "type": "action",
+        "description": "Cancel and close the wipe flow"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the goal named Keep Me Goal is still present in the goals list"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC024",
+    "title": "Prevent saving an empty daily life journal entry",
+    "description": "Verifies the daily life journal cannot be saved when all fields are empty and a validation message is shown.",
+    "category": "Journal (life & goal-linked)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /journal"
+      },
+      {
+        "type": "action",
+        "description": "Click to open the Daily journal section"
+      },
+      {
+        "type": "action",
+        "description": "Ensure all life journal fields are empty"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the daily life journal entry"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible indicating content is required and the entry is not saved"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC025",
+    "title": "Export summary flow allows cancelling without exporting",
+    "description": "This test verifies a user can open the PDF summary export flow and cancel without generating an export.",
+    "category": "Export and data control (PDF summary, full backup, system wipe)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with title Cancel Export Goal and a valid timeframe"
+      },
+      {
+        "type": "action",
+        "description": "Open the layout export controls from the sidebar"
+      },
+      {
+        "type": "action",
+        "description": "Choose Export Summary (PDF)"
+      },
+      {
+        "type": "action",
+        "description": "Cancel and close the export flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no export is generated and the user returns to normal app navigation"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC026",
+    "title": "Prevent saving a failure without a note",
+    "description": "Verifies the failure form blocks saving when the note is empty and shows a validation message explaining a note is required.",
+    "category": "Failures (explicit setback logging)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with a unique title like Failure Note Required Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /failures"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new failure entry"
+      },
+      {
+        "type": "action",
+        "description": "Select the option to link the failure to a goal"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal titled Failure Note Required Goal 1"
+      },
+      {
+        "type": "action",
+        "description": "Ensure the failure note field is empty"
+      },
+      {
+        "type": "action",
+        "description": "Submit the save action for the failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible indicating a note is required and the failure is not created"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC027",
+    "title": "When auth is disabled, /login redirects to the dashboard without signing in",
+    "description": "This test verifies that in auth-disabled environments visiting the login route redirects to the dashboard without requiring sign-in.",
+    "category": "Authentication (email/password)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC028",
+    "title": "Successful email/password login lands on the dashboard",
+    "description": "This test verifies a user can sign in with email and password via the login page and is taken to the dashboard.",
+    "category": "Authentication (email/password)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit login credentials"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      }
+    ],
+    "priority": "Low"
+  }
+]

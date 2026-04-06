@@ -407,14 +407,17 @@ export const Journal = () => {
                 <p className="text-sm italic text-secondary/40">No goals found for {timeframe} / {category}.<br/>Create them in the Goals section.</p>
               </div>
             ) : (
-              visibleGoals.map((g) => {
-                const goalId = String(g.id);
-                const matchingEntry = entries.find(
-                  (e) =>
-                    e.goalId != null &&
-                    String(e.goalId) === goalId &&
-                    e.type.toLowerCase() === g.goalType.toLowerCase()
-                );
+              visibleGoals.map((g, index) => {
+                const rawGoalId = g.id != null && String(g.id) !== '' ? String(g.id) : null;
+                const goalId = rawGoalId ?? `__goal_${index}_${g.createdAt ?? 0}_${g.goalType}`;
+                const matchingEntry = rawGoalId
+                  ? entries.find(
+                      (e) =>
+                        e.goalId != null &&
+                        String(e.goalId) === rawGoalId &&
+                        e.type.toLowerCase() === g.goalType.toLowerCase()
+                    )
+                  : null;
 
                 return (
                   <GoalCard
@@ -473,75 +476,66 @@ function GoalCard({
   const improvement = (typeof q3 === 'string' ? q3.trim() : '') || '-';
 
   return (
-    <motion.div
-      layout
-      transition={{ layout: { duration: 0.2, ease: 'easeOut' } }}
+    <div
       className={`bg-secondary/5 border border-secondary/20 rounded-2xl hover:border-secondary/40 transition-colors ${
         openJournal ? 'p-5' : 'px-4 py-3'
       }`}
     >
-      <button
-        type="button"
-        onClick={() => onToggleJournal(goalId)}
-        title={openJournal ? "Hide Journal" : "Show Journal"}
-        aria-label={openJournal ? "Hide Journal" : "Show Journal"}
-        aria-expanded={openJournal}
-        className={`w-full flex justify-between items-center text-left rounded-lg transition-colors ${
-          openJournal ? 'mb-3' : 'mb-0'
-        } hover:bg-white/[0.03] focus:outline-none focus:ring-1 focus:ring-accent/40 px-1 py-1`}
+      {/* No nested <button>: invalid HTML and breaks focus/click handling in browsers. */}
+      <div
+        className={`flex items-center justify-between gap-2 ${openJournal ? 'mb-3' : 'mb-0'}`}
       >
-        <h4 className="font-bold text-sm pr-3 truncate">{title}</h4>
-        <div className="flex items-center gap-2 shrink-0">
-          {journalEntryId && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                confirmGoalJournal(
-                  'Delete goal journal',
-                  'Move this journal entry to the trash?',
-                  async () => {
-                    try {
-                      await removeGoalJournal(journalEntryId);
-                      toastGoal('Goal journal entry deleted', 'info');
-                    } catch (err) {
-                      logClientError('Journal.removeGoalEntry', err, { entryId: journalEntryId });
-                      toastGoal('Could not delete entry', 'error');
-                    }
-                  },
-                  'Delete',
-                  'Cancel'
-                );
-              }}
-              className="text-[9px] font-bold uppercase text-error/60 hover:text-error px-2 py-1 rounded border border-error/20 hover:bg-error/10 transition-colors"
-            >
-              Delete
-            </button>
-          )}
-          <span className="h-6 inline-flex items-center text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
-            {type}
-          </span>
-          <span
-            aria-hidden="true"
-            className="h-8 w-8 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300"
-          >
-            {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </span>
-        </div>
-      </button>
-      
-      <motion.div
-        initial={false}
-        animate={{ height: openJournal ? 'auto' : 0 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        style={{ overflow: 'hidden' }}
-      >
-        <motion.div
-          initial={false}
-          animate={{ opacity: openJournal ? 1 : 0, y: openJournal ? 0 : -4 }}
-          transition={{ duration: 0.16, ease: 'easeOut' }}
-          className="space-y-3 pt-3 border-t border-secondary/10"
+        <button
+          type="button"
+          onClick={() => onToggleJournal(goalId)}
+          title={openJournal ? 'Hide Journal' : 'Show Journal'}
+          aria-label={openJournal ? 'Hide Journal' : 'Show Journal'}
+          aria-expanded={openJournal}
+          className="min-w-0 flex-1 flex justify-between items-center text-left rounded-lg transition-colors hover:bg-white/[0.03] focus:outline-none focus:ring-1 focus:ring-accent/40 px-1 py-1"
         >
+          <h4 className="font-bold text-sm pr-3 truncate">{title}</h4>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="h-6 inline-flex items-center text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
+              {type}
+            </span>
+            <span
+              aria-hidden="true"
+              className="h-8 w-8 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300"
+            >
+              {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </span>
+          </div>
+        </button>
+        {journalEntryId && (
+          <button
+            type="button"
+            onClick={() => {
+              confirmGoalJournal(
+                'Delete goal journal',
+                'Move this journal entry to the trash?',
+                async () => {
+                  try {
+                    await removeGoalJournal(journalEntryId);
+                    toastGoal('Goal journal entry deleted', 'info');
+                  } catch (err) {
+                    logClientError('Journal.removeGoalEntry', err, { entryId: journalEntryId });
+                    toastGoal('Could not delete entry', 'error');
+                  }
+                },
+                'Delete',
+                'Cancel'
+              );
+            }}
+            className="text-[9px] font-bold uppercase text-error/60 hover:text-error px-2 py-1 rounded border border-error/20 hover:bg-error/10 transition-colors shrink-0"
+          >
+            Delete
+          </button>
+        )}
+      </div>
+
+      {/* Mount body only when open — avoids Framer height:'auto' / layout bugs showing content on wrong cards. */}
+      {openJournal && (
+        <div className="space-y-3 pt-3 border-t border-secondary/10">
           <div>
             <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Did I Complete?</p>
             <p className="text-xs text-text/80">{didComplete}</p>
@@ -554,8 +548,8 @@ function GoalCard({
             <p className="text-[9px] font-bold text-secondary/40 uppercase mb-1">Improvement</p>
             <p className="text-xs text-text/80">{improvement}</p>
           </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </div>
+      )}
+    </div>
   );
 }
