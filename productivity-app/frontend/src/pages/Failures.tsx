@@ -29,6 +29,16 @@ export const Failures = () => {
     void loadSessions();
   }, [load, loadGoals, loadSessions]);
 
+  useEffect(() => {
+    const onFailureLogged = () => {
+      void load();
+    };
+    window.addEventListener('app:failure-logged', onFailureLogged as EventListener);
+    return () => {
+      window.removeEventListener('app:failure-logged', onFailureLogged as EventListener);
+    };
+  }, [load]);
+
   const handleSave = async () => {
     if (!editingId && !linkedId) { setError('Select a linked item'); return; }
     if (!note.trim()) { setError('Note is required'); return; }

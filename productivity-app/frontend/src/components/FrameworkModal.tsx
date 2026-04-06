@@ -7,6 +7,7 @@ import { useToastStore } from '../stores/toastStore';
 import { type Framework } from '../db';
 import { motion } from 'framer-motion';
 import { Edit2 } from 'lucide-react';
+import { reportValidationFailure } from '../utils/failureReporter';
 
 interface FrameworkModalProps {
   open: boolean;
@@ -33,11 +34,11 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
   };
 
   const handleSave = async () => {
-    if (!name.trim()) { setError('Framework name is required'); return; }
+    if (!name.trim()) { setError('Framework name is required'); reportValidationFailure('FrameworkModal.validate', 'Framework name is required'); return; }
     const validKeys = keys.filter(k => k.key.trim() && k.label.trim());
-    if (validKeys.length === 0) { setError('At least one key with a label is required'); return; }
+    if (validKeys.length === 0) { setError('At least one key with a label is required'); reportValidationFailure('FrameworkModal.validate', 'At least one key with a label is required'); return; }
     const uniqueKeys = new Set(validKeys.map(k => k.key));
-    if (uniqueKeys.size !== validKeys.length) { setError('Keys must be unique'); return; }
+    if (uniqueKeys.size !== validKeys.length) { setError('Keys must be unique'); reportValidationFailure('FrameworkModal.validate', 'Keys must be unique'); return; }
     
     try {
       if (editingId) {

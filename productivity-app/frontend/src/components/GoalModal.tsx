@@ -6,6 +6,7 @@ import { type Framework, type Goal } from '../db';
 import { motion } from 'framer-motion';
 import { emptyPlanForGoalType, isPlannableGoalType, serializeGoalPlan } from '../utils/goalPlan';
 import { logClientError } from '../utils/logClientError';
+import { reportValidationFailure } from '../utils/failureReporter';
 
 interface GoalModalProps {
   open: boolean;
@@ -169,10 +170,12 @@ export const GoalModal = ({
     if (saving) return;
     if (!selectedFw) {
       setError('Select a framework');
+      reportValidationFailure('GoalModal.validate', 'Select a framework');
       return;
     }
     if (!fw) {
       setError('Framework not found');
+      reportValidationFailure('GoalModal.validate', 'Framework not found');
       return;
     }
     const goalId = editingGoal?.id != null && String(editingGoal.id).trim() !== '' ? String(editingGoal.id) : '';
@@ -181,6 +184,7 @@ export const GoalModal = ({
       const empty = fw.keys.find((k) => !data[k.key]?.trim());
       if (empty) {
         setError(`"${empty.label}" cannot be empty`);
+        reportValidationFailure('GoalModal.validate', `"${empty.label}" cannot be empty`);
         return;
       }
     }

@@ -2,6 +2,7 @@ import { getBrowserIanaTimeZone } from './browserTimezone';
 import { AUTH_ENABLED } from '../config/authFlags';
 import { getAuthToken } from '../stores/authStore';
 import { logClientError } from './logClientError';
+import { reportFailure } from './failureReporter';
 
 /** Trim env and strip trailing slashes so `/api/` + `/path` does not become `//path`. */
 function normalizeApiBase(raw: unknown): string {
@@ -66,8 +67,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
         reportingApiFailure = true;
         try {
           const msg = e instanceof Error ? e.message : String(e);
-          const note = `[network] ${method} ${path}: ${msg}`.slice(0, 2000);
-          await api.post('/failures', { type: 'app', linkedId: 0, note });
+          await reportFailure(msg, { action: 'api.network', method, path });
         } catch {
           /* ignore secondary failures */
         } finally {
@@ -112,8 +112,12 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     if (!skipFailureLog) {
       reportingApiFailure = true;
       try {
-        const note = `[${method}] ${path} → ${response.status}: ${message}`.slice(0, 2000);
-        await api.post('/failures', { type: 'app', linkedId: 0, note });
+        await reportFailure(message, {
+          action: 'api.response',
+          method,
+          path,
+          status: response.status,
+        });
       } catch {
         /* avoid loops */
       } finally {
