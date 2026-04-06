@@ -4,15 +4,18 @@ import { Eye, EyeOff } from "lucide-react";
 import { useJournalStore } from "../stores/journalStore";
 import { useGoalStore } from "../stores/goalStore";
 import { useToastStore } from "../stores/toastStore";
+import { useConfirmStore } from "../stores/confirmStore";
+import { logClientError } from "../utils/logClientError";
 import type { Goal, JournalEntry } from "../db";
 
 const analyticsTabs = ["ALL", "Daily", "Weekly", "Monthly", "Yearly"];
 const analyticsCategories = ["all", "spirituality", "finance", "health", "relation"];
 
 export const Journal = () => {
-  const { entries, load: loadJournals, add: addJournal } = useJournalStore();
+  const { entries, load: loadJournals, add: addJournal, remove: removeJournal } = useJournalStore();
   const { goals, load: loadGoals } = useGoalStore();
   const { showToast } = useToastStore();
+  const { confirm } = useConfirmStore();
 
   // Main Page Category: 1. Daily Journal | 2. Goals
   const [mainTab, setMainTab] = useState<'daily' | 'goals'>('daily');
@@ -26,8 +29,8 @@ export const Journal = () => {
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
-  // Per-goal journal visibility (keyed by goalId)
-  const [openJournalByGoalId, setOpenJournalByGoalId] = useState<Record<string, boolean>>({});
+  /** At most one goal journal expanded at a time (accordion). */
+  const [expandedGoalJournalId, setExpandedGoalJournalId] = useState<string | null>(null);
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -47,7 +50,7 @@ export const Journal = () => {
   };
 
   const toggleGoalJournal = (goalId: string) => {
-    setOpenJournalByGoalId((prev) => ({ ...prev, [goalId]: !prev[goalId] }));
+    setExpandedGoalJournalId((prev) => (prev === goalId ? null : goalId));
   };
 
   const handleSaveLifeJournal = async () => {
@@ -305,8 +308,36 @@ export const Journal = () => {
             <h3 className="text-[10px] font-black text-secondary uppercase tracking-[0.3em] mb-6 opacity-40">Recent Life Reflections</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {lifeJournalEntries.slice(0, 4).map(e => (
-                <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-3xl p-8 hover:bg-secondary/10 transition-colors">
-                  <span className="text-[10px] font-bold text-secondary uppercase mb-6 block opacity-40">{e.date}</span>
+                <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-3xl p-8 hover:bg-secondary/10 transition-colors relative">
+                  <div className="flex justify-between items-start gap-2 mb-4">
+                    <span className="text-[10px] font-bold text-secondary uppercase opacity-40">{e.date}</span>
+                    {e.id != null && e.id !== '' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const id = String(e.id);
+                          confirm(
+                            'Delete journal entry',
+                            'Move this life journal entry to the trash?',
+                            async () => {
+                              try {
+                                await removeJournal(id);
+                                showToast('Journal entry deleted', 'info');
+                              } catch (err) {
+                                logClientError('Journal.removeLifeEntry', err, { entryId: id });
+                                showToast('Could not delete entry', 'error');
+                              }
+                            },
+                            'Delete',
+                            'Cancel'
+                          );
+                        }}
+                        className="text-[10px] text-error/50 hover:text-error uppercase font-bold tracking-wider shrink-0"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-6">
                     {e.content.thinking && (
                       <div>
@@ -391,8 +422,13 @@ export const Journal = () => {
                     goalId={goalId}
                     goal={g}
                     entry={matchingEntry ?? null}
-                    openJournal={!!openJournalByGoalId[goalId]}
+                    openJournal={expandedGoalJournalId === goalId}
                     onToggleJournal={toggleGoalJournal}
+                    journalEntryId={
+                      matchingEntry?.id != null && String(matchingEntry.id) !== ''
+                        ? String(matchingEntry.id)
+                        : null
+                    }
                   />
                 );
               })
@@ -414,13 +450,18 @@ function GoalCard({
   entry,
   openJournal,
   onToggleJournal,
+  journalEntryId,
 }: {
   goalId: string;
   goal: Goal;
   entry: JournalEntry | null;
   openJournal: boolean;
   onToggleJournal: (goalId: string) => void;
+  journalEntryId: string | null;
 }) {
+  const { confirm: confirmGoalJournal } = useConfirmStore();
+  const { showToast: toastGoal } = useToastStore();
+  const { remove: removeGoalJournal } = useJournalStore();
   const title = String(goal.title || 'Unknown');
   const type = String(goal.goalType || 'daily');
   const answers = entry?.content?.answers ?? null;
@@ -451,6 +492,32 @@ function GoalCard({
       >
         <h4 className="font-bold text-sm pr-3 truncate">{title}</h4>
         <div className="flex items-center gap-2 shrink-0">
+          {journalEntryId && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                confirmGoalJournal(
+                  'Delete goal journal',
+                  'Move this journal entry to the trash?',
+                  async () => {
+                    try {
+                      await removeGoalJournal(journalEntryId);
+                      toastGoal('Goal journal entry deleted', 'info');
+                    } catch (err) {
+                      logClientError('Journal.removeGoalEntry', err, { entryId: journalEntryId });
+                      toastGoal('Could not delete entry', 'error');
+                    }
+                  },
+                  'Delete',
+                  'Cancel'
+                );
+              }}
+              className="text-[9px] font-bold uppercase text-error/60 hover:text-error px-2 py-1 rounded border border-error/20 hover:bg-error/10 transition-colors"
+            >
+              Delete
+            </button>
+          )}
           <span className="h-6 inline-flex items-center text-[9px] font-black uppercase text-accent/60 bg-accent/5 px-2 py-0.5 rounded border border-accent/10">
             {type}
           </span>

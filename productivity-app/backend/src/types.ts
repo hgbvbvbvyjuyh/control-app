@@ -71,7 +71,7 @@ export interface JournalQuestion {
 
 export interface Failure {
   id?: number;
-  type: 'session' | 'goal';
+  type: 'session' | 'goal' | 'app';
   linkedId: number;
   note: string;
   createdAt: number;

@@ -80,7 +80,7 @@ export interface JournalEntry {
 
 export interface Failure {
   id?: string;
-  type: 'session' | 'goal';
+  type: 'session' | 'goal' | 'app';
   linkedId: string;
   note: string;
   createdAt: number;

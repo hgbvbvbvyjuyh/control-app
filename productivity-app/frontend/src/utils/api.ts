@@ -13,6 +13,9 @@ function normalizeApiBase(raw: unknown): string {
 
 const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
 
+/** Avoid recursive failure logging when POST /failures itself errors. */
+let reportingApiFailure = false;
+
 function buildApiUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
   return `${API_BASE}${p}`;
@@ -59,6 +62,18 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
         });
         continue;
       }
+      if (!reportingApiFailure && !path.startsWith('/failures')) {
+        reportingApiFailure = true;
+        try {
+          const msg = e instanceof Error ? e.message : String(e);
+          const note = `[network] ${method} ${path}: ${msg}`.slice(0, 2000);
+          await api.post('/failures', { type: 'app', linkedId: 0, note });
+        } catch {
+          /* ignore secondary failures */
+        } finally {
+          reportingApiFailure = false;
+        }
+      }
       throw e;
     }
 
@@ -88,6 +103,22 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
       console.error('[api]', response.status, url, text.slice(0, 500));
     } else if (!import.meta.env.DEV) {
       console.error('[api]', response.status, path);
+    }
+    const skipFailureLog =
+      reportingApiFailure ||
+      path.startsWith('/failures') ||
+      path === '/health' ||
+      skipDevNoise;
+    if (!skipFailureLog) {
+      reportingApiFailure = true;
+      try {
+        const note = `[${method}] ${path} → ${response.status}: ${message}`.slice(0, 2000);
+        await api.post('/failures', { type: 'app', linkedId: 0, note });
+      } catch {
+        /* avoid loops */
+      } finally {
+        reportingApiFailure = false;
+      }
     }
     throw new Error(message);
   }

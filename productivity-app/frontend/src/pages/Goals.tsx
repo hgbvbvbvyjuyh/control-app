@@ -34,6 +34,7 @@ import {
 } from '../utils/goalPlan';
 import { useToastStore } from '../stores/toastStore';
 import { logClientError } from '../utils/logClientError';
+import { formatFrameworkDataDisplay } from '../utils/formatFrameworkData';
 
 
 
@@ -146,6 +147,13 @@ export const Goals = () => {
     void loadJournals();
   }, [loadGoals, loadFrameworks, loadSessions, loadJournals]);
 
+  /** Refetch frameworks when entering a goal category (recovers from failed initial load or empty cache). */
+  useEffect(() => {
+    if (activeCategory != null) {
+      void loadFrameworks();
+    }
+  }, [activeCategory, loadFrameworks]);
+
   const selectedGoal = goals.find(g => String(g.id) === String(selectedGoalId));
 
   useEffect(() => {
@@ -220,7 +228,7 @@ export const Goals = () => {
     );
   };
 
-  const handleDeleteDailyGoal = async () => {
+  const handleDeleteSelectedGoal = async () => {
     if (!selectedGoal?.id) return;
     const deleteGoalId = String(selectedGoal.id);
     confirm(
@@ -235,7 +243,7 @@ export const Goals = () => {
           setSimpleSessionPlanOpenId(null);
           setSimpleSessionPlanText('');
         } catch (err) {
-          logClientError('Goals.deleteDailyGoal', err);
+          logClientError('Goals.deleteSelectedGoal', err);
           showToast('Could not delete goal', 'error');
         }
       },
@@ -670,19 +678,17 @@ export const Goals = () => {
                 <div className="sticky top-0 z-20 bg-surface/80 backdrop-blur-xl border-b border-white/10 p-6 pb-4 shrink-0">
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
-                      {selectedGoal.goalType === 'daily' && (
-                        <motion.button
-                          type="button"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={handleDeleteDailyGoal}
-                          className="z-50 text-error/90 hover:text-error w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-colors mb-3"
-                          aria-label="Delete goal"
-                          title="Delete goal"
-                        >
-                          ✕
-                        </motion.button>
-                      )}
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleDeleteSelectedGoal}
+                        className="z-50 text-error/90 hover:text-error w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-colors mb-3"
+                        aria-label="Delete goal"
+                        title="Delete goal"
+                      >
+                        ✕
+                      </motion.button>
                       <button
                         type="button"
                         onClick={() => select(null)}
@@ -841,10 +847,12 @@ export const Goals = () => {
                   </button>
                 </div>
                 {expandedId === String(selectedGoal?.id) ? (
-                  <FrameworkFullView content={selectedGoal.data?.frameworkText || ''} />
+                  <FrameworkFullView
+                    content={formatFrameworkDataDisplay(selectedFw, selectedGoal.data ?? {})}
+                  />
                 ) : (
                   <FrameworkPreview
-                    content={selectedGoal.data?.frameworkText || ''}
+                    content={formatFrameworkDataDisplay(selectedFw, selectedGoal.data ?? {})}
                     onClick={() => selectedGoal?.id && toggle(String(selectedGoal.id))}
                   />
                 )}
@@ -1078,17 +1086,29 @@ export const Goals = () => {
                           <span className="text-[10px] text-secondary/60">{new Date(s.startTime).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const sid = s.id!;
                               confirm(
                                 'Delete Session',
                                 'Move this session history record to the trash?',
-                                () => removeSession(s.id!)
+                                async () => {
+                                  try {
+                                    await removeSession(sid);
+                                    showToast('Session moved to trash', 'info');
+                                  } catch (err) {
+                                    logClientError('Goals.removeSession', err, { sessionId: sid });
+                                    showToast('Could not delete session', 'error');
+                                  }
+                                }
                               );
-                            }} 
+                            }}
                             className="text-error/30 hover:text-error text-xs p-3 transition-colors relative z-10"
-                          >✕</button>
+                          >
+                            ✕
+                          </button>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 ${
                             s.status === 'completed' ? (s.didAchieveGoal ? 'bg-success/10 text-success' : 'bg-error/10 text-error') :
                             s.status === 'skipped' ? 'bg-secondary/10 text-secondary' :

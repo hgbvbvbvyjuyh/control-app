@@ -32,14 +32,19 @@ router.get('/:id', (req, res, next) => {
 
 router.post('/', (req, res, next) => {
   try {
-    const { type, linkedId, note } = req.body as Partial<Failure>;
-    if (!type || linkedId === undefined || !note) {
-      res.status(400).json({ error: 'type, linkedId, and note are required' }); return;
+    const { type, linkedId, note } = req.body as Partial<Failure> & { type?: string };
+    if (!type || !note) {
+      res.status(400).json({ error: 'type and note are required' }); return;
+    }
+    /** App/system events use linkedId 0 (no goal/session row). */
+    const effectiveLinkedId = type === 'app' ? 0 : linkedId;
+    if (effectiveLinkedId === undefined || effectiveLinkedId === null) {
+      res.status(400).json({ error: 'linkedId is required for this failure type' }); return;
     }
     const createdAt = Date.now();
     const { lastInsertRowid } = run(
       'INSERT INTO failures (type, linkedId, note, createdAt) VALUES (?, ?, ?, ?)',
-      [type, linkedId, note, createdAt]
+      [type, effectiveLinkedId, note, createdAt]
     );
     const created = queryOne('SELECT * FROM failures WHERE id = ?', [lastInsertRowid]);
     res.status(201).json(created);

@@ -18,7 +18,7 @@ export const Failures = () => {
   const { showToast } = useToastStore();
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [type, setType] = useState<'session' | 'goal'>('session');
+  const [type, setType] = useState<'session' | 'goal' | 'app'>('session');
   const [linkedId, setLinkedId] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
@@ -66,9 +66,10 @@ export const Failures = () => {
   };
 
   const getLinkedLabel = (f: typeof failures[0]) => {
+    if (f.type === 'app') return 'Application / API';
     if (f.type === 'goal') {
-      const g = goals.find(g => g.id === f.linkedId);
-      return g ? g.title || 'Unknown' : f.linkedId;
+      const g = goals.find(g => String(g.id) === String(f.linkedId));
+      return g ? g.title || 'Unknown' : String(f.linkedId);
     }
     return `Session ${f.linkedId}`;
   };
@@ -167,7 +168,11 @@ export const Failures = () => {
               <div className="flex-1">
                 <div className="flex gap-2 items-center mb-1">
                   <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${
-                    f.type === 'session' ? 'bg-secondary/30 text-secondary' : 'bg-primary/30 text-accent'
+                    f.type === 'session'
+                      ? 'bg-secondary/30 text-secondary'
+                      : f.type === 'app'
+                        ? 'bg-amber-500/20 text-amber-200'
+                        : 'bg-primary/30 text-accent'
                   }`}>{f.type}</span>
                   <span className="font-medium text-sm">{getLinkedLabel(f)}</span>
                 </div>
