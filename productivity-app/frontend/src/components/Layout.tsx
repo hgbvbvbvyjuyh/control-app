@@ -177,100 +177,69 @@ export const Layout = () => {
       <ConfirmModal />
       <ToastContainer />
       
-      {/* 
-        Sidebar Perfection:
-        - Fixed width (w-72) flex container
-        - shrink-0 prevents it from shrinking
-        - glass-panel for depth
-      */}
-      <aside className="hidden md:flex h-full w-72 shrink-0 flex-col p-8 z-30 glass-panel border-r border-white/5 relative">
-        <motion.div 
-          initial={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-16 px-2"
-        >
-          <div className="flex items-center gap-3">
-            <img src="/logo.svg" alt={APP_NAME} className="w-7 h-7" />
+      <div className="hidden md:block w-[19rem] shrink-0" />
+      <aside className="hidden md:flex fixed left-4 top-6 bottom-6 w-72 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.4)] flex-col justify-between p-4 z-40">
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="flex items-center gap-3 mb-8 px-2"
+          >
+            <img src="/logo.svg" alt={APP_NAME} className="w-8 h-8 rounded-lg bg-cyan-500/20 p-1" />
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-white leading-none">
-                {APP_NAME}
-              </h1>
-              <p className="text-[9px] text-secondary/40 uppercase tracking-[0.25em] font-bold mt-1">
-                v1.0.4
-              </p>
+              <h1 className="text-white font-semibold">{APP_NAME}</h1>
+              <p className="text-xs text-white/40">v1.0.4</p>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        <nav className="flex flex-col gap-3 relative">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className="relative group outline-none"
-            >
-              {({ isActive }) => (
-                <div className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-500 relative z-10 ${
-                  isActive ? 'text-white' : 'text-secondary/60 hover:text-white hover:bg-white/[0.03]'
-                }`}>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNavIndicator"
-                      className="absolute inset-0 bg-white/5 border border-white/10 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
-                      initial={false}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
-                        damping: 30 
-                      }}
-                    />
-                  )}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeGlow"
-                      className="absolute -left-1 top-1/4 bottom-1/4 w-1 bg-primary rounded-full blur-[2px]"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                  <item.icon size={18} className={`relative z-10 transition-all duration-500 ${isActive ? 'scale-110 text-primary' : 'group-hover:scale-105'}`} />
-                  <span className="font-bold text-xs uppercase tracking-[0.1em] relative z-10">{item.label}</span>
-                </div>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+          <nav className="flex flex-col gap-2">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-xl transition ${
+                    isActive
+                      ? 'bg-white/10 text-white shadow-inner'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <item.icon size={18} />
+                <span className="text-sm">{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </div>
 
-        <div className="mt-auto flex flex-col gap-3 pt-8 border-t border-white/5">
+        <div className="flex flex-col gap-3 border-t border-white/10 pt-4 mt-4">
           {showAuthChrome && (
-            <motion.button
-              whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={() => {
                 void logout();
               }}
-              className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl w-full"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition w-full"
               type="button"
             >
-              <span className="opacity-50">⎋</span>
+              <span className="opacity-70">⎋</span>
               <span>Logout</span>
-            </motion.button>
+            </button>
           )}
+
           <div ref={exportRef} className="relative">
-            <motion.button
-              whileHover={{ x: 4, backgroundColor: 'rgba(255,255,255,0.03)' }}
-              whileTap={{ scale: 0.98 }}
+            <button
               onClick={() => setExportOpen((prev) => !prev)}
-              className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-white/80 p-4 transition-all rounded-xl w-full"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition w-full"
               type="button"
             >
-              <Download size={14} className="opacity-50" />
+              <Download size={18} />
               <span>Export</span>
               <span className="ml-auto opacity-60">{exportOpen ? '▲' : '▼'}</span>
-            </motion.button>
+            </button>
 
             {exportOpen && (
-              <div className="absolute left-0 right-0 mt-2 bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden">
+              <div className="absolute left-0 right-0 mb-2 bottom-full bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => {
@@ -294,16 +263,15 @@ export const Layout = () => {
               </div>
             )}
           </div>
-          
-          <motion.button 
-            whileHover={{ x: 4, backgroundColor: 'rgba(239,68,68,0.05)', color: '#EF4444' }} 
-            whileTap={{ scale: 0.98 }} 
-            onClick={handleClear} 
-            className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em] font-black text-secondary/40 hover:text-error p-4 transition-all rounded-xl group/wipe"
+
+          <button
+            onClick={handleClear}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:text-error hover:bg-red-500/10 transition w-full"
+            type="button"
           >
-            <ShieldAlert size={14} className="opacity-30 group-hover/wipe:opacity-100 transition-opacity" />
+            <ShieldAlert size={18} />
             <span>System Wipe</span>
-          </motion.button>
+          </button>
         </div>
       </aside>
 
