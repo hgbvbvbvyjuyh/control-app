@@ -2,7 +2,6 @@ import { getBrowserIanaTimeZone } from './browserTimezone';
 import { AUTH_ENABLED } from '../config/authFlags';
 import { getAuthToken } from '../stores/authStore';
 import { logClientError } from './logClientError';
-import { reportFailure } from './failureReporter';
 
 /** Trim env and strip trailing slashes so `/api/` + `/path` does not become `//path`. */
 function normalizeApiBase(raw: unknown): string {
@@ -13,9 +12,6 @@ function normalizeApiBase(raw: unknown): string {
 }
 
 const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
-
-/** Avoid recursive failure logging when POST /failures itself errors. */
-let reportingApiFailure = false;
 
 function buildApiUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
@@ -63,17 +59,6 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
         });
         continue;
       }
-      if (!reportingApiFailure && !path.startsWith('/failures')) {
-        reportingApiFailure = true;
-        try {
-          const msg = e instanceof Error ? e.message : String(e);
-          await reportFailure(msg, { action: 'api.network', method, path });
-        } catch {
-          /* ignore secondary failures */
-        } finally {
-          reportingApiFailure = false;
-        }
-      }
       throw e;
     }
 
@@ -103,26 +88,6 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
       console.error('[api]', response.status, url, text.slice(0, 500));
     } else if (!import.meta.env.DEV) {
       console.error('[api]', response.status, path);
-    }
-    const skipFailureLog =
-      reportingApiFailure ||
-      path.startsWith('/failures') ||
-      path === '/health' ||
-      skipDevNoise;
-    if (!skipFailureLog) {
-      reportingApiFailure = true;
-      try {
-        await reportFailure(message, {
-          action: 'api.response',
-          method,
-          path,
-          status: response.status,
-        });
-      } catch {
-        /* avoid loops */
-      } finally {
-        reportingApiFailure = false;
-      }
     }
     throw new Error(message);
   }

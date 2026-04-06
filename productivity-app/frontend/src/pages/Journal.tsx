@@ -6,7 +6,6 @@ import { useGoalStore } from "../stores/goalStore";
 import { useToastStore } from "../stores/toastStore";
 import { useConfirmStore } from "../stores/confirmStore";
 import { logClientError } from "../utils/logClientError";
-import { reportValidationFailure } from "../utils/failureReporter";
 import type { Goal, JournalEntry } from "../db";
 
 const analyticsTabs = ["ALL", "Daily", "Weekly", "Monthly", "Yearly"];
@@ -59,7 +58,6 @@ export const Journal = () => {
   const handleSaveLifeJournal = async () => {
     if (!thinking.learn && !thinking.mistakes && !thinking.did && !emotions.feel && !emotions.why && !emotions.next && !problems.problems && !problems.solutions && !ideas) {
       showToast('Please fill at least one field');
-      reportValidationFailure('Journal.validate', 'Please fill at least one field');
       return;
     }
     const today = new Date().toISOString().split('T')[0];

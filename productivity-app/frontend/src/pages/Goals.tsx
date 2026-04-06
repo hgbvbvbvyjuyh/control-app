@@ -35,6 +35,7 @@ import {
 import { useToastStore } from '../stores/toastStore';
 import { logClientError } from '../utils/logClientError';
 import { formatFrameworkDataDisplay } from '../utils/formatFrameworkData';
+import { logUserFailure } from '../utils/failureReporter';
 
 
 
@@ -1151,7 +1152,15 @@ export const Goals = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => openGoalJournal(selectedGoal, 'not_completed')}
+                    onClick={() => {
+                      void logUserFailure({
+                        goalId: String(selectedGoal.id),
+                        type: 'goal',
+                        message: 'Goal marked as not completed',
+                        timestamp: new Date().toISOString(),
+                      });
+                      openGoalJournal(selectedGoal, 'not_completed');
+                    }}
                     className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-error/10 border border-error/20 text-error font-bold hover:bg-error/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(239,68,68,0.1)] disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <XCircle size={18} />

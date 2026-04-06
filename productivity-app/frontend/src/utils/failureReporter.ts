@@ -12,12 +12,11 @@ const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
 const RECENT = new Map<string, number>();
 const DEDUPE_MS = 3000;
 
-type FailureMeta = {
-  path?: string;
-  method?: string;
-  action?: string;
-  goalId?: string | number | null;
-  status?: number;
+type UserFailurePayload = {
+  goalId: string;
+  type: 'goal' | 'session';
+  message: string;
+  timestamp: string;
 };
 
 function cleanRecent(now: number) {
@@ -26,15 +25,18 @@ function cleanRecent(now: number) {
   }
 }
 
-export async function reportFailure(message: string, meta: FailureMeta = {}): Promise<void> {
-  const msg = (message || 'Unknown failure').trim();
+export async function logUserFailure(input: {
+  goalId: string | number;
+  type: 'goal' | 'session';
+  message: string;
+  timestamp?: string;
+}): Promise<void> {
+  const goalId = String(input.goalId ?? '').trim();
+  if (!goalId) return;
+  const msg = (input.message || '').trim();
   if (!msg) return;
-  if ((meta.path ?? '').startsWith('/failures')) return;
-
-  const note =
-    `[${meta.action ?? 'app'}] ${meta.method ?? 'N/A'} ${meta.path ?? 'N/A'} ` +
-    `status=${meta.status ?? 'N/A'} goalId=${meta.goalId ?? 'N/A'} :: ${msg}`;
-  const dedupeKey = note.slice(0, 280);
+  const timestamp = input.timestamp ?? new Date().toISOString();
+  const dedupeKey = `${input.type}|${goalId}|${msg}`.slice(0, 280);
   const now = Date.now();
   cleanRecent(now);
   if (RECENT.has(dedupeKey)) return;
@@ -49,10 +51,11 @@ export async function reportFailure(message: string, meta: FailureMeta = {}): Pr
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
-        type: 'app',
-        linkedId: 0,
-        note: note.slice(0, 2000),
-      }),
+        goalId,
+        type: input.type,
+        message: msg.slice(0, 2000),
+        timestamp,
+      } satisfies UserFailurePayload),
     });
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('app:failure-logged'));
@@ -63,8 +66,4 @@ export async function reportFailure(message: string, meta: FailureMeta = {}): Pr
 
   // When auth is disabled, avoid noisy local errors for expected 401/403 flows.
   if (!AUTH_ENABLED) return;
-}
-
-export function reportValidationFailure(action: string, message: string, meta: FailureMeta = {}): void {
-  void reportFailure(message, { ...meta, action });
 }

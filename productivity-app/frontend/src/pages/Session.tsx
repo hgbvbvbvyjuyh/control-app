@@ -5,6 +5,7 @@ import { useGoalStore } from '../stores/goalStore';
 import { useFrameworkStore } from '../stores/frameworkStore';
 import { motion } from 'framer-motion';
 import { logClientError } from '../utils/logClientError';
+import { logUserFailure } from '../utils/failureReporter';
 
 
 
@@ -237,6 +238,14 @@ export const Session = () => {
 
   const handleEnd = async () => {
     if (didAchieveGoal === null) return;
+    if (didAchieveGoal === false && activeSession?.goalId) {
+      await logUserFailure({
+        goalId: String(activeSession.goalId),
+        type: 'session',
+        message: 'Session journal marked as not completed',
+        timestamp: new Date().toISOString(),
+      });
+    }
     await end(didAchieveGoal, mistake, improvementSuggestion);
     stopAlarm();
     setShowEndForm(false);
