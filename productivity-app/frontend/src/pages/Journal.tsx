@@ -29,8 +29,8 @@ export const Journal = () => {
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
-  /** At most one goal journal expanded at a time (accordion). */
-  const [expandedGoalJournalId, setExpandedGoalJournalId] = useState<string | null>(null);
+  /** Per-goal expand state — each card toggles independently; multiple can be open. */
+  const [openJournalByGoalId, setOpenJournalByGoalId] = useState<Record<string, boolean>>({});
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -50,7 +50,7 @@ export const Journal = () => {
   };
 
   const toggleGoalJournal = (goalId: string) => {
-    setExpandedGoalJournalId((prev) => (prev === goalId ? null : goalId));
+    setOpenJournalByGoalId((prev) => ({ ...prev, [goalId]: !prev[goalId] }));
   };
 
   const handleSaveLifeJournal = async () => {
@@ -425,7 +425,7 @@ export const Journal = () => {
                     goalId={goalId}
                     goal={g}
                     entry={matchingEntry ?? null}
-                    openJournal={expandedGoalJournalId === goalId}
+                    openJournal={Boolean(openJournalByGoalId[goalId])}
                     onToggleJournal={toggleGoalJournal}
                     journalEntryId={
                       matchingEntry?.id != null && String(matchingEntry.id) !== ''
