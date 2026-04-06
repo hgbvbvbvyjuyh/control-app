@@ -427,11 +427,6 @@ export const Journal = () => {
                     entry={matchingEntry ?? null}
                     openJournal={Boolean(openJournalByGoalId[goalId])}
                     onToggleJournal={toggleGoalJournal}
-                    journalEntryId={
-                      matchingEntry?.id != null && String(matchingEntry.id) !== ''
-                        ? String(matchingEntry.id)
-                        : null
-                    }
                   />
                 );
               })
@@ -453,18 +448,13 @@ function GoalCard({
   entry,
   openJournal,
   onToggleJournal,
-  journalEntryId,
 }: {
   goalId: string;
   goal: Goal;
   entry: JournalEntry | null;
   openJournal: boolean;
   onToggleJournal: (goalId: string) => void;
-  journalEntryId: string | null;
 }) {
-  const { confirm: confirmGoalJournal } = useConfirmStore();
-  const { showToast: toastGoal } = useToastStore();
-  const { remove: removeGoalJournal } = useJournalStore();
   const title = String(goal.title || 'Unknown');
   const type = String(goal.goalType || 'daily');
   const answers = entry?.content?.answers ?? null;
@@ -506,31 +496,6 @@ function GoalCard({
             </span>
           </div>
         </button>
-        {journalEntryId && (
-          <button
-            type="button"
-            onClick={() => {
-              confirmGoalJournal(
-                'Delete goal journal',
-                'Move this journal entry to the trash?',
-                async () => {
-                  try {
-                    await removeGoalJournal(journalEntryId);
-                    toastGoal('Goal journal entry deleted', 'info');
-                  } catch (err) {
-                    logClientError('Journal.removeGoalEntry', err, { entryId: journalEntryId });
-                    toastGoal('Could not delete entry', 'error');
-                  }
-                },
-                'Delete',
-                'Cancel'
-              );
-            }}
-            className="text-[9px] font-bold uppercase text-error/60 hover:text-error px-2 py-1 rounded border border-error/20 hover:bg-error/10 transition-colors shrink-0"
-          >
-            Delete
-          </button>
-        )}
       </div>
 
       {/* Mount body only when open — avoids Framer height:'auto' / layout bugs showing content on wrong cards. */}
