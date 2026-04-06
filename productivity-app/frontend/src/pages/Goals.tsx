@@ -14,7 +14,6 @@ import { JournalModal, type CompletionIntent, type JournalAnswers } from '../com
 import { useConfirmStore } from '../stores/confirmStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
 import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle, Pencil } from 'lucide-react';
-import FrameworkPreview from '../components/FrameworkPreview';
 import FrameworkFullView from '../components/FrameworkFullView';
 import { useExpand } from '../hooks/useExpand';
 
