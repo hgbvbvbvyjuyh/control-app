@@ -261,30 +261,56 @@ export async function initDb() {
   safeAlter('ALTER TABLE journals ADD COLUMN deletedAt INTEGER');
   safeAlter('ALTER TABLE failures ADD COLUMN deletedAt INTEGER');
 
-  // ---- Seed default frameworks (only if none exist with isDefault=1) ----
-  const defaultFws = queryAll('SELECT id FROM frameworks WHERE isDefault = 1');
-  if (defaultFws.length === 0) {
-    const now = Date.now();
-    const defaults = [
-      {
-        name: 'Discipline Framework',
-        keys: [
-          { key: 'what', label: 'What', description: 'What do you want to achieve?' },
-          { key: 'why', label: 'Why', description: 'Why is this important?' },
-          { key: 'how', label: 'How', description: 'How will you do it?' },
-        ],
-      },
-      {
-        name: 'SMART Goals',
-        keys: [
-          { key: 'specific', label: 'Specific', description: 'What exactly?' },
-          { key: 'measurable', label: 'Measurable', description: 'How will you measure?' },
-          { key: 'achievable', label: 'Achievable', description: 'Is it realistic?' },
-          { key: 'relevant', label: 'Relevant', description: 'Does it matter?' },
-          { key: 'timeBound', label: 'Time-bound', description: 'By when?' },
-        ],
-      },
-    ];
+  // ---- Seed/replace default frameworks (exact required defaults, no duplicates) ----
+  const now = Date.now();
+  const defaults = [
+    {
+      name: 'SIMPLER ',
+      keys: [
+        { key: 'S', label: 'Specific Goal (SMART)', description: 'Be clear, measurable, time-bound' },
+        { key: 'I', label: 'Input over Output', description: 'Break big goal into daily/weekly actions' },
+        { key: 'M', label: 'Manage Failures', description: 'Identify risks and prepare solutions (If X happens → I will do Y)' },
+        { key: 'P', label: 'Plan Worst Days', description: 'Set minimum action (never zero)' },
+        { key: 'L', label: 'List Rules', description: 'Define DO and DON’T list' },
+        { key: 'E', label: 'Extreme Ownership', description: 'No excuses, full responsibility' },
+        { key: 'R', label: 'Reflect & Never Quit', description: 'Daily journaling' },
+      ],
+    },
+    {
+      name: 'FIRST DAY ',
+      keys: [
+        { key: 'F', label: 'Focus Clearly', description: "Define today's goal clearly" },
+        { key: 'I', label: 'Input Actions', description: 'Follow actions aligned with long-term goals' },
+        { key: 'R', label: 'Risk Plan', description: 'Identify what can go wrong and prepare solutions' },
+        { key: 'S', label: 'Survive Worst Day', description: 'Do minimum action even on bad days' },
+        { key: 'T', label: 'Track Rules', description: 'Maintain DO and DON’T list' },
+        { key: 'D', label: 'Discipline', description: 'No excuses, full responsibility' },
+        { key: 'A', label: 'Always Continue', description: 'Never give up' },
+        { key: 'Y', label: 'Your Review', description: '' },
+      ],
+    },
+    {
+      name: 'FOCUS ',
+      keys: [
+        { key: 'F', label: 'Focus on ONE task', description: 'No multitasking' },
+        { key: 'O', label: 'Outcome First', description: 'Define what “done” looks like' },
+        { key: 'C', label: 'Clock it', description: 'Follow 90 min work + 15 min rest' },
+        { key: 'U', label: 'Unplug Distractions', description: 'plan what distructions can come and what the solution.' },
+        { key: 'S', label: 'Reflect / Journal', description: '' },
+      ],
+    },
+  ] as const;
+
+  const existingDefaults = queryAll<{ name: string; keys: string }>(
+    'SELECT name, keys FROM frameworks WHERE isDefault = 1 ORDER BY id ASC'
+  );
+  const expectedSignature = defaults.map(d => `${d.name}::${JSON.stringify(d.keys)}`).join('|');
+  const existingSignature = existingDefaults
+    .map(d => `${String(d.name)}::${String(d.keys)}`)
+    .join('|');
+
+  if (existingSignature !== expectedSignature) {
+    run('DELETE FROM frameworks WHERE isDefault = 1');
     for (const fw of defaults) {
       run(
         'INSERT INTO frameworks (name, keys, isDefault, createdAt) VALUES (?, ?, 1, ?)',
@@ -292,7 +318,7 @@ export async function initDb() {
       );
     }
     if (process.env['NODE_ENV'] !== 'production') {
-      console.log('Seeded default frameworks.');
+      console.log('Replaced default frameworks with required 3 defaults.');
     }
   }
 
