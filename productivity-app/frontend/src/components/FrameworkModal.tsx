@@ -51,7 +51,7 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
       onClose();
     } catch (err) {
       logClientError('FrameworkModal.save', err);
-      setError('Failed to save framework');
+      setError(err instanceof Error && err.message ? err.message : 'Failed to save framework');
     }
   };
 
@@ -80,7 +80,7 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

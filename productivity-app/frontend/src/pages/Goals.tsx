@@ -1153,10 +1153,14 @@ export const Goals = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
+                      const goalId = selectedGoal?.id ?? selectedGoalId;
+                      if (goalId == null || String(goalId).trim() === '') {
+                        return;
+                      }
                       void logUserFailure({
-                        goalId: String(selectedGoal.id),
+                        goalId: String(goalId),
                         type: 'goal',
-                        message: 'Goal marked as not completed',
+                        message: 'User did not complete goal',
                         timestamp: new Date().toISOString(),
                       });
                       openGoalJournal(selectedGoal, 'not_completed');

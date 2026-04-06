@@ -13,6 +13,8 @@ const RECENT = new Map<string, number>();
 const DEDUPE_MS = 3000;
 
 type UserFailurePayload = {
+  linkedId: string;
+  note: string;
   goalId: string;
   type: 'goal' | 'session';
   message: string;
@@ -51,6 +53,8 @@ export async function logUserFailure(input: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
+        linkedId: goalId,
+        note: msg.slice(0, 2000),
         goalId,
         type: input.type,
         message: msg.slice(0, 2000),
