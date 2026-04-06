@@ -851,12 +851,7 @@ export const Goals = () => {
                   <FrameworkFullView
                     content={formatFrameworkDataDisplay(selectedFw, selectedGoal.data ?? {})}
                   />
-                ) : (
-                  <FrameworkPreview
-                    content={formatFrameworkDataDisplay(selectedFw, selectedGoal.data ?? {})}
-                    onClick={() => selectedGoal?.id && toggle(String(selectedGoal.id))}
-                  />
-                )}
+                ) : null}
               </div>
 
               {/* Plan (optional, toggle to reduce clutter) */}
