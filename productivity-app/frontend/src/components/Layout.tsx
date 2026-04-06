@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, ShieldAlert, UserRound, Settings, LogOut, Mail, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../db';
 import { ConfirmModal } from './ConfirmModal';
@@ -32,24 +32,33 @@ export const Layout = () => {
   const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
   const location = useLocation();
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const showAuthChrome = AUTH_ENABLED;
   const { goals, selectedGoalId, load: loadGoals } = useGoalStore();
   const { loadForGoal: loadSessionsForGoal } = useSessionStore();
   const { loadForGoal: loadSimpleSessionsForGoal } = useDailySimpleSessionStore();
-  const [exportOpen, setExportOpen] = useState(false);
-  const exportRef = useRef<HTMLDivElement | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!exportOpen) return;
+    if (!profileMenuOpen) return;
     const onDocMouseDown = (e: MouseEvent) => {
-      if (!exportRef.current) return;
+      if (!profileMenuRef.current) return;
       const t = e.target as Node;
-      if (!exportRef.current.contains(t)) setExportOpen(false);
+      if (!profileMenuRef.current.contains(t)) setProfileMenuOpen(false);
     };
     document.addEventListener('mousedown', onDocMouseDown);
     return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [exportOpen]);
+  }, [profileMenuOpen]);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    setProfileName(user?.displayName || '');
+    setProfileEmail(user?.email || '');
+  }, [settingsOpen, user?.displayName, user?.email]);
 
   const handleExportSummaryPdf = async () => {
     try {
@@ -214,66 +223,167 @@ export const Layout = () => {
         </div>
 
         <div className="flex flex-col gap-3 border-t border-white/10 pt-4 mt-4">
-          {showAuthChrome && (
+          <div ref={profileMenuRef} className="relative">
             <button
-              onClick={() => {
-                void logout();
-              }}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition w-full"
+              onClick={() => setProfileMenuOpen((prev) => !prev)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-white hover:bg-white/10 transition"
               type="button"
             >
-              <span className="opacity-70">⎋</span>
-              <span>Logout</span>
-            </button>
-          )}
-
-          <div ref={exportRef} className="relative">
-            <button
-              onClick={() => setExportOpen((prev) => !prev)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition w-full"
-              type="button"
-            >
-              <Download size={18} />
-              <span>Export</span>
-              <span className="ml-auto opacity-60">{exportOpen ? '▲' : '▼'}</span>
+              <div className="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-300/20 flex items-center justify-center text-cyan-300">
+                <UserRound size={16} />
+              </div>
+              <div className="min-w-0 text-left">
+                <p className="text-sm font-medium truncate">{profileName || user?.displayName || 'Profile'}</p>
+                <p className="text-[10px] text-white/45 truncate">{profileEmail || user?.email || 'Account'}</p>
+              </div>
+              <span className="ml-auto text-xs opacity-60">{profileMenuOpen ? '▲' : '▼'}</span>
             </button>
 
-            {exportOpen && (
-              <div className="absolute left-0 right-0 mb-2 bottom-full bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden">
+            {profileMenuOpen && (
+              <div className="absolute left-0 right-0 mb-2 bottom-full bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden z-50 p-1">
                 <button
                   type="button"
                   onClick={() => {
-                    setExportOpen(false);
-                    void handleExportSummaryPdf();
+                    setProfileMenuOpen(false);
+                    setSettingsOpen(true);
                   }}
-                  className="w-full px-4 py-3 text-left text-sm text-secondary hover:bg-white/5 transition-colors"
+                  className="w-full px-3 py-2 rounded-lg text-left text-sm text-secondary hover:bg-white/5 transition-colors flex items-center gap-2"
                 >
-                  Export Summary (PDF)
+                  <Settings size={16} />
+                  Settings
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setExportOpen(false);
-                    void handleExportFullBackupJson();
+                    setProfileMenuOpen(false);
+                    void logout();
                   }}
-                  className="w-full px-4 py-3 text-left text-sm text-secondary hover:bg-white/5 transition-colors border-t border-white/5"
+                  className="w-full mt-1 px-3 py-2 rounded-lg text-left text-sm text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2"
                 >
-                  Export Full Backup (JSON)
+                  <LogOut size={16} />
+                  Logout
                 </button>
               </div>
             )}
           </div>
-
-          <button
-            onClick={handleClear}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:text-error hover:bg-red-500/10 transition w-full"
-            type="button"
-          >
-            <ShieldAlert size={18} />
-            <span>System Wipe</span>
-          </button>
         </div>
       </aside>
+
+      <AnimatePresence>
+        {settingsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-x-0 top-6 bottom-6 z-[120] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setSettingsOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-xl max-h-full overflow-y-auto no-scrollbar rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.4)] p-6"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-bold text-white">Settings</h2>
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(false)}
+                  className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/5 transition-colors"
+                  aria-label="Close settings"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-5">
+                <section className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <h3 className="text-xs uppercase tracking-[0.18em] text-secondary/70 font-bold mb-3">Profile Settings</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    <label className="text-xs text-secondary/70">
+                      Name
+                      <input
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/60"
+                      />
+                    </label>
+                    <label className="text-xs text-secondary/70">
+                      Email
+                      <input
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white focus:outline-none focus:border-primary/60"
+                      />
+                    </label>
+                  </div>
+                </section>
+
+                <section className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <h3 className="text-xs uppercase tracking-[0.18em] text-secondary/70 font-bold mb-3">Data & Privacy</h3>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleExportSummaryPdf()}
+                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                    >
+                      <Download size={16} />
+                      Export Summary (PDF)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleExportFullBackupJson()}
+                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                    >
+                      <Download size={16} />
+                      Export Full Backup (JSON)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClear}
+                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                    >
+                      <ShieldAlert size={16} />
+                      System Wipe
+                    </button>
+                  </div>
+                </section>
+
+                <section className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <h3 className="text-xs uppercase tracking-[0.18em] text-secondary/70 font-bold mb-3">About</h3>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-secondary">App Version</span>
+                    <span className="text-white/80">v1.0.4</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="mt-3 w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                    onClick={() => window.open('mailto:support@example.com?subject=Feedback%20for%20Yourself', '_blank')}
+                  >
+                    <Mail size={16} />
+                    Feedback
+                  </button>
+                </section>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    console.info('Settings saved (UI-only)');
+                    setSettingsOpen(false);
+                  }}
+                  className="w-full bg-accent text-background font-bold py-3 rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow"
+                >
+                  Save
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content Area: Responsive Flex Container */}
       <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
