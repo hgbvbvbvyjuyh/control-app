@@ -29,8 +29,8 @@ export const Journal = () => {
   // Goals Section state (Filtering)
   const [timeframe, setTimeframe] = useState("Daily");
   const [category, setCategory] = useState("all");
-  /** Per-goal expand state — each card toggles independently; multiple can be open. */
-  const [openJournalByGoalId, setOpenJournalByGoalId] = useState<Record<string, boolean>>({});
+  /** Per rendered row — key includes list index so duplicate goal ids cannot share one toggle. */
+  const [openJournalByCardKey, setOpenJournalByCardKey] = useState<Record<string, boolean>>({});
 
   // Toggle states for Life Journal sections (Default: Collapsed)
   const [openThinking, setOpenThinking] = useState(false);
@@ -49,8 +49,8 @@ export const Journal = () => {
     setCategory("all");
   };
 
-  const toggleGoalJournal = (goalId: string) => {
-    setOpenJournalByGoalId((prev) => ({ ...prev, [goalId]: !prev[goalId] }));
+  const toggleGoalJournal = (cardKey: string) => {
+    setOpenJournalByCardKey((prev) => ({ ...prev, [cardKey]: !prev[cardKey] }));
   };
 
   const handleSaveLifeJournal = async () => {
@@ -409,7 +409,10 @@ export const Journal = () => {
             ) : (
               visibleGoals.map((g, index) => {
                 const rawGoalId = g.id != null && String(g.id) !== '' ? String(g.id) : null;
-                const goalId = rawGoalId ?? `__goal_${index}_${g.createdAt ?? 0}_${g.goalType}`;
+                /** Stable per grid row: duplicate backend ids would otherwise share expand state. */
+                const cardKey = rawGoalId
+                  ? `${rawGoalId}#${index}`
+                  : `__row_${index}_${g.createdAt ?? 0}_${g.goalType}`;
                 const matchingEntry = rawGoalId
                   ? entries.find(
                       (e) =>
@@ -421,11 +424,11 @@ export const Journal = () => {
 
                 return (
                   <GoalCard
-                    key={goalId}
-                    goalId={goalId}
+                    key={cardKey}
+                    cardKey={cardKey}
                     goal={g}
                     entry={matchingEntry ?? null}
-                    openJournal={Boolean(openJournalByGoalId[goalId])}
+                    openJournal={Boolean(openJournalByCardKey[cardKey])}
                     onToggleJournal={toggleGoalJournal}
                   />
                 );
@@ -443,17 +446,17 @@ export const Journal = () => {
 /* ========================= */
 
 function GoalCard({
-  goalId,
+  cardKey,
   goal,
   entry,
   openJournal,
   onToggleJournal,
 }: {
-  goalId: string;
+  cardKey: string;
   goal: Goal;
   entry: JournalEntry | null;
   openJournal: boolean;
-  onToggleJournal: (goalId: string) => void;
+  onToggleJournal: (cardKey: string) => void;
 }) {
   const title = String(goal.title || 'Unknown');
   const type = String(goal.goalType || 'daily');
@@ -477,7 +480,7 @@ function GoalCard({
       >
         <button
           type="button"
-          onClick={() => onToggleJournal(goalId)}
+          onClick={() => onToggleJournal(cardKey)}
           title={openJournal ? 'Hide Journal' : 'Show Journal'}
           aria-label={openJournal ? 'Hide Journal' : 'Show Journal'}
           aria-expanded={openJournal}
