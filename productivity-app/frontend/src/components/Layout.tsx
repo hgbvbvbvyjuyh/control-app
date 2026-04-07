@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, ShieldAlert, UserRound, Settings, LogOut, Mail, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { db } from '../db';
 import { ConfirmModal } from './ConfirmModal';
 import { ToastContainer } from './ToastContainer';
@@ -40,6 +40,7 @@ export const Layout = () => {
   const [profileName, setProfileName] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const pageTransition = useAnimationControls();
 
   useEffect(() => {
     if (!profileMenuOpen) return;
@@ -57,6 +58,17 @@ export const Layout = () => {
     setProfileName(user?.displayName || '');
     setProfileEmail(user?.email || '');
   }, [settingsOpen, user?.displayName, user?.email]);
+
+  useEffect(() => {
+    void (async () => {
+      await pageTransition.set({ opacity: 0, y: 10 });
+      await pageTransition.start({
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.3, ease: 'easeInOut' },
+      });
+    })();
+  }, [location.pathname, pageTransition]);
 
   const handleExportSummaryPdf = async () => {
     try {
@@ -395,23 +407,14 @@ export const Layout = () => {
       <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
         
-        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col h-full min-h-0">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ 
-                duration: 0.28,
-                ease: [0.22, 1, 0.36, 1] 
-              }}
-              style={{ willChange: 'opacity, transform' }}
-              className={`absolute inset-0 pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex flex-col h-full min-h-0 origin-top overflow-y-auto no-scrollbar`}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col h-full min-h-0" style={{ minHeight: '100%' }}>
+          <motion.div
+            animate={pageTransition}
+            initial={false}
+            className={`pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex-1 flex flex-col h-full min-h-0`}
+          >
+            <Outlet />
+          </motion.div>
         </div>
         </main>
 
