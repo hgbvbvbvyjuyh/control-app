@@ -113,7 +113,7 @@ export const JournalModal = ({
           }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 30 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -260,7 +260,7 @@ export const JournalModal = ({
 
               <button
                 onClick={handleClose}
-                className="w-full text-secondary/50 hover:text-secondary text-xs font-bold transition-colors uppercase tracking-widest"
+                className="w-full text-secondary/50 hover:text-secondary text-xs font-bold transition-all duration-300 uppercase tracking-widest"
               >
                 Cancel
               </button>

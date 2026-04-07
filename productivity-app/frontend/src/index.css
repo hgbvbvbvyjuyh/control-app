@@ -74,11 +74,17 @@ body::before {
     box-shadow: var(--inner-highlight);
   }
 
+  /* Interaction Utilities */
+  .glow-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   .glow-card:hover {
     box-shadow: 
       var(--inner-highlight),
-      0 0 40px rgba(59, 130, 246, 0.08);
-    border-color: rgba(59, 130, 246, 0.15);
+      0 8px 30px rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.25);
+    transform: translateY(-2px);
   }
 
   .premium-text-gradient {
@@ -92,3 +98,29 @@ body::before {
     display: none;
   }
 }
+
+@layer base {
+  /* Prevent default tap highlight on mobile for smoother feel */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  button {
+    transition: all 0.2s ease-out;
+  }
+  
+  button:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px rgba(59, 130, 246, 0.6);
+  }
+}
+

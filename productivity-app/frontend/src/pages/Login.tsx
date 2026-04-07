@@ -74,7 +74,7 @@ export const Login = () => {
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-colors ${
+            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-300 ${
               mode === 'login'
                 ? 'bg-secondary/15 border-secondary/30 text-white'
                 : 'bg-secondary/5 border-secondary/20 text-secondary hover:text-white'
@@ -85,7 +85,7 @@ export const Login = () => {
           <button
             type="button"
             onClick={() => setMode('signup')}
-            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-colors ${
+            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-300 ${
               mode === 'signup'
                 ? 'bg-secondary/15 border-secondary/30 text-white'
                 : 'bg-secondary/5 border-secondary/20 text-secondary hover:text-white'
@@ -143,7 +143,7 @@ export const Login = () => {
                 setSubmitting(false);
               }
             }}
-            className="w-full bg-secondary/10 border border-white/10 text-white/90 font-black py-3 rounded-2xl hover:bg-secondary/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest text-xs"
+            className="w-full bg-secondary/10 border border-white/10 text-white/90 font-black py-3 rounded-2xl hover:bg-secondary/15 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-widest text-xs"
           >
             Continue with Google
           </button>

@@ -305,7 +305,7 @@ export const Session = () => {
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Session Framework (Min 2)</label>
                   <button 
                     onClick={addFrameworkField}
-                    className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 uppercase"
+                    className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 transition-all duration-300 flex items-center gap-1 uppercase"
                   >
                     <span>+ Add Field</span>
                   </button>
@@ -353,7 +353,7 @@ export const Session = () => {
                       {frameworkInputs.length > 2 && (
                         <button 
                           onClick={() => removeFrameworkField(i)}
-                          className="p-2 text-slate-600 hover:text-rose-500 transition-colors"
+                          className="p-2 text-slate-600 hover:text-rose-500 transition-all duration-300"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -418,7 +418,7 @@ export const Session = () => {
                 </button>
                 <button 
                   onClick={() => navigate('/goals')} 
-                  className="w-full mt-4 text-slate-600 text-[10px] font-bold hover:text-slate-400 uppercase tracking-widest transition-colors"
+                  className="w-full mt-4 text-slate-600 text-[10px] font-bold hover:text-slate-400 uppercase tracking-widest transition-all duration-300"
                 >
                   Cancel
                 </button>
@@ -502,7 +502,7 @@ export const Session = () => {
 
   // Active Session View
   return (
-    <div className={`flex flex-col items-center justify-center w-full h-full min-h-[70vh] p-4 font-sans text-slate-100 transition-colors duration-1000 ${alarmTriggered && displaySeconds === 0 ? 'bg-rose-900/20' : ''}`}>
+    <div className={`flex flex-col items-center justify-center w-full h-full min-h-[70vh] p-4 font-sans text-slate-100 transition-all duration-1000 ${alarmTriggered && displaySeconds === 0 ? 'bg-rose-900/20' : ''}`}>
       <div className={`transition-all duration-500 flex flex-col items-center ${isFocusMode ? 'scale-110 mb-20' : 'mb-10'}`}>
         <TimerDisplay seconds={displaySeconds} isCountdown={isCountdown} />
 
@@ -520,9 +520,9 @@ export const Session = () => {
       {/* Focus Mode Toggle */}
       <button 
         onClick={() => setIsFocusMode(!isFocusMode)}
-        className="fixed bottom-32 md:bottom-10 left-10 text-[10px] font-black text-secondary hover:text-accent transition-colors uppercase tracking-[0.2em] z-50 flex items-center gap-2"
+        className="fixed bottom-32 md:bottom-10 left-10 text-[10px] font-black text-secondary hover:text-accent transition-all duration-300 uppercase tracking-[0.2em] z-50 flex items-center gap-2"
       >
-        <div className={`w-8 h-4 rounded-full border border-white/20 relative transition-colors ${isFocusMode ? 'bg-accent/20' : 'bg-transparent'}`}>
+        <div className={`w-8 h-4 rounded-full border border-white/20 relative transition-all duration-300 ${isFocusMode ? 'bg-accent/20' : 'bg-transparent'}`}>
           <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all ${isFocusMode ? 'right-0.5 bg-accent shadow-[0_0_8px_cyan]' : 'left-0.5 bg-secondary'}`} />
         </div>
         Focus Mode

@@ -239,10 +239,10 @@ export const GoalModal = ({
         initial={false}
         animate={{
           opacity: open ? 1 : 0,
-          scale: open ? 1 : 0.97,
-          y: open ? 0 : 8,
+          scale: open ? 1 : 0.95,
+          y: open ? 0 : 20,
         }}
-        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
         className="bg-background border border-secondary/30 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto no-scrollbar shadow-2xl shadow-black/50"
       >
@@ -266,7 +266,7 @@ export const GoalModal = ({
                       key={t}
                       type="button"
                       onClick={() => handleGoalTypeChange(t)}
-                      className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize transition-colors ${
+                      className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize transition-all duration-300 ${
                         goalType === t
                           ? 'bg-accent text-background'
                           : 'bg-secondary/10 text-secondary hover:bg-secondary/20'
@@ -289,7 +289,7 @@ export const GoalModal = ({
                     key={c}
                     type="button"
                     onClick={() => setCategory(c)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors ${
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all duration-300 ${
                       category === c
                         ? c === 'health'
                           ? 'bg-green-500 text-black'
@@ -345,7 +345,7 @@ export const GoalModal = ({
                 type="button"
                 onClick={handleRequestClose}
                 disabled={saving}
-                className="px-4 py-2 text-secondary hover:text-text transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-secondary hover:text-text transition-all duration-300 disabled:opacity-50"
               >
                 Cancel
               </button>

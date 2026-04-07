@@ -4,9 +4,9 @@ import type { GoalPlanData } from '../utils/goalPlan';
 import { childTypeForPlannedParent, isPlannableGoalType } from '../utils/goalPlan';
 
 const BTN_SECONDARY =
-  'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
+  'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-all duration-300 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
 const BTN_ACCENT_OUTLINE =
-  'text-xs font-semibold px-3 py-2 rounded-lg border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/20';
+  'text-xs font-semibold px-3 py-2 rounded-lg border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-accent/20';
 
 export interface GoalPlanSectionProps {
   selectedGoal: Goal;

@@ -30,7 +30,7 @@ const ToastMessage = ({ toast }: { toast: Toast }) => {
       <p className="text-sm font-medium text-white flex-1">{toast.message}</p>
       <button 
         onClick={() => removeToast(toast.id)}
-        className="text-secondary hover:text-white transition-colors p-1"
+        className="text-secondary hover:text-white transition-all duration-300 p-1"
       >
         <X size={14} />
       </button>

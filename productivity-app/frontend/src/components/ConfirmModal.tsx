@@ -17,10 +17,10 @@ export const ConfirmModal = () => {
       {isOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={close}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 30 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             onClick={e => e.stopPropagation()}
             className="bg-surface/50 backdrop-blur-3xl border border-white/10 rounded-[2rem] p-8 md:p-10 w-full max-w-sm shadow-2xl shadow-black/80 relative overflow-hidden"
           >
@@ -45,7 +45,7 @@ export const ConfirmModal = () => {
               </button>
               <button
                 onClick={close}
-                className="w-full py-4 text-secondary hover:text-white transition-colors text-sm font-bold active:scale-95"
+                className="w-full py-4 text-secondary hover:text-white transition-all duration-300 text-sm font-bold active:scale-95"
               >
                 {cancelLabel || 'Wait, go back'}
               </button>

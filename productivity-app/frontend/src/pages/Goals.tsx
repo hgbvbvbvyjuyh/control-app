@@ -20,7 +20,7 @@ import { useExpand } from '../hooks/useExpand';
 import { getActiveGoals } from '../utils/goalListHelpers';
 
 const BTN_SECONDARY =
-  'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
+  'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-all duration-300 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
 import {
   type GoalPlanData,
   childTypeForPlannedParent,
@@ -525,14 +525,14 @@ export const Goals = () => {
             <div className="shrink-0 flex flex-col gap-4 mb-4">
               <button 
                 onClick={() => { setActiveCategory(null); select(null); }}
-                className="flex items-center gap-2 text-secondary hover:text-text transition-colors text-sm font-medium w-fit px-2 py-1 rounded-lg hover:bg-white/5"
+                className="flex items-center gap-2 text-secondary hover:text-text transition-all duration-300 text-sm font-medium w-fit px-2 py-1 rounded-lg hover:bg-white/5"
               >
                 <ChevronLeft size={16} /> Back to Categories
               </button>
               <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold capitalize tracking-tight">{activeCategory}</h1>
                 <div className="flex gap-3">
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowFwModal(true)} className="text-xs bg-surface/50 border border-white/10 text-secondary hover:text-white px-4 py-2 rounded-xl transition-colors shadow-sm hover:bg-surface/80">
+                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowFwModal(true)} className="text-xs bg-surface/50 border border-white/10 text-secondary hover:text-white px-4 py-2 rounded-xl transition-all duration-300 shadow-sm hover:bg-surface/80">
                     + Framework
                   </motion.button>
                   <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditingGoal(undefined); setShowGoalModal(true); }} className="bg-accent text-background px-5 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] text-sm font-bold">
@@ -594,7 +594,7 @@ export const Goals = () => {
                                     e.stopPropagation();
                                     select(parentGoal?.id ?? null);
                                   }}
-                                  className="text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none border border-secondary/20 bg-secondary/10 text-secondary hover:border-accent/40 hover:bg-secondary/20 transition-colors"
+                                  className="text-[8px] uppercase font-black px-1.5 py-0.5 rounded leading-none border border-secondary/20 bg-secondary/10 text-secondary hover:border-accent/40 hover:bg-secondary/20 transition-all duration-300"
                                 >
                                   From: {parentTitle}
                                 </button>
@@ -602,8 +602,8 @@ export const Goals = () => {
                             })()
                           )}
                         </div>
-                        <h3 className="font-semibold text-lg mt-0.5 flex items-center gap-2 text-white">
-                          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none ${
+                        <h3 className="font-semibold text-lg mt-0.5 flex items-center gap-2.5 text-white leading-tight">
+                          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded leading-none shrink-0 ${
                             (goal.category || 'health') === 'spirituality' ? 'bg-blue-500/20 text-blue-400' :
                             (goal.category || 'health') === 'finance' ? 'bg-yellow-500/20 text-yellow-500' :
                             (goal.category || 'health') === 'relation' ? 'bg-pink-500/20 text-pink-400' :
@@ -630,14 +630,14 @@ export const Goals = () => {
                                   e.stopPropagation();
                                   void saveInlineTitleEdit(goal);
                                 }}
-                                className="text-[10px] font-bold uppercase px-2 py-1 rounded-md border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-colors"
+                                className="text-[10px] font-bold uppercase px-2 py-1 rounded-md border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-all duration-300"
                               >
                                 Save
                               </button>
                             </>
                           ) : (
                             <>
-                              <span>{goal.title || 'Unknown'}</span>
+                              <span className="truncate pt-[1px]">{goal.title || 'Unknown'}</span>
                               {!hidePencilByGoalId[String(goal.id)] && (
                                 <button
                                   type="button"
@@ -645,7 +645,7 @@ export const Goals = () => {
                                     e.stopPropagation();
                                     startInlineTitleEdit(goal);
                                   }}
-                                  className="w-6 h-6 rounded-md flex items-center justify-center text-secondary hover:text-text hover:bg-white/10 transition-colors"
+                                  className="w-6 h-6 rounded-md flex items-center justify-center text-secondary hover:text-text hover:bg-white/10 transition-all duration-300"
                                   title="Edit title"
                                   aria-label="Edit title"
                                 >
@@ -683,7 +683,7 @@ export const Goals = () => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleDeleteSelectedGoal}
-                        className="z-50 text-error/90 hover:text-error w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-colors mb-3"
+                        className="z-50 text-error/90 hover:text-error w-7 h-7 flex items-center justify-center rounded-full hover:bg-error/10 transition-all duration-300 mb-3"
                         aria-label="Delete goal"
                         title="Delete goal"
                       >
@@ -709,7 +709,7 @@ export const Goals = () => {
                               setEditingGoal(selectedGoal);
                               setShowGoalModal(true);
                             }}
-                            className="text-[10px] uppercase tracking-widest text-secondary/80 font-semibold bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-md hover:text-text hover:border-secondary/40 transition-colors"
+                            className="text-[10px] uppercase tracking-widest text-secondary/80 font-semibold bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-md hover:text-text hover:border-secondary/40 transition-all duration-300"
                           >
                             Select Framework
                           </button>
@@ -841,7 +841,7 @@ export const Goals = () => {
                   <h4 className="text-xs font-semibold text-accent uppercase tracking-wider mb-0">Framework Data</h4>
                   <button 
                     onClick={() => selectedGoal?.id && toggle(String(selectedGoal.id))}
-                    className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded"
+                    className="text-[10px] text-secondary hover:text-text transition-all duration-300 bg-secondary/10 px-2 py-1 rounded"
                   >
                     {expandedId === String(selectedGoal?.id) ? 'Hide Details' : 'Show Details'}
                   </button>
@@ -911,7 +911,7 @@ export const Goals = () => {
                                 setSimpleSessionPlanOpenId(s.id);
                               }
                             }}
-                            className="text-[10px] text-secondary hover:text-text transition-colors bg-secondary/10 px-2 py-1 rounded shrink-0"
+                            className="text-[10px] text-secondary hover:text-text transition-all duration-300 bg-secondary/10 px-2 py-1 rounded shrink-0"
                           >
                             {simpleSessionPlanOpenId === s.id ? 'Hide Plan' : 'Show Plan'}
                           </button>
@@ -937,7 +937,7 @@ export const Goals = () => {
                                 'Cancel'
                               );
                             }}
-                            className="text-error/30 hover:text-error text-xs p-2 transition-colors"
+                            className="text-error/40 hover:text-error hover:bg-error/10 text-xs p-3 rounded-lg transition-all duration-300"
                           >
                             ✕
                           </button>
@@ -1026,7 +1026,7 @@ export const Goals = () => {
                                 showToast('Could not update session');
                               }
                             }}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-success/30 bg-success/15 text-success hover:bg-success/25 transition-colors disabled:opacity-40"
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-success/30 bg-success/15 text-success hover:bg-success/25 transition-all duration-300 disabled:opacity-40"
                           >
                             Completed
                           </button>
@@ -1043,7 +1043,7 @@ export const Goals = () => {
                                 showToast('Could not update session');
                               }
                             }}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-error/30 bg-error/15 text-error hover:bg-error/25 transition-colors disabled:opacity-40"
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-error/30 bg-error/15 text-error hover:bg-error/25 transition-all duration-300 disabled:opacity-40"
                           >
                             Not Completed
                           </button>
@@ -1100,7 +1100,7 @@ export const Goals = () => {
                                 }
                               );
                             }}
-                            className="text-error/30 hover:text-error text-xs p-3 transition-colors relative z-10"
+                            className="text-error/30 hover:text-error text-xs p-3 transition-all duration-300 relative z-10"
                           >
                             ✕
                           </button>

@@ -90,7 +90,7 @@ export const Failures = () => {
         <h1 className="text-3xl font-bold">Failure Tracker</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-error/20 text-error border border-error/50 hover:bg-error/30 px-4 py-2 rounded-lg transition-colors font-medium text-sm"
+          className="bg-error/20 text-error border border-error/50 hover:bg-error/30 px-4 py-2 rounded-lg transition-all duration-300 font-medium text-sm"
         >
           Log Failure
         </button>
@@ -152,7 +152,7 @@ export const Failures = () => {
                 </div>
               </div>
               <div className="flex gap-3 justify-end mt-4">
-                <button onClick={() => { resetForm(); setShowModal(false); }} className="px-4 py-2 text-secondary hover:text-text transition-colors">Cancel</button>
+                <button onClick={() => { resetForm(); setShowModal(false); }} className="px-4 py-2 text-secondary hover:text-text transition-all duration-300">Cancel</button>
                 <button onClick={handleSave} className="px-6 py-2 bg-error text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-shadow">
                   {editingId ? 'Update Note' : 'Log Failure'}
                 </button>
@@ -192,7 +192,7 @@ export const Failures = () => {
                 <div className="shrink-0 flex items-center gap-1">
                   <button
                     onClick={() => startEdit(f)}
-                    className="text-accent/50 hover:text-accent p-2 transition-colors"
+                    className="text-accent/50 hover:text-accent p-2 transition-all duration-300"
                   >
                     <Edit2 size={16} />
                   </button>
@@ -207,7 +207,7 @@ export const Failures = () => {
                         }
                       );
                     }}
-                    className="text-error/30 hover:text-error transition-colors p-2 text-lg relative z-10"
+                    className="text-error/30 hover:text-error transition-all duration-300 p-2 text-lg relative z-10"
                   >✕</button>
                 </div>
             </AntiGravity>

@@ -206,9 +206,9 @@ export const Layout = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-xl transition ${
+                  `flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-primary/60 hover:scale-[1.02] ${
                     isActive
-                      ? 'bg-white/10 text-white shadow-inner'
+                      ? 'bg-white/10 text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]'
                       : 'text-white/60 hover:text-white hover:bg-white/5'
                   }`
                 }
@@ -237,32 +237,40 @@ export const Layout = () => {
               <span className="ml-auto text-xs opacity-60">{profileMenuOpen ? '▲' : '▼'}</span>
             </button>
 
-            {profileMenuOpen && (
-              <div className="absolute left-0 right-0 mb-2 bottom-full bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden z-50 p-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    setSettingsOpen(true);
-                  }}
-                  className="w-full px-3 py-2 rounded-lg text-left text-sm text-secondary hover:bg-white/5 transition-colors flex items-center gap-2"
+            <AnimatePresence>
+              {profileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute left-0 right-0 mb-2 bottom-full bg-[#0B1220] border border-white/10 rounded-xl shadow-xl shadow-black/40 overflow-hidden z-[60] p-1 origin-bottom"
                 >
-                  <Settings size={16} />
-                  Settings
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProfileMenuOpen(false);
-                    void logout();
-                  }}
-                  className="w-full mt-1 px-3 py-2 rounded-lg text-left text-sm text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2"
-                >
-                  <LogOut size={16} />
-                  Logout
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      setSettingsOpen(true);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2"
+                  >
+                    <Settings size={16} />
+                    Settings
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileMenuOpen(false);
+                      void logout();
+                    }}
+                    className="w-full mt-1 px-3 py-2 rounded-lg text-left text-sm text-red-300 hover:bg-red-500/10 transition-all duration-300 flex items-center gap-2"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </aside>
@@ -289,7 +297,7 @@ export const Layout = () => {
                 <button
                   type="button"
                   onClick={() => setSettingsOpen(false)}
-                  className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/5 transition-colors"
+                  className="p-2 rounded-lg text-secondary hover:text-white hover:bg-white/5 transition-all duration-300"
                   aria-label="Close settings"
                 >
                   <X size={16} />
@@ -325,7 +333,7 @@ export const Layout = () => {
                     <button
                       type="button"
                       onClick={() => void handleExportSummaryPdf()}
-                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2"
                     >
                       <Download size={16} />
                       Export Summary (PDF)
@@ -333,7 +341,7 @@ export const Layout = () => {
                     <button
                       type="button"
                       onClick={() => void handleExportFullBackupJson()}
-                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2"
                     >
                       <Download size={16} />
                       Export Full Backup (JSON)
@@ -341,7 +349,7 @@ export const Layout = () => {
                     <button
                       type="button"
                       onClick={handleClear}
-                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-lg text-left text-sm text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-all duration-300 flex items-center gap-2"
                     >
                       <ShieldAlert size={16} />
                       System Wipe
@@ -357,7 +365,7 @@ export const Layout = () => {
                   </div>
                   <button
                     type="button"
-                    className="mt-3 w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
+                    className="mt-3 w-full px-4 py-2.5 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2"
                     onClick={() => window.open('mailto:support@example.com?subject=Feedback%20for%20Yourself', '_blank')}
                   >
                     <Mail size={16} />
@@ -391,14 +399,14 @@ export const Layout = () => {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 15, filter: 'blur(12px)', scale: 0.995 }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
-              exit={{ opacity: 0, y: -15, filter: 'blur(12px)', scale: 1.005 }}
+              initial={{ opacity: 0, y: 12, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.99 }}
               transition={{ 
-                duration: 0.6, 
+                duration: 0.45, 
                 ease: [0.22, 1, 0.36, 1] 
               }}
-              className={`pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex-1 flex flex-col h-full min-h-0`}
+              className={`pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex-1 flex flex-col h-full min-h-0 origin-top`}
             >
               <Outlet />
             </motion.div>
@@ -413,8 +421,8 @@ export const Layout = () => {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center p-2 rounded-full transition-all ${
-                isActive ? 'text-primary bg-white/5' : 'text-secondary/60'
+              `flex flex-col items-center justify-center p-2 rounded-full transition-all duration-200 active:scale-[0.92] ${
+                isActive ? 'text-primary bg-white/10 shadow-[0_4px_12px_rgba(59,130,246,0.2)]' : 'text-secondary/60 hover:text-white hover:bg-white/5'
               }`
             }
           >

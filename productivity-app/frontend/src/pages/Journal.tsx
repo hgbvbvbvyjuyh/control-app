@@ -155,7 +155,7 @@ export const Journal = () => {
                 onClick={() => setOpenThinking(!openThinking)} 
                 className="flex justify-between items-center cursor-pointer group"
               >
-                <h3 className="text-sm font-semibold text-cyan-400 tracking-wide uppercase group-hover:text-cyan-300 transition-colors">
+                <h3 className="text-sm font-semibold text-cyan-400 tracking-wide uppercase group-hover:text-cyan-300 transition-all duration-300">
                   1. Thinking
                 </h3>
                 <span className="text-gray-500 text-xs transition-transform duration-200">
@@ -198,7 +198,7 @@ export const Journal = () => {
                 onClick={() => setOpenEmotions(!openEmotions)} 
                 className="flex justify-between items-center cursor-pointer group"
               >
-                <h3 className="text-sm font-semibold text-pink-400 tracking-wide uppercase group-hover:text-pink-300 transition-colors">
+                <h3 className="text-sm font-semibold text-pink-400 tracking-wide uppercase group-hover:text-pink-300 transition-all duration-300">
                   2. Emotions
                 </h3>
                 <span className="text-gray-500 text-xs transition-transform duration-200">
@@ -241,7 +241,7 @@ export const Journal = () => {
                 onClick={() => setOpenProblems(!openProblems)} 
                 className="flex justify-between items-center cursor-pointer group"
               >
-                <h3 className="text-sm font-semibold text-yellow-400 tracking-wide uppercase group-hover:text-yellow-300 transition-colors">
+                <h3 className="text-sm font-semibold text-yellow-400 tracking-wide uppercase group-hover:text-yellow-300 transition-all duration-300">
                   3. Problems
                 </h3>
                 <span className="text-gray-500 text-xs transition-transform duration-200">
@@ -277,7 +277,7 @@ export const Journal = () => {
                 onClick={() => setOpenIdeas(!openIdeas)} 
                 className="flex justify-between items-center cursor-pointer group"
               >
-                <h3 className="text-sm font-semibold text-green-400 tracking-wide uppercase group-hover:text-green-300 transition-colors">
+                <h3 className="text-sm font-semibold text-green-400 tracking-wide uppercase group-hover:text-green-300 transition-all duration-300">
                   4. Ideas
                 </h3>
                 <span className="text-gray-500 text-xs transition-transform duration-200">
@@ -310,7 +310,7 @@ export const Journal = () => {
             <h3 className="text-[10px] font-black text-secondary uppercase tracking-[0.3em] mb-6 opacity-40">Recent Life Reflections</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {lifeJournalEntries.slice(0, 4).map(e => (
-                <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-3xl p-8 hover:bg-secondary/10 transition-colors relative">
+                <div key={e.id} className="bg-secondary/5 border border-secondary/20 rounded-3xl p-8 hover:bg-secondary/10 transition-all duration-300 relative">
                   <div className="flex justify-between items-start gap-2 mb-4">
                     <span className="text-[10px] font-bold text-secondary uppercase opacity-40">{e.date}</span>
                     {e.id != null && e.id !== '' && (
@@ -467,7 +467,7 @@ function GoalCard({
 
   return (
     <div
-      className={`bg-secondary/5 border border-secondary/20 rounded-2xl hover:border-secondary/40 transition-colors ${
+      className={`bg-secondary/5 border border-secondary/20 rounded-2xl hover:border-secondary/40 transition-all duration-300 ${
         openJournal ? 'p-5' : 'px-4 py-3'
       }`}
     >
@@ -481,7 +481,7 @@ function GoalCard({
           title={openJournal ? 'Hide Journal' : 'Show Journal'}
           aria-label={openJournal ? 'Hide Journal' : 'Show Journal'}
           aria-expanded={openJournal}
-          className="min-w-0 flex-1 flex justify-between items-center text-left rounded-lg transition-colors hover:bg-white/[0.03] focus:outline-none focus:ring-1 focus:ring-accent/40 px-1 py-1"
+          className="min-w-0 flex-1 flex justify-between items-center text-left rounded-lg transition-all duration-300 hover:bg-white/[0.03] focus:outline-none focus:ring-1 focus:ring-accent/40 px-1 py-1"
         >
           <h4 className="font-bold text-sm pr-3 truncate">{title}</h4>
           <div className="flex items-center gap-2 shrink-0">
@@ -490,7 +490,7 @@ function GoalCard({
             </span>
             <span
               aria-hidden="true"
-              className="h-8 w-8 rounded-md flex items-center justify-center transition-colors duration-200 border border-white/10 bg-white/5 text-gray-300"
+              className="h-8 w-8 rounded-md flex items-center justify-center transition-all duration-300 border border-white/10 bg-white/5 text-gray-300"
             >
               {openJournal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </span>

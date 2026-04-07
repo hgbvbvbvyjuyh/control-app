@@ -82,9 +82,10 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
   return (
     <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         onClick={e => e.stopPropagation()}
         className="bg-background border border-secondary/30 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto no-scrollbar"
       >
@@ -124,7 +125,7 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
         ))}
         <button onClick={addKey} className="text-accent text-sm font-medium mb-4 hover:underline">+ Add Key</button>
         <div className="flex gap-3 justify-end mt-4 mb-6">
-          <button onClick={() => { resetForm(); onClose(); }} className="px-4 py-2 text-secondary hover:text-text transition-colors">Cancel</button>
+          <button onClick={() => { resetForm(); onClose(); }} className="px-4 py-2 text-secondary hover:text-text transition-all duration-300">Cancel</button>
           <button onClick={handleSave} className="px-6 py-2 bg-accent text-background font-bold rounded-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-shadow">
             {editingId ? 'Update' : 'Create'}
           </button>
@@ -145,7 +146,7 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
               <div className="flex gap-1">
                 <button
                   onClick={() => startEdit(fw)}
-                  className="text-accent/70 hover:text-accent p-2 transition-colors"
+                  className="text-accent/70 hover:text-accent p-2 transition-all duration-300"
                   title="Edit name and keys"
                 >
                   <Edit2 size={16} />
@@ -168,7 +169,7 @@ export const FrameworkModal = ({ open, onClose }: FrameworkModalProps) => {
                       }
                     );
                   }}
-                  className="text-error/70 hover:text-error text-xs p-2 transition-colors"
+                  className="text-error/70 hover:text-error text-xs p-2 transition-all duration-300"
                 >✕</button>
               </div>
             </div>
