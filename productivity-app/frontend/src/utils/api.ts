@@ -1,5 +1,4 @@
 import { getBrowserIanaTimeZone } from './browserTimezone';
-import { AUTH_ENABLED } from '../config/authFlags';
 import { getAuthToken } from '../stores/authStore';
 import { logClientError } from './logClientError';
 
@@ -82,9 +81,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
       logClientError('api.parseErrorBody', err, { path, status: response.status });
       if (text.trim()) message = text.trim().slice(0, 2000);
     }
-    const skipDevNoise =
-      !AUTH_ENABLED && (response.status === 401 || response.status === 403);
-    if (import.meta.env.DEV && !skipDevNoise) {
+    if (import.meta.env.DEV) {
       console.error('[api]', response.status, url, text.slice(0, 500));
     } else if (!import.meta.env.DEV) {
       console.error('[api]', response.status, path);

@@ -1,4 +1,3 @@
-import { AUTH_ENABLED } from '../config/authFlags';
 import { getAuthToken } from '../stores/authStore';
 
 function normalizeApiBase(raw: unknown): string {
@@ -67,7 +66,4 @@ export async function logUserFailure(input: {
   } catch {
     // Don't cascade logging failures.
   }
-
-  // When auth is disabled, avoid noisy local errors for expected 401/403 flows.
-  if (!AUTH_ENABLED) return;
 }

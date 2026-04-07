@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { type Goal } from '../db';
-import { AUTH_ENABLED } from '../config/authFlags';
 import { api } from '../utils/api';
 import { logClientError } from '../utils/logClientError';
 
@@ -51,16 +50,8 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
       set({ goals, loading: false, loadError: null });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      const expectedNoToken =
-        !AUTH_ENABLED &&
-        (msg.includes('401') ||
-          /authorization|missing.*token/i.test(msg));
-      if (!expectedNoToken) {
-        logClientError('goalStore.load', error);
-        set({ loadError: msg || 'Could not load goals', loading: false });
-      } else {
-        set({ loading: false, loadError: null });
-      }
+      logClientError('goalStore.load', error);
+      set({ loadError: msg || 'Could not load goals', loading: false });
     }
   },
 

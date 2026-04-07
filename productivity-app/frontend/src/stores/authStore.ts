@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { onAuthStateChanged, type User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { AUTH_ENABLED, DEV_MOCK_USER } from '../config/authFlags';
 import { getFirebaseAuth } from '../firebase';
 import { logClientError } from '../utils/logClientError';
 
@@ -16,18 +15,11 @@ interface AuthState {
 let _listenerStarted = false;
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: AUTH_ENABLED ? null : DEV_MOCK_USER,
+  user: null,
   token: null,
-  loading: AUTH_ENABLED,
+  loading: true,
 
   init: () => {
-    if (!AUTH_ENABLED) {
-      if (_listenerStarted) return;
-      _listenerStarted = true;
-      set({ user: DEV_MOCK_USER, token: null, loading: false });
-      return;
-    }
-
     if (_listenerStarted) return;
     _listenerStarted = true;
 
@@ -62,7 +54,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   loginWithGoogle: async () => {
-    if (!AUTH_ENABLED) return;
     const auth = await getFirebaseAuth();
     if (!auth) {
       throw new Error('Firebase is not configured. Set VITE_FIREBASE_* in frontend .env.');
@@ -72,10 +63,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    if (!AUTH_ENABLED) {
-      set({ user: DEV_MOCK_USER, token: null, loading: false });
-      return;
-    }
     const auth = await getFirebaseAuth();
     if (auth) {
       await signOut(auth);

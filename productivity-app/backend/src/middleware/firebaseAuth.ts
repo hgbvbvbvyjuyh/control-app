@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from 'express';
-import { AUTH_ENABLED, DEV_AUTH_USER_ID } from '../config/authFlags';
 import { getAdminAuth, isFirebaseAdminReady } from '../firebaseAdmin';
 
 export interface AuthedRequest extends Request {
@@ -10,12 +9,6 @@ export async function firebaseAuthMiddleware(req: AuthedRequest, res: Response, 
   try {
     // Allow health check through.
     if (req.path === '/health') {
-      next();
-      return;
-    }
-
-    if (!AUTH_ENABLED) {
-      req.userId = DEV_AUTH_USER_ID;
       next();
       return;
     }

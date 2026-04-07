@@ -1,6 +1,5 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, setPersistence, browserLocalPersistence, type Auth } from 'firebase/auth';
-import { AUTH_ENABLED } from './config/authFlags';
 
 function trimEnv(value: unknown): string {
   if (value === undefined || value === null) return '';
@@ -41,13 +40,6 @@ let _auth: Auth | null = null;
 export function getFirebaseApp(): FirebaseApp | null {
   if (_app) return _app;
 
-  if (!AUTH_ENABLED) {
-    if (import.meta.env.DEV) {
-      console.info('[firebase] Skipping init (VITE_AUTH_ENABLED=false)');
-    }
-    return null;
-  }
-
   const missing = getMissingRequiredEnvNames();
   if (missing.length > 0) {
     console.error('[firebase] init skipped: missing or empty env →', missing.join(', '));
@@ -76,10 +68,6 @@ export function getFirebaseApp(): FirebaseApp | null {
 
 export async function getFirebaseAuth(): Promise<Auth | null> {
   if (_auth) return _auth;
-
-  if (!AUTH_ENABLED) {
-    return null;
-  }
 
   const app = getFirebaseApp();
   if (!app) {

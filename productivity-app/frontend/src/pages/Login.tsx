@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirebaseAuth } from '../firebase';
 import { useAuthStore } from '../stores/authStore';
@@ -7,6 +7,7 @@ import { formatFirebaseAuthError } from '../utils/firebaseAuthError';
 
 export const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading, loginWithGoogle } = useAuthStore();
 
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -14,6 +15,10 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    setMode(location.pathname === '/signup' ? 'signup' : 'login');
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -73,7 +78,7 @@ export const Login = () => {
         <div className="flex gap-2 mb-6">
           <button
             type="button"
-            onClick={() => setMode('login')}
+            onClick={() => navigate('/login', { replace: true })}
             className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-300 ${
               mode === 'login'
                 ? 'bg-secondary/15 border-secondary/30 text-white'
@@ -84,7 +89,7 @@ export const Login = () => {
           </button>
           <button
             type="button"
-            onClick={() => setMode('signup')}
+            onClick={() => navigate('/signup', { replace: true })}
             className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-300 ${
               mode === 'signup'
                 ? 'bg-secondary/15 border-secondary/30 text-white'
