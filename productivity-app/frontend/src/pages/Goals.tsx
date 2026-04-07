@@ -53,7 +53,7 @@ export const Goals = () => {
   } = useGoalStore();
   const { add: addJournal, load: loadJournals } = useJournalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
-  const { sessions, load: loadSessions, remove: removeSession } = useSessionStore();
+  const { sessions, load: loadSessions } = useSessionStore();
   const {
     byGoalId: simpleSessionsByGoal,
     loadForGoal: loadSimpleSessionsForGoal,
@@ -362,9 +362,6 @@ export const Goals = () => {
     navigate(`/session?goalId=${gid}`);
   };
 
-  const goalSessions = selectedGoal
-    ? sessions.filter(s => String(s.goalId) === String(selectedGoal.id))
-    : [];
   const activeGoalsInCategory =
     activeCategory !== null
       ? getActiveGoals(goals).filter(g => g.goalType === activeCategory)
@@ -459,7 +456,11 @@ export const Goals = () => {
   };
 
   return (
-    <div className="flex flex-1 min-h-0 h-full flex-col md:flex-row gap-6 w-full max-w-7xl mx-auto">
+    <div
+      className={`flex flex-1 min-h-0 h-full flex-col ${
+        activeCategory ? 'md:grid md:grid-cols-[minmax(340px,420px)_minmax(0,1fr)]' : ''
+      } gap-6 w-full max-w-none mx-auto`}
+    >
       <AnimatePresence>{showFwModal && <FrameworkModal open onClose={() => setShowFwModal(false)} />}</AnimatePresence>
       <GoalModal
         open={showGoalModal}
@@ -518,7 +519,7 @@ export const Goals = () => {
         <>
           {/* Goal List */}
           <div
-            className={`flex-1 h-full min-h-0 flex flex-col gap-3 overflow-y-auto no-scrollbar ${
+            className={`h-full min-h-0 flex flex-col gap-3 overflow-y-auto overflow-x-hidden no-scrollbar ${
               selectedGoalId ? 'max-md:hidden' : ''
             }`}
           >
@@ -557,7 +558,7 @@ export const Goals = () => {
                 onClick={() => select(goal.id!)}
               >
                 <AntiGravity
-                  className={`p-4 cursor-pointer border rounded-[20px] transition-all duration-300 ${
+                  className={`mx-1 p-4 cursor-pointer border rounded-[20px] transition-all duration-300 ${
                     String(selectedGoalId) === String(goal.id) 
                       ? 'border-primary/50 bg-primary/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_20px_rgba(59,130,246,0.15)] scale-[1.02]' 
                       : `border-white/5 bg-surface/30 backdrop-blur-md hover:border-white/20 hover:bg-surface/40 hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:scale-[1.01] ${
@@ -664,7 +665,7 @@ export const Goals = () => {
           </div>
 
           <div
-            className={`flex-1 h-full min-h-0 flex-col bg-surface/40 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-y-auto no-scrollbar relative overflow-hidden md:rounded-3xl ${
+            className={`flex-1 min-w-0 h-full min-h-0 flex-col bg-surface/40 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-y-auto no-scrollbar relative overflow-hidden md:rounded-3xl ${
               selectedGoalId
                 ? 'flex max-md:fixed max-md:inset-0 max-md:z-[60] max-md:rounded-none'
                 : 'hidden md:flex'
@@ -1054,82 +1055,6 @@ export const Goals = () => {
                 </div>
               </div>
               )}
-
-              {/* Session History */}
-              {selectedGoal.goalType === 'daily' && (
-              <div>
-                <h3 className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">Session History</h3>
-                {goalSessions.length === 0 && (
-                  <p className="text-secondary text-sm text-center py-4">No sessions yet. Click "+ Session" to start.</p>
-                )}
-                <div className="flex flex-col gap-2">
-                  {goalSessions.map((s, i) => (
-                    <motion.div
-                      key={s.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="bg-background/50 rounded-xl border border-secondary/20 p-3"
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-text">
-                            {s.status === 'completed' 
-                              ? (s.didAchieveGoal ? '🎯 Goal Achieved' : '⭕ Goal Not Achieved')
-                              : s.status === 'skipped' ? '↷ Session Skipped' : '⚡ Active Session'}
-                          </span>
-                          <span className="text-[10px] text-secondary/60">{new Date(s.startTime).toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const sid = s.id!;
-                              confirm(
-                                'Delete Session',
-                                'Move this session history record to the trash?',
-                                async () => {
-                                  try {
-                                    await removeSession(sid);
-                                    showToast('Session moved to trash', 'info');
-                                  } catch (err) {
-                                    logClientError('Goals.removeSession', err, { sessionId: sid });
-                                    showToast('Could not delete session', 'error');
-                                  }
-                                }
-                              );
-                            }}
-                            className="text-error/30 hover:text-error text-xs p-3 transition-all duration-300 relative z-10"
-                          >
-                            ✕
-                          </button>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase shrink-0 ${
-                            s.status === 'completed' ? (s.didAchieveGoal ? 'bg-success/10 text-success' : 'bg-error/10 text-error') :
-                            s.status === 'skipped' ? 'bg-secondary/10 text-secondary' :
-                            s.status === 'active' ? 'bg-accent/10 text-accent' :
-                            'bg-secondary/10 text-secondary'
-                          }`}>{s.status}</span>
-                        </div>
-                      </div>
-                      {(s.mistake || s.improvementSuggestion || s.skipReason) && (
-                        <div className="mt-2 grid grid-cols-1 gap-1 text-xs">
-                          {s.mistake && <span><span className="text-error/70 font-semibold">Mistake: </span>{s.mistake}</span>}
-                          {s.improvementSuggestion && <span><span className="text-accent/70 font-semibold">Improvement: </span>{s.improvementSuggestion}</span>}
-                          {s.skipReason && <span><span className="text-secondary font-semibold">Skip Reason: </span>{s.skipReason}</span>}
-                        </div>
-                      )}
-                      {s.endTime && (
-                        <div className="flex gap-4 mt-2 text-[10px] text-secondary/50">
-                          <span>Duration {Math.round((s.endTime - s.startTime) / 60000)}min</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-              )}
-
 
               {/* Goal Action Buttons */}
               <div className="mt-auto pt-6 border-t border-white/10">

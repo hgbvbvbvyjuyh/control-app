@@ -54,12 +54,6 @@ export const Layout = () => {
   }, [profileMenuOpen]);
 
   useEffect(() => {
-    if (!settingsOpen) return;
-    setProfileName(user?.displayName || '');
-    setProfileEmail(user?.email || '');
-  }, [settingsOpen, user?.displayName, user?.email]);
-
-  useEffect(() => {
     void (async () => {
       await pageTransition.set({ opacity: 0, y: 10 });
       await pageTransition.start({
@@ -203,12 +197,14 @@ export const Layout = () => {
             initial={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex items-center gap-3 mb-8 px-2"
+            className="flex items-center gap-3 mb-8"
           >
-            <img src="/logo.svg" alt={APP_NAME} className="w-8 h-8 rounded-lg bg-cyan-500/20 p-1" />
-            <div>
-              <h1 className="text-white font-semibold">{APP_NAME}</h1>
-              <p className="text-xs text-white/40">v1.0.4</p>
+            <div className="w-9 h-9 rounded-lg border border-white/15 bg-white/[0.02] flex items-center justify-center p-1.5">
+              <img src="/logo.svg" alt={APP_NAME} className="w-full h-full object-contain" />
+            </div>
+            <div className="flex flex-col justify-center leading-none">
+              <span className="text-[1.02rem] text-white/90 font-semibold tracking-tight">Yourself</span>
+              <span className="text-[0.66rem] text-white/55 font-medium tracking-[0.02em] mt-1">control your life.</span>
             </div>
           </motion.div>
 
@@ -262,6 +258,8 @@ export const Layout = () => {
                     type="button"
                     onClick={() => {
                       setProfileMenuOpen(false);
+                      setProfileName(user?.displayName || '');
+                      setProfileEmail(user?.email || '');
                       setSettingsOpen(true);
                     }}
                     className="w-full px-3 py-2 rounded-lg text-left text-sm text-secondary hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center gap-2"
@@ -411,7 +409,7 @@ export const Layout = () => {
           <motion.div
             animate={pageTransition}
             initial={false}
-            className={`pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex-1 flex flex-col h-full min-h-0`}
+            className={`pt-6 md:pt-8 px-10 md:pl-16 md:pr-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex-1 flex flex-col h-full min-h-0`}
           >
             <Outlet />
           </motion.div>
