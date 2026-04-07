@@ -396,17 +396,18 @@ export const Layout = () => {
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
         
         <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col h-full min-h-0">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 12, scale: 0.99 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -12, scale: 0.99 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ 
-                duration: 0.45, 
+                duration: 0.28,
                 ease: [0.22, 1, 0.36, 1] 
               }}
-              className={`pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex-1 flex flex-col h-full min-h-0 origin-top`}
+              style={{ willChange: 'opacity, transform' }}
+              className={`absolute inset-0 pt-6 md:pt-8 px-10 md:px-16 ${location.pathname === '/' ? 'pb-0' : 'pb-10 md:pb-16'} max-w-[1600px] mx-auto w-full flex flex-col h-full min-h-0 origin-top overflow-y-auto no-scrollbar`}
             >
               <Outlet />
             </motion.div>
