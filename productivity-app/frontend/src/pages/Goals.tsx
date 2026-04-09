@@ -75,7 +75,6 @@ export const Goals = () => {
   const [planDraft, setPlanDraft] = useState<GoalPlanData | null>(null);
   const [simpleSessionPlanOpenId, setSimpleSessionPlanOpenId] = useState<string | null>(null);
   const [simpleSessionPlanText, setSimpleSessionPlanText] = useState('');
-  const [simpleSessionFrameworkPickerOpenId, setSimpleSessionFrameworkPickerOpenId] = useState<string | null>(null);
 
   // ── Goal journal modal state ──
   const [journalModalOpen, setJournalModalOpen] = useState(false);
@@ -316,14 +315,6 @@ export const Goals = () => {
     const goalId = String(goal.id);
     const currentTitle = String(goal.title || 'Unknown');
     setInlineTitleEditByGoalId(prev => ({ ...prev, [goalId]: currentTitle }));
-  };
-
-  const buildSimpleSessionTemplateFromFramework = (frameworkId: string): string => {
-    const fw = frameworks.find(f => String(f.id) === String(frameworkId));
-    if (!fw || fw.keys.length === 0) return '';
-    return fw.keys
-      .map(k => `${k.label || k.key}:`)
-      .join('\n');
   };
 
   const saveInlineTitleEdit = async (goal: Goal) => {
@@ -906,7 +897,6 @@ export const Goals = () => {
                             onClick={() => {
                               if (simpleSessionPlanOpenId === s.id) {
                                 setSimpleSessionPlanOpenId(null);
-                                setSimpleSessionFrameworkPickerOpenId(null);
                               } else {
                                 setSimpleSessionPlanText(s.note || '');
                                 setSimpleSessionPlanOpenId(s.id);
@@ -1030,7 +1020,7 @@ export const Goals = () => {
                             className="p-3 rounded-lg border border-secondary/20 bg-background/50"
                           >
                             <div className="flex justify-between text-sm">
-                              <span>{s.duration ? `${s.duration} min` : 'Session'}</span>
+                              <span>{('workMinutes' in s && s.workMinutes) ? `${s.workMinutes} min` : 'Session'}</span>
                               <span className="text-secondary/70">
                                 {new Date(s.endTime || s.startTime).toLocaleDateString()}
                               </span>
