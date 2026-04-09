@@ -972,44 +972,7 @@ export const Goals = () => {
                             >
                               Save
                             </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setSimpleSessionFrameworkPickerOpenId(prev =>
-                                  prev === s.id ? null : s.id
-                                )
-                              }
-                              className={`${BTN_SECONDARY} text-xs py-1.5`}
-                            >
-                              Select Framework
-                            </button>
                           </div>
-                          {simpleSessionFrameworkPickerOpenId === s.id && (
-                            <select
-                              value=""
-                              onChange={e => {
-                                const frameworkId = e.target.value;
-                                if (!frameworkId) return;
-                                const template = buildSimpleSessionTemplateFromFramework(frameworkId);
-                                setSimpleSessionPlanText(template);
-                              }}
-                              className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-text"
-                            >
-                              <option value="">Select Framework</option>
-                              {frameworks.map(f => (
-                                <option key={f.id} value={String(f.id)}>
-                                  {f.name}
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                          <button
-                            type="button"
-                            onClick={handleStartSessionUI}
-                            className="bg-accent text-background font-bold text-xs py-1.5 px-3 rounded-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] transition-shadow"
-                          >
-                            Start
-                          </button>
                         </div>
                       )}
                       {s.status === 'pending' && (
@@ -1052,6 +1015,35 @@ export const Goals = () => {
                       )}
                     </motion.div>
                   ))}
+                </div>
+                <div className="mt-6 pt-6 border-t border-white/10">
+                  <h3 className="text-xs tracking-wide text-secondary mb-3">
+                    SESSION HISTORY
+                  </h3>
+                  <div className="space-y-2">
+                    {sessions.filter(s => String(s.goalId) === String(selectedGoal.id)).length > 0 ? (
+                      sessions
+                        .filter(s => String(s.goalId) === String(selectedGoal.id))
+                        .map(s => (
+                          <div
+                            key={String(s.id)}
+                            className="p-3 rounded-lg border border-secondary/20 bg-background/50"
+                          >
+                            <div className="flex justify-between text-sm">
+                              <span>{s.duration ? `${s.duration} min` : 'Session'}</span>
+                              <span className="text-secondary/70">
+                                {new Date(s.endTime || s.startTime).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="text-xs mt-1 text-secondary">
+                              {s.status || (s.didAchieveGoal ? 'Completed' : 'Not Completed')}
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="text-sm text-secondary/70">No sessions yet</div>
+                    )}
+                  </div>
                 </div>
               </div>
               )}
