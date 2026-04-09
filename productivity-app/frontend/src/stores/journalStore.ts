@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { type JournalEntry } from '../db';
 import { api } from '../utils/api';
-import { getAllFromDB, saveToDB } from '../lib/persistence';
+import { saveToDB } from '../lib/persistence';
 
 interface JournalStore {
   entries: JournalEntry[];
@@ -37,7 +37,7 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
   add: async (type, date, content, goalId, category) => {
     const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId, category });
     await saveToDB('journals', created);
-    set({ entries: await getAllFromDB('journals') as JournalEntry[] });
+    set((state) => ({ entries: [...state.entries, created] }));
     return created;
   },
 

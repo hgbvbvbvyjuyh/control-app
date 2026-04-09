@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { type Goal } from '../db';
 import { api } from '../utils/api';
 import { logClientError } from '../utils/logClientError';
-import { getAllFromDB, saveToDB } from '../lib/persistence';
+import { db, saveToDB } from '../lib/persistence';
 
 interface GoalStore {
   goals: Goal[];
@@ -61,7 +61,7 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true, category = 'health', title) => {
     const created = await api.post<Goal>('/goals', { title, frameworkId, data, goalType, parentId, isIndependent, category });
     await saveToDB('goals', created);
-    set({ goals: await getAllFromDB('goals') as Goal[] });
+    set((state) => ({ goals: [...state.goals, created] }));
     return created;
   },
 
@@ -69,13 +69,23 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     // Default backend behavior is cascade delete, so reload after deletion
     // to remove the entire deleted subtree from local state.
     await api.delete(`/goals/${id}`);
-    void get().load();
+    const goalId = String(id);
+    await db.table('goals').delete(goalId);
+    set((state) => ({
+      goals: state.goals.filter((g) => String(g.id) !== goalId),
+      selectedGoalId: String(state.selectedGoalId) === goalId ? null : state.selectedGoalId,
+    }));
   },
 
   removeSingle: async (id) => {
     // Non-cascading delete: delete only this goal (no descendants).
     await api.delete(`/goals/${id}?cascade=false`);
-    void get().load();
+    const goalId = String(id);
+    await db.table('goals').delete(goalId);
+    set((state) => ({
+      goals: state.goals.filter((g) => String(g.id) !== goalId),
+      selectedGoalId: String(state.selectedGoalId) === goalId ? null : state.selectedGoalId,
+    }));
   },
 
   update: async (id, data, goalType, category, frameworkId, title) => {

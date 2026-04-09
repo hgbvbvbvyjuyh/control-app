@@ -5,7 +5,7 @@ import { api } from '../utils/api';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
 import { logClientError } from '../utils/logClientError';
 import { useGoalStore } from './goalStore';
-import { getAllFromDB, saveToDB } from '../lib/persistence';
+import { saveToDB } from '../lib/persistence';
 
 const SESSION_LOCK_KEY = 'active_productivity_session';
 
@@ -61,7 +61,7 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       
       const created = await api.post<Session>('/sessions', payload);
       await saveToDB('sessions', created);
-      set({ sessions: await getAllFromDB('sessions') as Session[] });
+      set((state) => ({ sessions: [...state.sessions, created] }));
       set({ activeSession: created });
       localStorage.setItem(SESSION_LOCK_KEY, JSON.stringify(created));
       return created;

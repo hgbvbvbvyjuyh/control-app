@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { type Failure } from '../db';
 import { api } from '../utils/api';
-import { getAllFromDB, saveToDB } from '../lib/persistence';
+import { saveToDB } from '../lib/persistence';
 
 interface FailureStore {
   failures: Failure[];
@@ -34,7 +34,7 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
       type === 'app' ? { type, linkedId: 0, note } : { type, linkedId, note };
     const created = await api.post<Failure>('/failures', payload);
     await saveToDB('failures', created);
-    set({ failures: await getAllFromDB('failures') as Failure[] });
+    set((state) => ({ failures: [...state.failures, created] }));
     return created;
   },
 
