@@ -5,12 +5,14 @@ import { api } from '../utils/api';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
 import { logClientError } from '../utils/logClientError';
 import { useGoalStore } from './goalStore';
+import { getAllFromDB, saveToDB } from '../lib/persistence';
 
 const SESSION_LOCK_KEY = 'active_productivity_session';
 
 interface SessionStore {
   activeSession: Session | null;
   sessions: Session[];
+  setSessions: (sessions: Session[]) => void;
   loading: boolean;
   load: () => Promise<void>;
   loadForGoal: (goalId: string) => Promise<Session[]>;
@@ -26,6 +28,7 @@ interface SessionStore {
 export const useSessionStore = create<SessionStore>((set, get) => ({
   activeSession: null,
   sessions: [],
+  setSessions: (sessions) => set({ sessions }),
   loading: false,
 
   load: async () => {
@@ -57,6 +60,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       if (restTime) payload.restTime = restTime;
       
       const created = await api.post<Session>('/sessions', payload);
+      await saveToDB('sessions', created);
+      set({ sessions: await getAllFromDB('sessions') as Session[] });
       set({ activeSession: created });
       localStorage.setItem(SESSION_LOCK_KEY, JSON.stringify(created));
       return created;

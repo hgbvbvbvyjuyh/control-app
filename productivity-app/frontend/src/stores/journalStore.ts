@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { type JournalEntry } from '../db';
 import { api } from '../utils/api';
+import { getAllFromDB, saveToDB } from '../lib/persistence';
 
 interface JournalStore {
   entries: JournalEntry[];
+  setJournals: (entries: JournalEntry[]) => void;
   loading: boolean;
   load: () => Promise<void>;
   loadByType: (type: JournalEntry['type']) => Promise<JournalEntry[]>;
@@ -14,6 +16,7 @@ interface JournalStore {
 
 export const useJournalStore = create<JournalStore>((set, get) => ({
   entries: [],
+  setJournals: (entries) => set({ entries }),
   loading: false,
 
   load: async () => {
@@ -33,7 +36,8 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
 
   add: async (type, date, content, goalId, category) => {
     const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId, category });
-    set({ entries: [created, ...get().entries] });
+    await saveToDB('journals', created);
+    set({ entries: await getAllFromDB('journals') as JournalEntry[] });
     return created;
   },
 

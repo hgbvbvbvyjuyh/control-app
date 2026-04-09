@@ -10,6 +10,11 @@ import { Login } from './pages/Login';
 import { useEffect } from 'react';
 import { useAuthStore } from './stores/authStore';
 import { Navigate } from 'react-router-dom';
+import { useGoalStore } from './stores/goalStore';
+import { useSessionStore } from './stores/sessionStore';
+import { useFailureStore } from './stores/failureStore';
+import { useJournalStore } from './stores/journalStore';
+import { getAllFromDB } from './lib/persistence';
 
 const AuthGate = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuthStore();
@@ -31,9 +36,36 @@ const AuthGate = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const { init } = useAuthStore();
+  const { setGoals } = useGoalStore();
+  const { setSessions } = useSessionStore();
+  const failureStore = useFailureStore();
+  const journalStore = useJournalStore();
+
   useEffect(() => {
     init();
   }, [init]);
+
+  useEffect(() => {
+    const hydrateFromIndexedDB = async () => {
+      const goals = await getAllFromDB('goals');
+      setGoals(goals);
+
+      const sessions = await getAllFromDB('sessions');
+      setSessions(sessions);
+
+      if ('setFailures' in failureStore && typeof failureStore.setFailures === 'function') {
+        const failures = await getAllFromDB('failures');
+        failureStore.setFailures(failures);
+      }
+
+      if ('setJournals' in journalStore && typeof journalStore.setJournals === 'function') {
+        const journals = await getAllFromDB('journals');
+        journalStore.setJournals(journals);
+      }
+    };
+
+    void hydrateFromIndexedDB();
+  }, [setGoals, setSessions, failureStore, journalStore]);
 
   return (
     <HashRouter>

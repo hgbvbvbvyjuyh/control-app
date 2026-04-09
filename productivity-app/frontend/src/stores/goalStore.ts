@@ -2,9 +2,11 @@ import { create } from 'zustand';
 import { type Goal } from '../db';
 import { api } from '../utils/api';
 import { logClientError } from '../utils/logClientError';
+import { getAllFromDB, saveToDB } from '../lib/persistence';
 
 interface GoalStore {
   goals: Goal[];
+  setGoals: (goals: Goal[]) => void;
   selectedGoalId: string | null;
   loading: boolean;
   /** Set when the last goals fetch failed (cleared on success). */
@@ -37,6 +39,7 @@ interface GoalStore {
 
 export const useGoalStore = create<GoalStore>((set, get) => ({
   goals: [],
+  setGoals: (goals) => set({ goals }),
   selectedGoalId: null,
   loading: false,
   loadError: null,
@@ -57,7 +60,8 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
 
   add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true, category = 'health', title) => {
     const created = await api.post<Goal>('/goals', { title, frameworkId, data, goalType, parentId, isIndependent, category });
-    set({ goals: [created, ...get().goals] });
+    await saveToDB('goals', created);
+    set({ goals: await getAllFromDB('goals') as Goal[] });
     return created;
   },
 

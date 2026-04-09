@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { type Failure } from '../db';
 import { api } from '../utils/api';
+import { getAllFromDB, saveToDB } from '../lib/persistence';
 
 interface FailureStore {
   failures: Failure[];
+  setFailures: (failures: Failure[]) => void;
   loading: boolean;
   load: () => Promise<void>;
   add: (type: 'session' | 'goal' | 'app', linkedId: string, note: string) => Promise<Failure>;
@@ -13,6 +15,7 @@ interface FailureStore {
 
 export const useFailureStore = create<FailureStore>((set, get) => ({
   failures: [],
+  setFailures: (failures) => set({ failures }),
   loading: false,
 
   load: async () => {
@@ -30,7 +33,8 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
     const payload =
       type === 'app' ? { type, linkedId: 0, note } : { type, linkedId, note };
     const created = await api.post<Failure>('/failures', payload);
-    set({ failures: [created, ...get().failures] });
+    await saveToDB('failures', created);
+    set({ failures: await getAllFromDB('failures') as Failure[] });
     return created;
   },
 
