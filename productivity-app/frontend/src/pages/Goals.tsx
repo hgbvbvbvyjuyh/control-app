@@ -17,7 +17,7 @@ import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle 
 import FrameworkFullView from '../components/FrameworkFullView';
 import { useExpand } from '../hooks/useExpand';
 
-import { getActiveGoals } from '../utils/goalListHelpers';
+ 
 
 const BTN_SECONDARY =
   'text-sm font-semibold px-4 py-2 rounded-xl border border-white/10 bg-surface/50 text-secondary hover:text-white hover:bg-surface/80 transition-all duration-300 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-surface/50';
@@ -138,7 +138,7 @@ export const Goals = () => {
     });
 
     // Update Zustand state immediately
-    setGoals(prev => prev.map((g) =>
+    setGoals((prev: Goal[]) => prev.map((g: Goal) =>
       String(g.id) === targetId ? { ...g, status: newStatus } : g
     ));
 

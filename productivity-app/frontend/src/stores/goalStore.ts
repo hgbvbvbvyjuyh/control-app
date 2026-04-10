@@ -6,7 +6,7 @@ import { db, saveToDB } from '../lib/persistence';
 
 interface GoalStore {
   goals: Goal[];
-  setGoals: (goals: Goal[]) => void;
+  setGoals: (goals: Goal[] | ((prev: Goal[]) => Goal[])) => void;
   selectedGoalId: string | null;
   loading: boolean;
   /** IDs of goals currently being deleted to prevent them from reappearing during load() */
