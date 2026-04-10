@@ -8,7 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { motion } from 'framer-motion';
 
 export type TrendDatum = { day: string; value: number };
 
