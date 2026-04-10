@@ -25,7 +25,6 @@ import {
   type GoalPlanData,
   childTypeForPlannedParent,
   emptyPlanForGoalType,
-  goalPlanDataEqual,
   hasChildOfType,
   isPlannableGoalType,
   parseGoalPlan,
