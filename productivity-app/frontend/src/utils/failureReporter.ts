@@ -21,7 +21,6 @@ export async function logUserFailure(input: {
   if (!linkedId) return;
   const msg = (input.message || '').trim();
   if (!msg) return;
-  const timestamp = input.timestamp ?? new Date().toISOString();
   const dedupeKey = `${input.type}|${linkedId}|${msg}`.slice(0, 280);
   const now = Date.now();
   cleanRecent(now);
