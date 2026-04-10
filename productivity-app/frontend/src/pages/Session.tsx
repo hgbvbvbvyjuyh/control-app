@@ -253,9 +253,9 @@ export const Session = () => {
   };
 
   const handleSkip = async () => {
-    const reason = window.prompt('Reason for skipping?');
-    if (reason !== null) {
-      await skip(reason);
+    const ok = window.confirm('Are you sure you want to skip this session?');
+    if (ok) {
+      await skip('User skipped');
       navigate('/goals');
     }
   };
@@ -520,10 +520,10 @@ export const Session = () => {
       {/* Focus Mode Toggle */}
       <button 
         onClick={() => setIsFocusMode(!isFocusMode)}
-        className="fixed bottom-32 md:bottom-10 left-10 text-[10px] font-black text-secondary hover:text-accent transition-all duration-300 uppercase tracking-[0.2em] z-50 flex items-center gap-2"
+        className="fixed bottom-32 md:bottom-10 left-10 md:left-80 text-[10px] font-black text-secondary hover:text-accent transition-all duration-300 uppercase tracking-[0.2em] z-50 flex items-center justify-center gap-2"
       >
         <div className={`w-8 h-4 rounded-full border border-white/20 relative transition-all duration-300 ${isFocusMode ? 'bg-accent/20' : 'bg-transparent'}`}>
-          <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all ${isFocusMode ? 'right-0.5 bg-accent shadow-[0_0_8px_cyan]' : 'left-0.5 bg-secondary'}`} />
+          <div className={`absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full transition-all ${isFocusMode ? 'right-0.5 bg-accent shadow-[0_0_8px_cyan]' : 'left-0.5 bg-secondary'}`} />
         </div>
         Focus Mode
       </button>
@@ -585,4 +585,3 @@ export const Session = () => {
     </div>
   );
 };
-

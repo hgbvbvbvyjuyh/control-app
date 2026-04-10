@@ -36,8 +36,8 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
 
   add: async (type, date, content, goalId, category) => {
     const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId, category });
-    await saveToDB('journals', created);
     set((state) => ({ entries: [...state.entries, created] }));
+    void saveToDB('journals', created);
     return created;
   },
 

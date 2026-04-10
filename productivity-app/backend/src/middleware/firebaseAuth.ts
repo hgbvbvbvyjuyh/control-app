@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { getAdminAuth, isFirebaseAdminReady } from '../firebaseAdmin';
+import { AUTH_ENABLED, DEV_AUTH_USER_ID } from '../config/authFlags';
 
 export interface AuthedRequest extends Request {
   userId?: string;
@@ -9,6 +10,12 @@ export async function firebaseAuthMiddleware(req: AuthedRequest, res: Response, 
   try {
     // Allow health check through.
     if (req.path === '/health') {
+      next();
+      return;
+    }
+
+    if (!AUTH_ENABLED) {
+      req.userId = DEV_AUTH_USER_ID;
       next();
       return;
     }
@@ -37,4 +44,3 @@ export async function firebaseAuthMiddleware(req: AuthedRequest, res: Response, 
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
-

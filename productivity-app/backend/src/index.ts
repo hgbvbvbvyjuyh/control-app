@@ -27,6 +27,14 @@ initFirebaseAdmin();
 // ---- Middleware ----
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[request] ${req.method} ${req.url} ${res.statusCode} ${duration}ms`);
+  });
+  next();
+});
 app.use('/api', clientTimezoneMiddleware);
 
 app.get('/health', (_req, res) => {

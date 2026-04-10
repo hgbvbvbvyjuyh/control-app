@@ -84,9 +84,10 @@ router.post('/:id/end', (req, res, next) => {
       res.status(400).json({ error: 'didAchieveGoal is required' }); return;
     }
 
+    const newStatus = didAchieveGoal ? 'completed' : 'failed';
     run(
-      `UPDATE sessions SET status = 'completed', endTime = ?, didAchieveGoal = ?, mistake = ?, improvementSuggestion = ? WHERE id = ?`,
-      [Date.now(), didAchieveGoal ? 1 : 0, mistake ?? null, improvementSuggestion ?? null, req.params['id']]
+      `UPDATE sessions SET status = ?, endTime = ?, didAchieveGoal = ?, mistake = ?, improvementSuggestion = ? WHERE id = ?`,
+      [newStatus, Date.now(), didAchieveGoal ? 1 : 0, mistake ?? null, improvementSuggestion ?? null, req.params['id']]
     );
 
     if (didAchieveGoal === false || didAchieveGoal === 0) {

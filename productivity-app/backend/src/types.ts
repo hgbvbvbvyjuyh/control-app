@@ -31,7 +31,7 @@ export interface Session {
   goalId: number;
   startTime: number;    // timestamp ms
   endTime?: number;      // timestamp ms
-  status: 'active' | 'completed' | 'skipped';
+  status: 'active' | 'completed' | 'skipped' | 'failed';
   didAchieveGoal?: boolean;
   mistake?: string;
   improvementSuggestion?: string;

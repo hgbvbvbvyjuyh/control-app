@@ -30,12 +30,19 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
   },
 
   add: async (type, linkedId, note) => {
+    console.log('[failureStore] add called:', { type, linkedId, note });
     const payload =
       type === 'app' ? { type, linkedId: 0, note } : { type, linkedId, note };
-    const created = await api.post<Failure>('/failures', payload);
-    await saveToDB('failures', created);
-    set((state) => ({ failures: [...state.failures, created] }));
-    return created;
+    try {
+      const created = await api.post<Failure>('/failures', payload);
+      console.log('[failureStore] add success:', created);
+      set((state) => ({ failures: [...state.failures, created] }));
+      void saveToDB('failures', created);
+      return created;
+    } catch (error) {
+      console.error('[failureStore] add failed:', error);
+      throw error;
+    }
   },
 
   remove: async (id) => {

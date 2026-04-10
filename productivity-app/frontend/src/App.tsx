@@ -47,19 +47,18 @@ function App() {
 
   useEffect(() => {
     const hydrateFromIndexedDB = async () => {
-      const goals = await getAllFromDB('goals');
+      const [goals, sessions, failures, journals] = await Promise.all([
+        getAllFromDB('goals'),
+        getAllFromDB('sessions'),
+        getAllFromDB('failures'),
+        getAllFromDB('journals'),
+      ]);
       setGoals(goals);
-
-      const sessions = await getAllFromDB('sessions');
       setSessions(sessions);
-
       if ('setFailures' in failureStore && typeof failureStore.setFailures === 'function') {
-        const failures = await getAllFromDB('failures');
         failureStore.setFailures(failures);
       }
-
       if ('setJournals' in journalStore && typeof journalStore.setJournals === 'function') {
-        const journals = await getAllFromDB('journals');
         journalStore.setJournals(journals);
       }
     };

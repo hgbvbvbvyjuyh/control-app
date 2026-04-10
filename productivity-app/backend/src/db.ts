@@ -1,81 +1,62 @@
 import fs from 'fs';
 import path from 'path';
-import initSqlJs, { type Database, type QueryExecResult } from 'sql.js';
+import Database from 'better-sqlite3';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const dbPath = path.resolve(process.env['DB_PATH'] ?? './productivity.db');
 
-// ---- Synchronous-style wrapper over sql.js ----
-// sql.js is in-memory; we persist to disk after every write.
+// ---- Synchronous-style wrapper over better-sqlite3 ----
 
-let _db: Database;
+let _db: Database.Database;
 
-export function getDb(): Database {
+export function getDb(): Database.Database {
   return _db;
-}
-
-function save() {
-  const data = _db.export();
-  fs.writeFileSync(dbPath, Buffer.from(data));
 }
 
 /** Run a SELECT and return all rows as plain objects */
 export function queryAll<T = Record<string, unknown>>(sql: string, params: unknown[] = []): T[] {
-  const results: QueryExecResult[] = _db.exec(sql, params as (string | number | null | Uint8Array)[]);
-  if (!results.length || !results[0]) return [];
-  const cols = results[0].columns;
-  return results[0].values.map(row => {
-    const obj: Record<string, unknown> = {};
-    cols.forEach((col, i) => { obj[col] = row[i] ?? null; });
-    return obj as T;
-  });
+  const stmt = _db.prepare(sql);
+  return stmt.all(params) as T[];
 }
 
 /** Run a SELECT and return a single row or undefined */
 export function queryOne<T = Record<string, unknown>>(sql: string, params: unknown[] = []): T | undefined {
-  const rows = queryAll<T>(sql, params);
-  return rows[0];
+  const stmt = _db.prepare(sql);
+  return stmt.get(params) as T | undefined;
 }
 
-/** Run an INSERT/UPDATE/DELETE and return { lastInsertRowid, changes }. Saves to disk. */
+/** Run an INSERT/UPDATE/DELETE and return { lastInsertRowid, changes }. */
 export function run(sql: string, params: unknown[] = []): { lastInsertRowid: number; changes: number } {
-  _db.run(sql, params as (string | number | null | Uint8Array)[]);
-  const lastId = queryOne<{ id: number }>('SELECT last_insert_rowid() as id');
-  const changes = queryOne<{ c: number }>('SELECT changes() as c');
-  save();
+  const stmt = _db.prepare(sql);
+  const info = stmt.run(params);
   return {
-    lastInsertRowid: lastId?.id ?? 0,
-    changes: changes?.c ?? 0,
+    lastInsertRowid: Number(info.lastInsertRowid),
+    changes: info.changes,
   };
 }
 
 /** Run a multi-statement SQL block (no params). Used for schema creation. */
 export function exec(sql: string) {
-  _db.run(sql);
-  save();
+  _db.exec(sql);
 }
 
 // ---- Initialise (async, called once at startup) ----
 export async function initDb() {
-  const SQL = await initSqlJs();
+  const dbDir = path.dirname(dbPath);
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
 
-  if (fs.existsSync(dbPath)) {
-    const fileContent = fs.readFileSync(dbPath);
-    _db = new SQL.Database(fileContent);
-    if (process.env['NODE_ENV'] !== 'production') {
-      console.log(`Database loaded from: ${dbPath}`);
-    }
-  } else {
-    _db = new SQL.Database();
-    if (process.env['NODE_ENV'] !== 'production') {
-      console.log(`New database created at: ${dbPath}`);
-    }
+  _db = new Database(dbPath);
+
+  if (process.env['NODE_ENV'] !== 'production') {
+    console.log(`Database connected at: ${dbPath}`);
   }
 
   // ---- Base schema (idempotent) ----
-  _db.run(`
+  _db.exec(`
     CREATE TABLE IF NOT EXISTS frameworks (
       id        INTEGER PRIMARY KEY AUTOINCREMENT,
       name      TEXT    NOT NULL,
@@ -177,7 +158,7 @@ export async function initDb() {
 
   // ---- Idempotent column migrations (for existing databases) ----
   const safeAlter = (sql: string) => {
-    try { _db.run(sql); } catch { /* column already exists */ }
+    try { _db.exec(sql); } catch { /* column already exists */ }
   };
 
   // Goals table migrations
@@ -219,7 +200,7 @@ export async function initDb() {
     const cols = queryAll<{ name: string; notnull: number }>('PRAGMA table_info(goals)');
     const fwCol = cols.find(c => c.name === 'frameworkId');
     if (fwCol && Number(fwCol.notnull) === 1) {
-      _db.run(`
+      _db.exec(`
         CREATE TABLE goals_new (
           id            INTEGER PRIMARY KEY AUTOINCREMENT,
           title         TEXT    NOT NULL DEFAULT 'Unknown',
@@ -238,7 +219,7 @@ export async function initDb() {
           progressHasData INTEGER NOT NULL DEFAULT 1
         );
       `);
-      _db.run(`
+      _db.exec(`
         INSERT INTO goals_new (
           id, title, frameworkId, goalType, parentId, isIndependent, category,
           data, progress, status, completedAt, createdAt, updatedAt, deletedAt, progressHasData
@@ -249,8 +230,8 @@ export async function initDb() {
           COALESCE(progressHasData, 1)
         FROM goals;
       `);
-      _db.run('DROP TABLE goals');
-      _db.run('ALTER TABLE goals_new RENAME TO goals');
+      _db.exec('DROP TABLE goals');
+      _db.exec('ALTER TABLE goals_new RENAME TO goals');
     }
   } catch (err) {
     console.error('Failed to migrate goals.frameworkId nullability:', err);
@@ -344,6 +325,4 @@ export async function initDb() {
       console.log('Seeded default journal questions.');
     }
   }
-
-  save();
 }

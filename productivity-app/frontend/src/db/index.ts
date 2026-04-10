@@ -35,7 +35,7 @@ export interface Session {
   goalId: string;
   startTime: number;
   endTime?: number;
-  status: 'active' | 'completed' | 'skipped';
+  status: 'active' | 'completed' | 'skipped' | 'failed';
   didAchieveGoal?: boolean;
   mistake?: string;
   improvementSuggestion?: string;

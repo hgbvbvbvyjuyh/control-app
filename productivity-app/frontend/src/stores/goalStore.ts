@@ -9,6 +9,8 @@ interface GoalStore {
   setGoals: (goals: Goal[]) => void;
   selectedGoalId: string | null;
   loading: boolean;
+  /** IDs of goals currently being deleted to prevent them from reappearing during load() */
+  deletingIds: Set<string>;
   /** Set when the last goals fetch failed (cleared on success). */
   loadError: string | null;
   clearLoadError: () => void;
@@ -42,6 +44,7 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   setGoals: (goals) => set({ goals }),
   selectedGoalId: null,
   loading: false,
+  deletingIds: new Set(),
   loadError: null,
 
   clearLoadError: () => set({ loadError: null }),
@@ -49,8 +52,20 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   load: async () => {
     set({ loading: true, loadError: null });
     try {
-      const goals = await api.get<Goal[]>('/goals');
-      set({ goals, loading: false, loadError: null });
+      const serverGoals = await api.get<Goal[]>('/goals');
+      set((state) => {
+        // Preserve optimistic goals that are still pending
+        const optimisticGoals = state.goals.filter((g) => String(g.id).startsWith('local-'));
+        
+        // Filter out goals that are currently being deleted
+        const filteredServerGoals = serverGoals.filter(g => !state.deletingIds.has(String(g.id)));
+
+        return {
+          goals: [...optimisticGoals, ...filteredServerGoals],
+          loading: false,
+          loadError: null,
+        };
+      });
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       logClientError('goalStore.load', error);
@@ -59,33 +74,123 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   },
 
   add: async (frameworkId, data, goalType = 'daily', parentId = null, isIndependent = true, category = 'health', title) => {
-    const created = await api.post<Goal>('/goals', { title, frameworkId, data, goalType, parentId, isIndependent, category });
-    await saveToDB('goals', created);
-    set((state) => ({ goals: [...state.goals, created] }));
-    return created;
+    const now = Date.now();
+    const localId = `local-${now}`;
+    const localGoal: Goal = {
+      id: localId,
+      title,
+      frameworkId,
+      data,
+      goalType,
+      parentId,
+      isIndependent,
+      category,
+      progress: 0,
+      status: 'active',
+      completedAt: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Optimistic update
+    set((state) => ({ goals: [localGoal, ...state.goals] }));
+    void saveToDB('goals', localGoal);
+
+    try {
+      const created = await api.post<Goal>('/goals', {
+        title,
+        frameworkId,
+        data,
+        goalType,
+        parentId,
+        isIndependent,
+        category,
+      });
+
+      // Replace local goal with server response, but preserve the local ID for key stability
+      set((state) => {
+        const isAlreadyInList = state.goals.some(g => String(g.id) === String(created.id));
+        if (isAlreadyInList) {
+          // If load() already brought this goal in, just remove the optimistic one
+          return {
+            goals: state.goals.filter(g => g.id !== localId),
+            selectedGoalId: state.selectedGoalId === localId ? String(created.id) : state.selectedGoalId,
+          };
+        }
+        return {
+          goals: state.goals.map((g) => (g.id === localId ? { ...created, id: localId, realId: created.id } : g)),
+          selectedGoalId: state.selectedGoalId === localId ? localId : state.selectedGoalId,
+        };
+      });
+
+      // A bit later, swap to the real ID to finalize (if it's still local)
+      setTimeout(() => {
+        set((state) => ({
+          goals: state.goals.map((g) => (g.id === localId ? created : g)),
+          selectedGoalId: state.selectedGoalId === localId ? String(created.id) : state.selectedGoalId,
+        }));
+      }, 1000);
+
+      // Cleanup IndexedDB
+      void db.table('goals').delete(localId);
+      void saveToDB('goals', created);
+
+      return created;
+    } catch (error) {
+      // Rollback on failure
+      set((state) => ({
+        goals: state.goals.filter((g) => g.id !== localId),
+      }));
+      void db.table('goals').delete(localId);
+      logClientError('goalStore.add', error);
+      throw error;
+    }
   },
 
   remove: async (id) => {
-    // Default backend behavior is cascade delete, so reload after deletion
-    // to remove the entire deleted subtree from local state.
-    await api.delete(`/goals/${id}`);
     const goalId = String(id);
-    await db.table('goals').delete(goalId);
-    set((state) => ({
-      goals: state.goals.filter((g) => String(g.id) !== goalId),
-      selectedGoalId: String(state.selectedGoalId) === goalId ? null : state.selectedGoalId,
-    }));
+    set((state) => {
+      const nextDeleting = new Set(state.deletingIds);
+      nextDeleting.add(goalId);
+      return {
+        goals: state.goals.filter((g) => String(g.id) !== goalId),
+        selectedGoalId: String(state.selectedGoalId) === goalId ? null : state.selectedGoalId,
+        deletingIds: nextDeleting,
+      };
+    });
+    void db.table('goals').delete(goalId);
+    try {
+      await api.delete(`/goals/${id}`);
+    } finally {
+      set((state) => {
+        const nextDeleting = new Set(state.deletingIds);
+        nextDeleting.delete(goalId);
+        return { deletingIds: nextDeleting };
+      });
+    }
   },
 
   removeSingle: async (id) => {
-    // Non-cascading delete: delete only this goal (no descendants).
-    await api.delete(`/goals/${id}?cascade=false`);
     const goalId = String(id);
-    await db.table('goals').delete(goalId);
-    set((state) => ({
-      goals: state.goals.filter((g) => String(g.id) !== goalId),
-      selectedGoalId: String(state.selectedGoalId) === goalId ? null : state.selectedGoalId,
-    }));
+    set((state) => {
+      const nextDeleting = new Set(state.deletingIds);
+      nextDeleting.add(goalId);
+      return {
+        goals: state.goals.filter((g) => String(g.id) !== goalId),
+        selectedGoalId: String(state.selectedGoalId) === goalId ? null : state.selectedGoalId,
+        deletingIds: nextDeleting,
+      };
+    });
+    void db.table('goals').delete(goalId);
+    try {
+      await api.delete(`/goals/${id}?cascade=false`);
+    } finally {
+      set((state) => {
+        const nextDeleting = new Set(state.deletingIds);
+        nextDeleting.delete(goalId);
+        return { deletingIds: nextDeleting };
+      });
+    }
   },
 
   update: async (id, data, goalType, category, frameworkId, title) => {

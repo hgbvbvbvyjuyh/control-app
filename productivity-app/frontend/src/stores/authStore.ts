@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { onAuthStateChanged, type User, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirebaseAuth } from '../firebase';
 import { logClientError } from '../utils/logClientError';
+import { AUTH_ENABLED, DEV_MOCK_USER } from '../config/authFlags';
 
 interface AuthState {
   user: User | null;
@@ -22,6 +23,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   init: () => {
     if (_listenerStarted) return;
     _listenerStarted = true;
+
+    if (!AUTH_ENABLED) {
+      set({ user: DEV_MOCK_USER, token: 'mock-dev-token', loading: false });
+      return;
+    }
 
     void (async () => {
       try {

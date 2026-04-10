@@ -5,7 +5,7 @@ import { api } from '../utils/api';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
 import { logClientError } from '../utils/logClientError';
 import { useGoalStore } from './goalStore';
-import { saveToDB } from '../lib/persistence';
+import { saveToDB, getAllFromDB } from '../lib/persistence';
 
 const SESSION_LOCK_KEY = 'active_productivity_session';
 
@@ -20,7 +20,7 @@ interface SessionStore {
   end: (didAchieveGoal: boolean, mistake?: string, improvementSuggestion?: string) => Promise<void>;
   skip: (reason: string) => Promise<void>;
   tick: () => void;
-  restoreSession: () => void;
+  restoreSession: () => Promise<void>;
   resetSession: () => void;
   remove: (id: string) => Promise<void>;
 }
@@ -41,7 +41,12 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         .minus({ days: 14 })
         .toMillis();
       const sessions = await api.get<Session[]>(`/sessions?since=${since}`);
-      set({ sessions, loading: false });
+      
+      // Per point 1: Define active session separately.
+      // Since it's from API, we trust the status is correct.
+      const activeSession = sessions.find(s => s.status === 'active') || null;
+      
+      set({ sessions, activeSession, loading: false });
     } catch (error) {
       console.error('Failed to load sessions:', error);
       set({ loading: false });
@@ -54,16 +59,23 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
   start: async (goalId: string, frameworkData?: Record<string, string>, workTime?: number, restTime?: number) => {
     try {
+      // Check for active session before starting
+      const active = await api.get<Session | null>('/sessions/active');
+      if (active) {
+        set({ activeSession: active });
+        throw new Error('Another session is already active. Redirecting...');
+      }
+
       const payload: Record<string, unknown> = { goalId };
       if (frameworkData) payload.frameworkData = JSON.stringify(frameworkData);
       if (workTime) payload.workTime = workTime;
       if (restTime) payload.restTime = restTime;
       
       const created = await api.post<Session>('/sessions', payload);
-      await saveToDB('sessions', created);
       set((state) => ({ sessions: [...state.sessions, created] }));
       set({ activeSession: created });
       localStorage.setItem(SESSION_LOCK_KEY, JSON.stringify(created));
+      void saveToDB('sessions', created);
       return created;
     } catch (error) {
       console.error('Failed to start session:', error);
@@ -82,6 +94,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         improvementSuggestion
       });
       set({ activeSession: null, sessions: [updated, ...get().sessions] });
+      // Point 3 & 4: Ensure it's not active anymore and saved to DB
+      void saveToDB('sessions', updated);
       localStorage.removeItem(SESSION_LOCK_KEY);
       void useGoalStore.getState().load();
     } catch (error) {
@@ -98,6 +112,8 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         skipReason: reason
       });
       set({ activeSession: null, sessions: [updated, ...get().sessions] });
+      // Point 4: Ensure it's not active anymore and saved to DB
+      void saveToDB('sessions', updated);
       localStorage.removeItem(SESSION_LOCK_KEY);
       void useGoalStore.getState().load();
     } catch (error) {
@@ -110,16 +126,33 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     // since we use server-side start/end times.
   },
 
-  restoreSession: () => {
-    const saved = localStorage.getItem(SESSION_LOCK_KEY);
-    if (saved) {
-      try {
-        const session = JSON.parse(saved);
-        set({ activeSession: session });
-      } catch (err) {
-        logClientError('sessionStore.restoreSession.parse', err);
-        localStorage.removeItem(SESSION_LOCK_KEY);
+  restoreSession: async () => {
+    try {
+      // 1. First, check with the backend for a truly active session.
+      // This ensures we are in sync with the source of truth (the server).
+      const activeFromServer = await api.get<Session | null>('/sessions/active');
+      
+      if (activeFromServer) {
+        set({ activeSession: activeFromServer });
+        void saveToDB('sessions', activeFromServer);
+        localStorage.setItem(SESSION_LOCK_KEY, JSON.stringify(activeFromServer));
+        return;
       }
+
+      // 2. If the server says there's no active session, we MUST clear our local active state.
+      // This prevents the 409 "Another session is already active" error when trying to start a new one.
+      set({ activeSession: null });
+      localStorage.removeItem(SESSION_LOCK_KEY);
+      
+      // Still load history for the UI
+      const sessions = await getAllFromDB('sessions');
+      set({ sessions });
+    } catch (err) {
+      logClientError('sessionStore.restoreSession', err);
+      // Fallback: If API fails, try local only but don't trust it for "starting" new ones.
+      const sessions = await getAllFromDB('sessions');
+      const active = sessions.find(s => s.status === 'active') || null;
+      set({ sessions, activeSession: active });
     }
   },
 

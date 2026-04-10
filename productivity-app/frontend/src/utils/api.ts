@@ -10,7 +10,7 @@ function normalizeApiBase(raw: unknown): string {
   return t.replace(/\/+$/, '');
 }
 
-const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
+const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE || '/api');
 
 function buildApiUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
