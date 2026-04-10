@@ -26,9 +26,9 @@ function catColor(category: string | undefined): string {
 }
 
 const BAR_COLOR: Record<string, string> = {
-  Daily:   "#6366f1",
+  Daily:   "#3b82f6",
   Weekly:  "#10b981",
-  Monthly: "#f97316",
+  Monthly: "#f59e0b",
   Yearly:  "#ec4899",
 };
 
@@ -50,21 +50,21 @@ const Card = memo(function StatCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: EASING }}
-      className="flex flex-col gap-1 bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl px-4 py-2.5 transition-all duration-500 hover:bg-surface/50 hover:border-white/10 hover:shadow-[0_8px_30px_rgba(59,130,246,0.12)] hover:-translate-y-1"
+      className="flex flex-col gap-3 bg-[#0B1220] border border-white/5 rounded-2xl p-5 transition-all duration-500 hover:border-white/10"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-black">
+      <div className="flex items-end justify-between">
+        <span className="text-[10px] uppercase tracking-[0.15em] text-secondary/60 font-bold mb-1">
           {title}
         </span>
         <span
-          className="text-lg font-black tabular-nums"
+          className="text-2xl font-black tabular-nums leading-none"
           style={{ color: BAR_COLOR[title] }}
         >
           {pct}%
         </span>
       </div>
 
-      <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
@@ -72,12 +72,11 @@ const Card = memo(function StatCard({
           className="h-full rounded-full"
           style={{
             background: BAR_COLOR[title],
-            boxShadow: `0 0 10px ${BAR_COLOR[title]}40`
           }}
         />
       </div>
 
-      <span className="text-[8px] text-secondary/50 font-bold uppercase tracking-wider">
+      <span className="text-[9px] text-secondary/40 font-bold uppercase tracking-wider">
         {text}
       </span>
     </motion.div>
@@ -86,15 +85,15 @@ const Card = memo(function StatCard({
 
 const GoalRow = memo(function GoalRow({ goal }: { goal: Goal }) {
   return (
-    <div className="flex items-center gap-2.5 bg-white/5 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition-all duration-200 group shrink-0 hover:shadow-md cursor-pointer hover:border-white/20 active:scale-[0.98]">
+    <div className="flex items-center gap-3 bg-[#0F172A] border border-white/5 rounded-xl p-4 hover:bg-white/5 transition-all duration-200 group">
       <div
-        className="w-1 h-1 rounded-full shrink-0 shadow-[0_0_6px_rgba(255,255,255,0.1)]"
+        className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{ background: catColor(goal.category) }}
       />
-      <span className="text-[11px] text-text/80 font-bold flex-1 truncate group-hover:text-white transition-all duration-300">
+      <span className="text-xs text-text/90 font-bold flex-1 truncate">
         {goal.title || 'Unknown'}
       </span>
-      <span className="text-[7px] text-secondary font-black uppercase tracking-tighter bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+      <span className="text-[8px] text-secondary/60 font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/5">
         {goal.goalType}
       </span>
     </div>
@@ -103,7 +102,7 @@ const GoalRow = memo(function GoalRow({ goal }: { goal: Goal }) {
 
 function ChartFallback() {
   return (
-    <div className="lg:col-span-2 flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 min-h-[280px] animate-pulse">
+    <div className="lg:col-span-2 flex flex-col bg-[#0B1220] border border-white/5 rounded-2xl p-6 min-h-[280px] animate-pulse">
       <div className="h-3 w-40 bg-white/10 rounded mb-4" />
       <div className="flex-1 min-h-[200px] bg-white/5 rounded-xl" />
     </div>
@@ -135,7 +134,7 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-7xl mx-auto h-screen max-h-screen overflow-hidden pt-10 pb-4 px-8">
+    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto h-screen max-h-screen overflow-hidden pt-12 pb-6 px-10">
       {loadError && (
         <div
           className="shrink-0 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error"
@@ -161,69 +160,71 @@ export const Dashboard = () => {
         </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: EASING }}
-        className="shrink-0 mb-4"
-      >
-        <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-accent tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+      <div className="shrink-0">
+        <h1 className="text-5xl font-black text-white tracking-tighter leading-none mb-3">
           Dashboard
         </h1>
-        <div className="flex items-center gap-2.5 mt-2">
-          <div className="h-[1.5px] w-8 bg-accent shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
-          <p className="text-[9px] text-white font-black uppercase tracking-[0.4em] drop-shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="h-[2px] w-6 bg-[#3b82f6]" />
+          <p className="text-[10px] text-secondary font-black uppercase tracking-[0.3em]">
             Performance Overview
           </p>
         </div>
-      </motion.div>
+      </div>
 
       <motion.div
-        initial={{ opacity: 0, y: -15 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.1, ease: EASING }}
-        className="flex items-center justify-between bg-surface/40 backdrop-blur-2xl border border-white/5 rounded-xl px-5 py-2.5 shadow-xl shadow-black/20 shrink-0 transition-all duration-500 hover:bg-surface/60 hover:shadow-2xl"
+        className="flex items-center justify-between bg-[#0B1220] border border-white/5 rounded-2xl px-6 py-4 shrink-0"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(74,222,128,0.5)] animate-pulse" />
-          <span className="text-[11px] text-secondary font-medium">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-[#10b981]" />
+          <span className="text-xs text-text font-bold">
             Daily Progress: <span className="text-white font-black">{stats.daily.pct}%</span>
           </span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
-          <span className="text-[8px] bg-white/5 text-secondary border border-white/10 px-2.5 py-1 rounded-full font-black uppercase tracking-widest">
+        <div className="flex items-center gap-3">
+          <span className="text-[9px] bg-[#1E293B] text-secondary/80 border border-white/5 px-4 py-2 rounded-full font-black uppercase tracking-[0.15em]">
             Streak: {stats.streakDays}d
           </span>
-          <span className="text-[8px] bg-accent/10 text-accent border border-accent/20 px-2.5 py-1 rounded-full font-black uppercase tracking-widest">
+          <span className="text-[9px] bg-accent/10 text-accent border border-accent/20 px-4 py-2 rounded-full font-black uppercase tracking-[0.15em]">
             {stats.daily.progressText}
           </span>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 shrink-0 relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         <Card title="Daily"   pct={stats.daily.pct}   text={stats.daily.progressText} index={0} />
         <Card title="Weekly"  pct={stats.weekly.pct}  text={stats.weekly.progressText} index={1} />
         <Card title="Monthly" pct={stats.monthly.pct} text={stats.monthly.progressText} index={2} />
         <Card title="Yearly"  pct={stats.yearly.pct}  text={stats.yearly.progressText} index={3} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0 mb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
         <Suspense fallback={<ChartFallback />}>
-          <DashboardTrendChart chartData={stats.chartData} />
+          <div className="lg:col-span-2 bg-[#0B1220] border border-white/5 rounded-2xl p-8 flex flex-col">
+            <h3 className="text-[10px] font-black text-secondary/60 uppercase tracking-[0.3em] mb-8">
+              7-Day Performance Trend
+            </h3>
+            <div className="flex-1 min-h-0">
+              <DashboardTrendChart chartData={stats.chartData} />
+            </div>
+          </div>
         </Suspense>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.25, ease: EASING }}
-          className="flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl overflow-hidden min-h-0 transition-all duration-500 hover:border-white/10 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
+          className="flex flex-col bg-[#0B1220] border border-white/5 rounded-2xl p-8 overflow-hidden min-h-0"
         >
-          <div className="flex items-center justify-between mb-4 shrink-0">
-            <h3 className="text-[9px] font-black text-secondary uppercase tracking-[0.3em]">
+          <div className="flex items-center justify-between mb-8 shrink-0">
+            <h3 className="text-[10px] font-black text-secondary/60 uppercase tracking-[0.3em]">
               Active Goals
             </h3>
           </div>
-          <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar flex-1 min-h-0">
+          <div className="flex flex-col gap-3 overflow-y-auto no-scrollbar flex-1 min-h-0">
             {activeRoots.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-secondary/40 gap-4 py-8 px-4 text-center">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
