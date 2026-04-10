@@ -11,7 +11,7 @@ import { useToastStore } from '../stores/toastStore';
 import { Edit2 } from 'lucide-react';
 
 export const Failures = () => {
-  const { failures, load, add, update, remove } = useFailureStore();
+  const { failures, load, loading, add, update, remove } = useFailureStore();
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
   const { confirm } = useConfirmStore();
@@ -164,7 +164,10 @@ export const Failures = () => {
 
       {/* Failure List */}
       <div className="flex flex-col gap-3">
-        {failures.length === 0 && (
+        {loading && failures.length === 0 && (
+          <p className="text-secondary text-sm text-center mt-6 animate-pulse uppercase tracking-widest font-black">Loading failure logs...</p>
+        )}
+        {!loading && failures.length === 0 && (
           <p className="text-secondary text-sm text-center mt-6">No failures logged. (That's a good thing!)</p>
         )}
         {failures.map((f, i) => (
@@ -186,7 +189,7 @@ export const Failures = () => {
                   }`}>{f.type}</span>
                   <span className="font-medium text-sm">{getLinkedLabel(f)}</span>
                 </div>
-                <p className="text-sm text-secondary/80 mt-1">{f.note}</p>
+                <p className="text-sm text-secondary/80 mt-1">{f.note || 'No additional notes provided.'}</p>
                 <span className="text-[10px] text-secondary/50 mt-2 block">{new Date(f.createdAt).toLocaleString()}</span>
               </div>
                 <div className="shrink-0 flex items-center gap-1">

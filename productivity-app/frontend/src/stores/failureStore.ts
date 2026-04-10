@@ -23,6 +23,10 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
     try {
       const failures = await api.get<Failure[]>('/failures');
       set({ failures, loading: false });
+      // Sync to IndexedDB
+      for (const f of failures) {
+        void saveToDB('failures', f);
+      }
     } catch (error) {
       console.error('Failed to load failures:', error);
       set({ loading: false });

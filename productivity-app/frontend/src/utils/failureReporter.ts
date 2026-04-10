@@ -1,4 +1,4 @@
-import { apiRequest } from './api';
+import { useFailureStore } from '../stores/failureStore';
 
 const RECENT = new Map<string, number>();
 const DEDUPE_MS = 3000;
@@ -29,16 +29,8 @@ export async function logUserFailure(input: {
   RECENT.set(dedupeKey, now);
 
   try {
-    await apiRequest('/failures', {
-      method: 'POST',
-      body: JSON.stringify({
-        type: input.type,
-        linkedId: Number(linkedId),
-        note: msg.slice(0, 2000),
-        goalId: Number(goalId),
-        timestamp,
-      }),
-    });
+    // Use the store's add method to ensure global state and IndexedDB are updated.
+    await useFailureStore.getState().add(input.type, linkedId, msg.slice(0, 2000));
     
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('app:failure-logged'));
