@@ -136,31 +136,12 @@ export function calculateDashboardStats(
   const now = DateTime.now().setZone(zone);
 
   // ---- Root daily goals only (used for ALL percentage calculations) ----
-  // Only 'active' status — 'done' goals from before a wipe must NOT count.
+  // Include all non-deleted root daily goals regardless of status.
+  // 'done' goals still occupy the denominator — that's correct: a goal completed
+  // today should count as 1/N done, not vanish and make division 0/0.
   const dailyGoals = goals.filter(
-    (g) => g.goalType === 'daily' && g.status === 'active' && !g.deletedAt && isRootGoal(g)
+    (g) => g.goalType === 'daily' && !g.deletedAt && isRootGoal(g)
   );
-
-  // Guard: no active daily goals → all percentages are 0
-  if (dailyGoals.length === 0) {
-    const getCatEmpty = (type: 'weekly' | 'monthly' | 'yearly') => {
-      const catGoals = goals.filter(
-        (g) => g.goalType === type && g.status === 'active' && !g.deletedAt && isRootGoal(g)
-      );
-      return { done: catGoals.filter((g) => g.status === 'done').length, total: catGoals.length };
-    };
-    const ws = getCatEmpty('weekly');
-    const ms = getCatEmpty('monthly');
-    const ys = getCatEmpty('yearly');
-    return {
-      daily:   { pct: 0, progressText: '0/0 goals done' },
-      weekly:  { pct: 0, progressText: `${ws.done}/${ws.total} goals achieved` },
-      monthly: { pct: 0, progressText: `${ms.done}/${ms.total} goals achieved` },
-      yearly:  { pct: 0, progressText: `${ys.done}/${ys.total} goals achieved` },
-      chartData: [],
-      streakDays: 0,
-    };
-  }
 
   // ---- Daily % (today) ----
   const todayPct = dailyPctForDay(dailyGoals, now, zone);
@@ -179,7 +160,7 @@ export function calculateDashboardStats(
   // ---- Category goal counts (display only — NOT used for %) ----
   const getCategoryStats = (type: 'weekly' | 'monthly' | 'yearly') => {
     const catGoals = goals.filter(
-      (g) => g.goalType === type && g.status === 'active' && !g.deletedAt && isRootGoal(g)
+      (g) => g.goalType === type && !g.deletedAt && isRootGoal(g)
     );
     return {
       done: catGoals.filter((g) => g.status === 'done').length,
