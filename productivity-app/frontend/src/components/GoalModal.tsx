@@ -65,6 +65,7 @@ export const GoalModal = ({
   const [selectedFw, setSelectedFw] = useState('');
   const [goalType, setGoalType] = useState<Goal['goalType']>('daily');
   const [category, setCategory] = useState<Goal['category']>('health');
+  const [title, setTitle] = useState('');
   const [data, setData] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -81,12 +82,14 @@ export const GoalModal = ({
       setSelectedFw(editingGoal.frameworkId || '');
       setGoalType(editingGoal.goalType);
       setCategory(editingGoal.category || 'health');
+      setTitle(editingGoal.title || '');
       setData({ ...editingGoal.data });
       return;
     }
     setSelectedFw(frameworkId || '');
     setGoalType(initialType);
     setCategory('health');
+    setTitle('');
     const f = frameworks.find((x) => String(x.id) === String(frameworkId || ''));
     if (f) {
       setData(buildGoalDataFromFramework(f, initialType));
@@ -177,6 +180,18 @@ export const GoalModal = ({
     }
     const goalId = editingGoal?.id != null && String(editingGoal.id).trim() !== '' ? String(editingGoal.id) : '';
     const isFrameworkAttachFlow = Boolean(editingGoal && editingGoal.frameworkId == null);
+    const TITLE_LIMIT = 80;
+    const finalTitle = title.trim();
+
+    if (!finalTitle) {
+      setError('Title is required');
+      return;
+    }
+    if (finalTitle.length > TITLE_LIMIT) {
+      setError('Text limit exceeded');
+      return;
+    }
+
     if (!isFrameworkAttachFlow) {
       const empty = fw.keys.find((k) => !data[k.key]?.trim());
       if (empty) {
@@ -197,13 +212,13 @@ export const GoalModal = ({
         }
         if (isFrameworkAttachFlow) {
           const initialized = buildGoalDataFromFramework(fw, goalType);
-          await update(goalId, initialized, goalType, category, selectedFw);
+          await update(goalId, initialized, goalType, category, selectedFw, finalTitle);
         } else {
-          await update(goalId, { ...editingGoal.data, ...data }, goalType, category);
+          await update(goalId, { ...editingGoal.data, ...data }, goalType, category, undefined, finalTitle);
         }
       } else {
         const pid = parentGoalId?.trim() ? parentGoalId : null;
-        await add(selectedFw, data, goalType, pid, pid ? false : true, category, 'Unknown');
+        await add(selectedFw, data, goalType, pid, pid ? false : true, category, finalTitle);
       }
       if (saveEpochRef.current !== saveEpoch) return;
       if (editingGoal) {
@@ -254,6 +269,27 @@ export const GoalModal = ({
                 {error}
               </p>
             )}
+
+            <div className="mb-4">
+              <label className="text-xs text-secondary font-semibold uppercase tracking-wider block mb-2">
+                Goal Title
+              </label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full bg-background border border-secondary/30 p-3 rounded-lg text-sm text-text mb-1 focus:outline-none focus:border-accent"
+                placeholder="What is your goal?"
+                autoFocus
+              />
+              <div className="flex justify-between mt-1">
+                <span className={`text-[10px] ${title.length > 80 ? 'text-error' : 'text-secondary/50'}`}>
+                  {title.length}/80
+                </span>
+                {title.length > 80 && (
+                  <span className="text-[10px] text-error font-semibold">Limit exceeded</span>
+                )}
+              </div>
+            </div>
 
             {(editingGoal || allowFreeGoalType || !initialType) && (
               <div className="mb-4">

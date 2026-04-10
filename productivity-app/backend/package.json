@@ -20,6 +20,7 @@
     "express": "^4.22.1",
     "firebase-admin": "^13.7.0",
     "luxon": "^3.7.2",
+    "mine-software": "file:../..",
     "sql.js": "^1.14.1"
   },
   "devDependencies": {

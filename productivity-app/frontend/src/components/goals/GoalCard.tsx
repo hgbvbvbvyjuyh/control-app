@@ -32,6 +32,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({
   onSelectParent,
   index,
 }) => {
+  const TITLE_LIMIT = 80;
+  const trimmed = inlineTitleValue?.trim() || '';
+  const tooLong = trimmed.length > TITLE_LIMIT;
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -104,14 +107,18 @@ export const GoalCard: React.FC<GoalCardProps> = ({
                         e.stopPropagation();
                         onSaveInlineEdit(goal);
                       }}
-                      className="text-[10px] font-bold uppercase px-2 py-1 rounded-md border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-all duration-300"
+                      disabled={tooLong || trimmed.length === 0}
+                      className="text-[10px] font-bold uppercase px-2 py-1 rounded-md border border-accent/30 bg-accent/20 text-accent hover:bg-accent/30 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Save
                     </button>
+                    {tooLong && (
+                      <span className="text-[10px] text-error mt-1">Text limit exceeded</span>
+                    )}
                   </>
                 ) : (
                   <>
-                    <span className="truncate pt-[1px]">{goal.title || 'Unknown'}</span>
+                    <span className="line-clamp-2 break-words pt-[1px]">{goal.title || 'Untitled'}</span>
                     {!hidePencil && (
                       <button
                         type="button"

@@ -181,17 +181,23 @@ export const Goals = () => {
 
   useEffect(() => {
     const goal = goals.find((g) => String(g.id) === String(selectedGoalId));
-    const fp =
-      goal && isPlannableGoalType(goal.goalType)
-        ? `${String(selectedGoalId)}|${String(goal.data?.plan ?? '')}`
-        : `${String(selectedGoalId ?? '')}|__noplan__`;
-    if (fp === planSyncFingerprintRef.current) return;
-    planSyncFingerprintRef.current = fp;
-    if (!goal || !isPlannableGoalType(goal.goalType)) {
-      setPlanDraft(null);
-      return;
+    
+    // Only reset/sync if the goal selection actually changed.
+    // This prevents the store from overwriting the local draft when 
+    // other goals are updated or when the current goal is saved.
+    const lastGoalId = planSyncFingerprintRef.current?.split('|')[0];
+    const isNewSelection = lastGoalId !== String(selectedGoalId ?? '');
+    
+    if (isNewSelection) {
+      if (!goal || !isPlannableGoalType(goal.goalType)) {
+        setPlanDraft(null);
+        planSyncFingerprintRef.current = `${String(selectedGoalId ?? '')}|__noplan__`;
+      } else {
+        const currentServerPlan = String(goal.data?.plan ?? '');
+        planSyncFingerprintRef.current = `${String(selectedGoalId)}|${currentServerPlan}`;
+        setPlanDraft(parseGoalPlan(goal.data));
+      }
     }
-    setPlanDraft(parseGoalPlan(goal.data));
   }, [goals, selectedGoalId]);
 
   const selectedFw = selectedGoal
@@ -201,12 +207,17 @@ export const Goals = () => {
   const handleSavePlan = async () => {
     if (!selectedGoal?.id || !planDraft) return;
     const goalId = String(selectedGoal.id);
+    const serializedPlan = serializeGoalPlan(planDraft);
     try {
+      // Update the fingerprint immediately before the async call to prevent
+      // the useEffect from resetting planDraft when 'goals' changes.
+      planSyncFingerprintRef.current = `${goalId}|${serializedPlan}`;
+
       await update(
         goalId,
         {
           ...selectedGoal.data,
-          plan: serializeGoalPlan(planDraft),
+          plan: serializedPlan,
         },
         selectedGoal.goalType,
         selectedGoal.category
@@ -268,27 +279,32 @@ export const Goals = () => {
   };
 
   const handleGenerateSubGoalsFromPlan = async () => {
-    if (!selectedGoal?.id) {
+    if (!selectedGoal?.id || !planDraft) {
       return;
     }
     if (!isPlannableGoalType(selectedGoal.goalType)) {
       return;
     }
-    const savedPlan = parseGoalPlan(selectedGoal.data);
-    if (!savedPlan || planDraft === null || !goalPlanDataEqual(savedPlan, planDraft)) {
+
+    // Check if the current draft matches the last saved/loaded fingerprint.
+    // This is much more reliable than checking against 'selectedGoal.data' 
+    // while a store update is cycling back.
+    const currentFingerprint = `${String(selectedGoal.id)}|${serializeGoalPlan(planDraft)}`;
+    if (currentFingerprint !== planSyncFingerprintRef.current) {
       showToast('Save your plan first', 'error');
       return;
     }
-    const plan = savedPlan;
+
+    const plan = planDraft;
     const parentId = String(selectedGoal.id);
     const childType = childTypeForPlannedParent(selectedGoal.goalType);
     if (hasChildOfType(goals, String(selectedGoal.id), childType)) {
       showToast('Sub goals already exist', 'error');
       return;
     }
-    const ideaItems = plan.items.map(it => it.text.trim()).filter(Boolean);
-    if (ideaItems.length === 0) {
-      showToast('Add at least one plan idea to generate sub goals', 'error');
+    const ideaItems = plan.items.map(it => it.text.trim());
+    if (ideaItems.some(text => text === '')) {
+      showToast('Fill all plan items before generating sub goals', 'error');
       return;
     }
     try {
@@ -337,7 +353,12 @@ export const Goals = () => {
     if (!goal.id) return;
     const goalId = String(goal.id);
     const draft = (inlineTitleEditByGoalId[goalId] ?? '').trim();
-    const nextTitle = draft || 'Unknown';
+    const TITLE_LIMIT = 80;
+    if (draft.length === 0 || draft.length > TITLE_LIMIT) {
+      showToast(draft.length > TITLE_LIMIT ? 'Text limit exceeded' : 'Title is required', 'error');
+      return;
+    }
+    const nextTitle = draft || 'Untitled';
 
     try {
       await update(
@@ -347,6 +368,10 @@ export const Goals = () => {
         goal.category,
         undefined,
         nextTitle
+      );
+      await db.table('goals').put({ ...goal, title: nextTitle });
+      setGoals((prev: Goal[]) =>
+        prev.map((g: Goal) => (String(g.id) === goalId ? { ...g, title: nextTitle } : g))
       );
       setInlineTitleEditByGoalId(prev => {
         const next = { ...prev };
@@ -474,6 +499,10 @@ export const Goals = () => {
         onClose={() => {
           setShowGoalModal(false);
           setEditingGoal(undefined);
+          // Only refresh if we just saved something or need to ensure state sync
+          setTimeout(() => {
+            void loadGoals();
+          }, 100);
         }}
         frameworkId={null}
         editingGoal={editingGoal}
