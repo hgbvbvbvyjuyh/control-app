@@ -28,16 +28,18 @@ function cleanRecent(now: number) {
 
 export async function logUserFailure(input: {
   goalId: string | number;
+  linkedId?: string | number;
   type: 'goal' | 'session';
   message: string;
   timestamp?: string;
 }): Promise<void> {
   const goalId = String(input.goalId ?? '').trim();
-  if (!goalId) return;
+  const linkedId = String(input.linkedId ?? goalId).trim();
+  if (!linkedId) return;
   const msg = (input.message || '').trim();
   if (!msg) return;
   const timestamp = input.timestamp ?? new Date().toISOString();
-  const dedupeKey = `${input.type}|${goalId}|${msg}`.slice(0, 280);
+  const dedupeKey = `${input.type}|${linkedId}|${msg}`.slice(0, 280);
   const now = Date.now();
   cleanRecent(now);
   if (RECENT.has(dedupeKey)) return;
@@ -52,7 +54,7 @@ export async function logUserFailure(input: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
-        linkedId: goalId,
+        linkedId,
         note: msg.slice(0, 2000),
         goalId,
         type: input.type,

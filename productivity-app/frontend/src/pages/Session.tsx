@@ -241,8 +241,9 @@ export const Session = () => {
     if (didAchieveGoal === false && activeSession?.goalId) {
       await logUserFailure({
         goalId: String(activeSession.goalId),
+        linkedId: String(activeSession.id),
         type: 'session',
-        message: 'Session journal marked as not completed',
+        message: mistake || 'Session journal marked as not completed',
         timestamp: new Date().toISOString(),
       });
     }

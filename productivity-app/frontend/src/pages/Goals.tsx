@@ -124,6 +124,15 @@ export const Goals = () => {
       category
     );
 
+    if (intentSnapshot === 'not_completed') {
+      void logUserFailure({
+        goalId: String(journalTargetGoal.id),
+        type: 'goal',
+        message: answers.mistakes || 'User did not complete goal',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     if (journalAsyncGenRef.current !== asyncGen) return;
 
     const newStatus = intentSnapshot === 'completed' ? 'done' : 'not_done';
@@ -1013,12 +1022,6 @@ export const Goals = () => {
                       if (goalId == null || String(goalId).trim() === '') {
                         return;
                       }
-                      void logUserFailure({
-                        goalId: String(goalId),
-                        type: 'goal',
-                        message: 'User did not complete goal',
-                        timestamp: new Date().toISOString(),
-                      });
                       openGoalJournal(selectedGoal, 'not_completed');
                     }}
                     className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl bg-error/10 border border-error/20 text-error font-bold hover:bg-error/20 transition-all uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(239,68,68,0.1)] disabled:opacity-40 disabled:cursor-not-allowed"
