@@ -35,9 +35,7 @@ import { useToastStore } from '../stores/toastStore';
 import { logClientError } from '../utils/logClientError';
 import { formatFrameworkDataDisplay } from '../utils/formatFrameworkData';
 import { logUserFailure } from '../utils/failureReporter';
-
-
-
+import { db } from '../lib/persistence';
 
 import { GoalCard } from '../components/goals/GoalCard';
 
@@ -49,6 +47,7 @@ export const Goals = () => {
     selectedGoalId,
     select,
     patchStatus,
+    setGoals,
     add,
     update,
     remove,
@@ -129,6 +128,20 @@ export const Goals = () => {
     if (journalAsyncGenRef.current !== asyncGen) return;
 
     const newStatus = intentSnapshot === 'completed' ? 'done' : 'not_done';
+
+    // Update Dexie DB correctly
+    await db.table("goals").put({
+      ...journalTargetGoal,
+      status: newStatus,
+      updatedAt: Date.now(),
+      ...(newStatus === 'done' ? { completedAt: new Date().toISOString() } : {}),
+    });
+
+    // Update Zustand state immediately
+    setGoals(prev => prev.map((g) =>
+      String(g.id) === targetId ? { ...g, status: newStatus } : g
+    ));
+
     await patchStatus(targetId, newStatus);
 
     if (journalAsyncGenRef.current !== asyncGen) return;
@@ -139,6 +152,7 @@ export const Goals = () => {
 
     setJournalModalOpen(false);
     setJournalTargetGoal(null);
+    showToast(newStatus === 'done' ? 'Goal completed!' : 'Goal marked as not completed', 'success');
   };
 
   useEffect(() => {
@@ -357,7 +371,7 @@ export const Goals = () => {
 
   const activeGoalsInCategory =
     activeCategory !== null
-      ? getActiveGoals(goals).filter(g => g.goalType === activeCategory)
+      ? goals.filter(g => g.status === 'active' && g.goalType === activeCategory)
       : [];
 
   const resolveDailyExpectedSessions = (data: Record<string, string>): number | null => {

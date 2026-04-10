@@ -41,7 +41,9 @@ interface GoalStore {
 
 export const useGoalStore = create<GoalStore>((set, get) => ({
   goals: [],
-  setGoals: (goals) => set({ goals }),
+  setGoals: (updater) => set((state) => ({ 
+    goals: typeof updater === 'function' ? (updater as (prev: Goal[]) => Goal[])(state.goals) : updater 
+  })),
   selectedGoalId: null,
   loading: false,
   deletingIds: new Set(),
