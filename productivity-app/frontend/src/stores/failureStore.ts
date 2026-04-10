@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { type Failure } from '../db';
 import { api } from '../utils/api';
-import { saveToDB } from '../lib/persistence';
+import { saveToDB, deleteFromDB } from '../lib/persistence';
 
 interface FailureStore {
   failures: Failure[];
@@ -9,8 +9,8 @@ interface FailureStore {
   loading: boolean;
   load: () => Promise<void>;
   add: (type: 'session' | 'goal' | 'app', linkedId: string, note: string) => Promise<Failure>;
-  remove: (id: string) => Promise<void>;
-  update: (id: string, note: string) => Promise<void>;
+  remove: (id: string | number) => Promise<void>;
+  update: (id: string | number, note: string) => Promise<void>;
 }
 
 export const useFailureStore = create<FailureStore>((set, get) => ({
@@ -50,16 +50,29 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
   },
 
   remove: async (id) => {
-    await api.delete(`/failures/${id}`);
-    set({ failures: get().failures.filter(f => String(f.id) !== String(id)) });
+    const idStr = String(id);
+    console.log('[failureStore] remove called for id:', idStr);
+    try {
+      await api.delete(`/failures/${idStr}`);
+      set((state) => ({
+        failures: state.failures.filter(f => String(f.id) !== idStr)
+      }));
+      void deleteFromDB('failures', id);
+      console.log('[failureStore] remove success');
+    } catch (error) {
+      console.error('[failureStore] remove failed:', error);
+      throw error;
+    }
   },
   
   update: async (id, note) => {
-    const updated = await api.put<Failure>(`/failures/${id}`, { note });
+    const idStr = String(id);
+    const updated = await api.put<Failure>(`/failures/${idStr}`, { note });
     set({
       failures: get().failures.map(f =>
-        String(f.id) === String(id) ? updated : f
+        String(f.id) === idStr ? updated : f
       ),
     });
+    void saveToDB('failures', updated);
   },
 }));
