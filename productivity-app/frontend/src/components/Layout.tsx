@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Target, BookOpen, AlertCircle, Download, Trash2, ShieldAlert, UserRound, Settings, LogOut, Mail, X } from 'lucide-react';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { db } from '../db';
+import { db as persistenceDb } from '../lib/persistence';
 import { ConfirmModal } from './ConfirmModal';
 import { ToastContainer } from './ToastContainer';
 import { useConfirmStore } from '../stores/confirmStore';
@@ -14,6 +15,9 @@ import { exportGoalPlanPdf } from '../utils/planPdfExport';
 import { exportAllData } from '../utils/dataExport';
 import { useSessionStore } from '../stores/sessionStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
+import { useFailureStore } from '../stores/failureStore';
+import { useJournalStore } from '../stores/journalStore';
+import { useFrameworkStore } from '../stores/frameworkStore';
 import type { JournalEntry } from '../db';
 import type { DailySimpleSession } from '../stores/dailySimpleSessionStore';
 import { APP_NAME } from '../constants/app';
@@ -165,6 +169,7 @@ export const Layout = () => {
       'Are you sure you want to clear ALL data? This action cannot be undone and will reset your entire progress.',
       async () => {
         try {
+          // 1. Clear both Dexie databases (ProductivityDB + control_app_db are separate instances)
           await Promise.all([
             db.goals.clear(),
             db.sessions.clear(),
@@ -172,14 +177,31 @@ export const Layout = () => {
             db.failures.clear(),
             db.frameworks.clear(),
             db.users.clear(),
+            persistenceDb.table('goals').clear(),
+            persistenceDb.table('sessions').clear(),
+            persistenceDb.table('failures').clear(),
+            persistenceDb.table('journals').clear(),
             api.post('/export/clear', {}),
           ]);
+
+          // 2. Clear session-related localStorage
           localStorage.removeItem('active_productivity_session');
+
+          // 3. Reset ALL Zustand stores to empty state immediately —
+          //    prevents any stale flash between now and when the reload
+          //    finishes fetching fresh data from the server.
+          useGoalStore.setState({ goals: [], selectedGoalId: null, loadError: null });
+          useSessionStore.setState({ sessions: [], activeSession: null });
+          useFailureStore.setState({ failures: [] });
+          useJournalStore.setState({ entries: [] });
+          useFrameworkStore.setState({ frameworks: [] });
+          useDailySimpleSessionStore.setState({ byGoalId: {} });
+
           alert('System wiped successfully. The app will now reload.');
           window.location.reload();
         } catch (err) {
           console.error(err);
-          alert('Failed to clear database.');
+          alert('Failed to clear database. Please try again.');
         }
       }
     );
