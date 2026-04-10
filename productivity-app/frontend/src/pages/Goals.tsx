@@ -13,7 +13,7 @@ import { GoalPlanSection } from '../components/GoalPlanSection';
 import { JournalModal, type CompletionIntent, type JournalAnswers } from '../components/JournalModal';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useDailySimpleSessionStore } from '../stores/dailySimpleSessionStore';
-import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle, Pencil } from 'lucide-react';
+import { ChevronLeft, Calendar, Layout, Target, PieChart, CheckCircle2, XCircle } from 'lucide-react';
 import FrameworkFullView from '../components/FrameworkFullView';
 import { useExpand } from '../hooks/useExpand';
 
