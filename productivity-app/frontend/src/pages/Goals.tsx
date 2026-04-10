@@ -125,12 +125,13 @@ export const Goals = () => {
     );
 
     if (intentSnapshot === 'not_completed') {
-      void logUserFailure({
+      await logUserFailure({
         goalId: String(journalTargetGoal.id),
         type: 'goal',
         message: answers.mistakes || 'User did not complete goal',
         timestamp: new Date().toISOString(),
       });
+      showToast('Failure logged to tracker', 'info');
     }
 
     if (journalAsyncGenRef.current !== asyncGen) return;

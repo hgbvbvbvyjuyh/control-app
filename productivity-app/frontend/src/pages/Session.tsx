@@ -6,6 +6,7 @@ import { useFrameworkStore } from '../stores/frameworkStore';
 import { motion } from 'framer-motion';
 import { logClientError } from '../utils/logClientError';
 import { logUserFailure } from '../utils/failureReporter';
+import { useToastStore } from '../stores/toastStore';
 
 
 
@@ -41,6 +42,7 @@ export const Session = () => {
   const { goals, load: loadGoals } = useGoalStore();
   const { frameworks, load: loadFrameworks } = useFrameworkStore();
   const { activeSession, start, end, skip, restoreSession } = useSessionStore();
+  const { showToast } = useToastStore();
 
   const [selectedFw, setSelectedFw] = useState<string>('');
 
@@ -246,6 +248,7 @@ export const Session = () => {
         message: mistake || 'Session journal marked as not completed',
         timestamp: new Date().toISOString(),
       });
+      showToast('Session failure logged', 'info');
     }
     await end(didAchieveGoal, mistake, improvementSuggestion);
     stopAlarm();

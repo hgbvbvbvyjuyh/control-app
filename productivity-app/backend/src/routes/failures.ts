@@ -6,6 +6,7 @@ const router = Router();
 
 router.get('/', (req, res, next) => {
   try {
+    console.log('[failures] GET / request query:', req.query);
     let sql = 'SELECT * FROM failures WHERE deletedAt IS NULL';
     const params: unknown[] = [];
     if (req.query['type']) {
@@ -18,8 +19,12 @@ router.get('/', (req, res, next) => {
     }
     sql += ' ORDER BY createdAt DESC';
     const rows = queryAll(sql, params);
+    console.log(`[failures] found ${rows.length} records`);
     res.json(rows);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error('[failures] error in GET /:', err);
+    next(err);
+  }
 });
 
 router.get('/:id', (req, res, next) => {
@@ -33,22 +38,35 @@ router.get('/:id', (req, res, next) => {
 router.post('/', (req, res, next) => {
   try {
     const { type, linkedId, note } = req.body as Partial<Failure> & { type?: string };
+    console.log('[failures] POST request body:', req.body);
     if (!type || !note) {
+      console.log('[failures] missing type or note');
       res.status(400).json({ error: 'type and note are required' }); return;
     }
     /** App/system events use linkedId 0 (no goal/session row). */
-    const effectiveLinkedId = type === 'app' ? 0 : linkedId;
-    if (effectiveLinkedId === undefined || effectiveLinkedId === null) {
-      res.status(400).json({ error: 'linkedId is required for this failure type' }); return;
+    let effectiveLinkedId: number;
+    if (type === 'app') {
+      effectiveLinkedId = 0;
+    } else {
+      effectiveLinkedId = Number(linkedId);
+      if (Number.isNaN(effectiveLinkedId)) {
+        console.log('[failures] invalid linkedId:', linkedId);
+        res.status(400).json({ error: 'linkedId must be a valid number' }); return;
+      }
     }
     const createdAt = Date.now();
+    console.log('[failures] inserting into DB:', { type, effectiveLinkedId, note, createdAt });
     const { lastInsertRowid } = run(
       'INSERT INTO failures (type, linkedId, note, createdAt) VALUES (?, ?, ?, ?)',
       [type, effectiveLinkedId, note, createdAt]
     );
     const created = queryOne('SELECT * FROM failures WHERE id = ?', [lastInsertRowid]);
+    console.log('[failures] success, created row:', created);
     res.status(201).json(created);
-  } catch (err) { next(err); }
+  } catch (err) {
+    console.error('[failures] error in POST:', err);
+    next(err);
+  }
 });
 
 router.put('/:id', (req, res, next) => {
