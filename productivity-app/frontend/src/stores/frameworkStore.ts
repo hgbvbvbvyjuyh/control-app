@@ -22,6 +22,18 @@ export const useFrameworkStore = create<FrameworkStore>((set, get) => ({
     set({ loading: true });
     try {
       const frameworks = await api.get<Framework[]>('/frameworks');
+      // Guard: if server returns empty but IDB has data, prefer IDB to avoid data loss
+      if (frameworks.length === 0) {
+        try {
+          const cached = (await getAllFromDB('frameworks')) as Framework[];
+          if (cached.length > 0) {
+            set({ frameworks: cached, loading: false });
+            return;
+          }
+        } catch (dbErr) {
+          console.error('[frameworkStore] IDB empty-guard check failed:', dbErr);
+        }
+      }
       set({ frameworks, loading: false });
       // Sync to IndexedDB for offline resilience
       for (const f of frameworks) {

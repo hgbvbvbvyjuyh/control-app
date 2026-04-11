@@ -45,7 +45,21 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         .minus({ days: 14 })
         .toMillis();
       const sessions = await api.get<Session[]>(`/sessions?since=${since}`);
-      
+
+      // Guard: if server returns empty but IDB has data, prefer IDB to avoid data loss
+      if (sessions.length === 0) {
+        try {
+          const cached = (await getAllFromDB('sessions')) as Session[];
+          if (cached.length > 0) {
+            const activeSession = cached.find(s => s.status === 'active') || null;
+            set({ sessions: cached, activeSession, loading: false });
+            return;
+          }
+        } catch (dbErr) {
+          console.error('[sessionStore] IDB empty-guard check failed:', dbErr);
+        }
+      }
+
       // Per point 1: Define active session separately.
       // Since it's from API, we trust the status is correct.
       const activeSession = sessions.find(s => s.status === 'active') || null;

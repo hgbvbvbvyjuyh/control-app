@@ -55,6 +55,25 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
     set({ loading: true, loadError: null });
     try {
       const serverGoals = await api.get<Goal[]>('/goals');
+
+      // Guard: if server returns empty but IDB has data, prefer IDB to avoid data loss
+      // This covers the race where Firebase auth hasn't resolved yet on refresh.
+      if (serverGoals.length === 0) {
+        try {
+          const cached = (await getAllFromDB('goals')) as Goal[];
+          if (cached.length > 0) {
+            set((state) => ({
+              goals: cached.filter(g => !state.deletingIds.has(String(g.id))),
+              loading: false,
+              loadError: null,
+            }));
+            return;
+          }
+        } catch (dbErr) {
+          console.error('[goalStore] IDB empty-guard check failed:', dbErr);
+        }
+      }
+
       set((state) => {
         // Preserve optimistic goals that are still pending
         const optimisticGoals = state.goals.filter((g) => String(g.id).startsWith('local-'));

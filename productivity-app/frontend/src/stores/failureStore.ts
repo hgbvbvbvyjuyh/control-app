@@ -22,6 +22,18 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
     set({ loading: true });
     try {
       const failures = await api.get<Failure[]>('/failures');
+      // Guard: if server returns empty but IDB has data, prefer IDB to avoid data loss
+      if (failures.length === 0) {
+        try {
+          const cached = (await getAllFromDB('failures')) as Failure[];
+          if (cached.length > 0) {
+            set({ failures: cached, loading: false });
+            return;
+          }
+        } catch (dbErr) {
+          console.error('[failureStore] IDB empty-guard check failed:', dbErr);
+        }
+      }
       set({ failures, loading: false });
       // Sync to IndexedDB
       for (const f of failures) {

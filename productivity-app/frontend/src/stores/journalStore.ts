@@ -23,6 +23,18 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
     set({ loading: true });
     try {
       const entries = await api.get<JournalEntry[]>('/journals');
+      // Guard: if server returns empty but IDB has data, prefer IDB to avoid data loss
+      if (entries.length === 0) {
+        try {
+          const cached = (await getAllFromDB('journals')) as JournalEntry[];
+          if (cached.length > 0) {
+            set({ entries: cached, loading: false });
+            return;
+          }
+        } catch (dbErr) {
+          console.error('[journalStore] IDB empty-guard check failed:', dbErr);
+        }
+      }
       set({ entries, loading: false });
       // Sync to IndexedDB for offline resilience
       for (const e of entries) {
