@@ -31,7 +31,7 @@ export const DashboardTrendChart = memo(function DashboardTrendChart({ chartData
       </div>
       <div className="flex-1 min-h-0 min-w-0 w-full min-h-[220px] h-[min(40vh,320px)] md:h-full">
         <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={0}>
-          <AreaChart data={chartData} margin={{ top: 10, left: 15, right: 15, bottom: 20 }}>
+          <AreaChart key={JSON.stringify(chartData)} data={chartData} margin={{ top: 10, left: 15, right: 15, bottom: 20 }}>
             <defs>
               <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3} />
@@ -74,7 +74,9 @@ export const DashboardTrendChart = memo(function DashboardTrendChart({ chartData
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorValue)"
-              animationDuration={1500}
+              animationDuration={700}
+              animationEasing="ease-out"
+              isAnimationActive={true}
               connectNulls
               baseLine={0}
             />

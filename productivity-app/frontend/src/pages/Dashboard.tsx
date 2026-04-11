@@ -47,10 +47,11 @@ const Card = memo(function StatCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: EASING }}
-      className="flex flex-col gap-1 bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl px-4 py-2.5 transition-all duration-500 hover:bg-surface/50 hover:border-white/10 hover:shadow-[0_8px_30px_rgba(59,130,246,0.12)] hover:-translate-y-1"
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+      className="flex flex-col gap-1 bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl px-4 py-2.5 transition-all duration-200 hover:bg-surface/50 hover:border-white/10 hover:shadow-[0_8px_30px_rgba(59,130,246,0.12)]"
     >
       <div className="flex items-center justify-between">
         <span className="text-[8px] uppercase tracking-[0.2em] text-secondary font-black">
@@ -143,28 +144,30 @@ export const Dashboard = () => {
         >
           <span className="font-medium">{loadError}</span>
           <div className="flex gap-2">
-            <button
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() => void loadGoals()}
               className="rounded-lg bg-error/20 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-error hover:bg-error/30"
             >
               Retry
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
+              whileTap={{ scale: 0.97 }}
               onClick={() => clearLoadError()}
               className="rounded-lg px-3 py-1.5 text-xs font-semibold text-secondary hover:text-text"
             >
               Dismiss
-            </button>
+            </motion.button>
           </div>
         </div>
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: EASING }}
+        transition={{ duration: 0.3, delay: 0.05 }}
         className="shrink-0 mb-4"
       >
         <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-accent tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
@@ -213,10 +216,10 @@ export const Dashboard = () => {
         </Suspense>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25, ease: EASING }}
-          className="flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl overflow-hidden min-h-0 transition-all duration-500 hover:border-white/10 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl overflow-hidden min-h-0 transition-all hover:border-white/10 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
         >
           <div className="flex items-center justify-between mb-4 shrink-0">
             <h3 className="text-[9px] font-black text-secondary uppercase tracking-[0.3em]">
@@ -226,13 +229,22 @@ export const Dashboard = () => {
           <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar flex-1 min-h-0">
             {activeRoots.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-secondary/40 gap-4 py-8 px-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.8, 1, 0.8] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
+                >
                   <span className="text-3xl opacity-80 backdrop-blur-sm">🎯</span>
-                </div>
-                <div className="flex flex-col gap-1">
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="flex flex-col gap-1"
+                >
                   <p className="text-[11px] font-black uppercase tracking-widest text-text/80">No Active Goals</p>
                   <p className="text-xs font-medium text-secondary/60">Create a goal in the Goals tab to launch your journey.</p>
-                </div>
+                </motion.div>
               </div>
             ) : (
               activeRoots.slice(0, 12).map((g, i) => (
