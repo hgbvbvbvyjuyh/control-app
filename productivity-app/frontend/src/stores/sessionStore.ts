@@ -5,7 +5,7 @@ import { api } from '../utils/api';
 import { getBrowserIanaTimeZone } from '../utils/browserTimezone';
 import { logClientError } from '../utils/logClientError';
 import { useGoalStore } from './goalStore';
-import { saveToDB, getAllFromDB } from '../lib/persistence';
+import { saveToDB, getAllFromDB, deleteFromDB } from '../lib/persistence';
 
 const SESSION_LOCK_KEY = 'active_productivity_session';
 
@@ -47,8 +47,23 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       const activeSession = sessions.find(s => s.status === 'active') || null;
       
       set({ sessions, activeSession, loading: false });
+      // Sync server sessions to IndexedDB for offline resilience
+      for (const s of sessions) {
+        void saveToDB('sessions', s);
+      }
     } catch (error) {
       console.error('Failed to load sessions:', error);
+      // FALLBACK: restore from IndexedDB so data survives offline/crash
+      try {
+        const cached = (await getAllFromDB('sessions')) as Session[];
+        if (cached.length > 0) {
+          const activeSession = cached.find(s => s.status === 'active') || null;
+          set({ sessions: cached, activeSession, loading: false });
+          return;
+        }
+      } catch (dbErr) {
+        console.error('[sessionStore] IndexedDB fallback failed:', dbErr);
+      }
       set({ loading: false });
     }
   },
@@ -93,8 +108,13 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
         mistake,
         improvementSuggestion
       });
-      set({ activeSession: null, sessions: [updated, ...get().sessions] });
-      // Point 3 & 4: Ensure it's not active anymore and saved to DB
+      // Replace the existing session entry instead of prepending a duplicate
+      set((state) => ({
+        activeSession: null,
+        sessions: state.sessions.map(s =>
+          String(s.id) === String(updated.id) ? updated : s
+        ),
+      }));
       void saveToDB('sessions', updated);
       localStorage.removeItem(SESSION_LOCK_KEY);
       void useGoalStore.getState().load();
@@ -111,8 +131,13 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       const updated = await api.post<Session>(`/sessions/${activeSession.id}/skip`, {
         skipReason: reason
       });
-      set({ activeSession: null, sessions: [updated, ...get().sessions] });
-      // Point 4: Ensure it's not active anymore and saved to DB
+      // Replace the existing session entry instead of prepending a duplicate
+      set((state) => ({
+        activeSession: null,
+        sessions: state.sessions.map(s =>
+          String(s.id) === String(updated.id) ? updated : s
+        ),
+      }));
       void saveToDB('sessions', updated);
       localStorage.removeItem(SESSION_LOCK_KEY);
       void useGoalStore.getState().load();
@@ -162,9 +187,14 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   },
 
   remove: async (id: string) => {
-    await api.delete(`/sessions/${id}`);
-    const filtered = get().sessions.filter(s => String(s.id) !== String(id));
-    set({ sessions: filtered });
-    void useGoalStore.getState().load();
+    try {
+      await api.delete(`/sessions/${id}`);
+      const filtered = get().sessions.filter(s => String(s.id) !== String(id));
+      set({ sessions: filtered });
+      void deleteFromDB('sessions', id);
+      void useGoalStore.getState().load();
+    } catch (error) {
+      console.error('Failed to remove session:', error);
+    }
   }
 }));

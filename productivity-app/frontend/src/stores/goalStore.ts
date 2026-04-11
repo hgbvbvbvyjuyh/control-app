@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { type Goal } from '../db';
 import { api } from '../utils/api';
 import { logClientError } from '../utils/logClientError';
-import { db, saveToDB } from '../lib/persistence';
+import { db, saveToDB, getAllFromDB } from '../lib/persistence';
 
 interface GoalStore {
   goals: Goal[];
@@ -68,9 +68,27 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
           loadError: null,
         };
       });
+      // Sync server goals to IndexedDB for offline resilience
+      for (const g of serverGoals) {
+        void saveToDB('goals', g);
+      }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       logClientError('goalStore.load', error);
+      // FALLBACK: restore from IndexedDB so data survives offline/crash refresh
+      try {
+        const cached = (await getAllFromDB('goals')) as Goal[];
+        if (cached.length > 0) {
+          set((state) => ({
+            goals: cached.filter(g => !state.deletingIds.has(String(g.id))),
+            loadError: msg || 'Could not load goals',
+            loading: false,
+          }));
+          return;
+        }
+      } catch (dbErr) {
+        console.error('[goalStore] IndexedDB fallback failed:', dbErr);
+      }
       set({ loadError: msg || 'Could not load goals', loading: false });
     }
   },
@@ -205,15 +223,19 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
         String(g.id) === String(id) ? updated : g
       ),
     });
+    void saveToDB('goals', updated);
   },
 
   patchStatus: async (id, status) => {
     const updated = await api.put<Goal>(`/goals/${id}`, { status });
+    const mergedGoal = get().goals.find(g => String(g.id) === String(id));
+    const finalGoal = mergedGoal ? { ...mergedGoal, status: updated.status ?? status } : updated;
     set({
       goals: get().goals.map(g =>
-        String(g.id) === String(id) ? { ...g, status: updated.status ?? status } : g
+        String(g.id) === String(id) ? finalGoal : g
       ),
     });
+    void saveToDB('goals', finalGoal);
   },
 
   select: (id) => set({ selectedGoalId: id }),

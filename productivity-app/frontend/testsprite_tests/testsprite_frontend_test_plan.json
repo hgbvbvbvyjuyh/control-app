@@ -1,0 +1,921 @@
+[
+  {
+    "id": "TC001",
+    "title": "View dashboard metrics and goal status summary while authenticated",
+    "description": "Verifies an authenticated user can load the dashboard and see trend metrics and goal status counts displayed.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard metrics and trend data are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify goal status counts summary is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Fallback to cached dashboard metrics when online metrics are unavailable",
+    "description": "Verifies the dashboard can display cached metrics from local storage when online metrics are unavailable and still renders trend data.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the application to offline or local mode from the UI controls"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard metrics are displayed using locally available cached data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the trend chart is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Start a focus session, complete as not achieved, and create a linked failure",
+    "description": "Verifies the user can start a session for a goal, complete it as not achieved, and record a failure linked to that session and goal.",
+    "category": "Session Timer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open goal tracking"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Fill Goal title with Session Goal"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Daily"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the session timer"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal Session Goal for the session"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid work duration"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid rest duration"
+      },
+      {
+        "type": "action",
+        "description": "Start the focus session"
+      },
+      {
+        "type": "action",
+        "description": "Complete the session marking achieved as false"
+      },
+      {
+        "type": "action",
+        "description": "Fill in mistakes with a valid entry"
+      },
+      {
+        "type": "action",
+        "description": "Fill in improvements with a valid entry"
+      },
+      {
+        "type": "action",
+        "description": "Submit the session completion"
+      },
+      {
+        "type": "action",
+        "description": "Create a failure linked to the completed session"
+      },
+      {
+        "type": "action",
+        "description": "Fill Failure title with Session failure"
+      },
+      {
+        "type": "action",
+        "description": "Fill in failure notes with a valid entry"
+      },
+      {
+        "type": "action",
+        "description": "Save the failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the failure is created and visible in the failures list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the failure shows a link to its associated session or goal"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Soft-delete a goal to Trash then restore it",
+    "description": "User soft-deletes a newly created goal, sees it in Trash, restores it, and the goal returns to the goals list.",
+    "category": "Trash & Recovery",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with name Goal C"
+      },
+      {
+        "type": "action",
+        "description": "Delete Goal C"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Trash"
+      },
+      {
+        "type": "action",
+        "description": "Open the trashed item corresponding to Goal C"
+      },
+      {
+        "type": "action",
+        "description": "Restore the trashed item"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Goals"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Goal C is displayed in the goals list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Create a yearly goal with a monthly child and view progress breakdown",
+    "description": "Verifies the user can create a parent goal and a child goal and then view a progress breakdown that includes child goals.",
+    "category": "Goal Tracking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open goal tracking"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Fill Goal title with 2026 Finance"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Yearly"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal category as Finance"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "action",
+        "description": "Open the newly created goal details"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a child goal"
+      },
+      {
+        "type": "action",
+        "description": "Fill Goal title with March Budget"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Monthly"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "action",
+        "description": "Open the parent goal progress view"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a progress breakdown is displayed and includes child goal contributions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the parent goal shows an overall progress value"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Create weekly life journal entry with linked goal and failure then filter weekly",
+    "description": "User creates a weekly life journal entry linked to a newly created goal and failure and then filters journals by weekly scope to see the new entry in the list.",
+    "category": "Journaling",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with name Goal A"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Failures"
+      },
+      {
+        "type": "action",
+        "description": "Create a new failure with title Failure A and link it to Goal A"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Journal"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Select weekly as the journal scope"
+      },
+      {
+        "type": "action",
+        "description": "Select life as the journal type"
+      },
+      {
+        "type": "action",
+        "description": "Fill Reflections for Goal A into the content field"
+      },
+      {
+        "type": "action",
+        "description": "Link the journal entry to Goal A"
+      },
+      {
+        "type": "action",
+        "description": "Link the journal entry to Failure A"
+      },
+      {
+        "type": "action",
+        "description": "Save the journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Filter the journals list by weekly scope"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the newly created journal entry is displayed in the journals list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Update goal status or progress and reflect changes in dashboard counts",
+    "description": "Verifies updating a goal status/progress is persisted and the dashboard status counts reflect the update.",
+    "category": "Goal Tracking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open goal tracking"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Fill Goal title with Status Count Seed Goal"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Weekly"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "action",
+        "description": "Open the goal details"
+      },
+      {
+        "type": "action",
+        "description": "Change the goal status to a different valid status"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal changes"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify goal status counts summary reflects the updated goal status"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard metrics remain displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Create failure linked to an existing goal and verify it appears in failures list",
+    "description": "User creates a failure linked to a goal and then sees the failure in the failures list.",
+    "category": "Failure Logging",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Goals"
+      },
+      {
+        "type": "action",
+        "description": "Create a new goal with name Goal B"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Failures"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new failure"
+      },
+      {
+        "type": "action",
+        "description": "Fill Missed focus into the title field"
+      },
+      {
+        "type": "action",
+        "description": "Fill Got distracted into the notes field"
+      },
+      {
+        "type": "action",
+        "description": "Link the failure to Goal B"
+      },
+      {
+        "type": "action",
+        "description": "Save the failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the newly created failure is displayed in the failures list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Switch dashboard range and update trend chart",
+    "description": "Verifies the user can change the dashboard time range and the trend visualization updates accordingly.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Select a different time range for dashboard metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the trend chart reflects the newly selected range"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the dashboard metrics summary remains displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC010",
+    "title": "Permanently delete a trashed journal so it cannot be restored",
+    "description": "User deletes a journal to Trash, permanently deletes it from Trash, and the restore action is no longer possible because the item is removed from Trash.",
+    "category": "Trash & Recovery",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Journal"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Select weekly as the journal scope"
+      },
+      {
+        "type": "action",
+        "description": "Select life as the journal type"
+      },
+      {
+        "type": "action",
+        "description": "Fill Entry to delete into the content field"
+      },
+      {
+        "type": "action",
+        "description": "Save the journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Delete the newly created journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Trash"
+      },
+      {
+        "type": "action",
+        "description": "Open the trashed item corresponding to the deleted journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Permanently delete the trashed item"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the deleted journal item is no longer displayed in the Trash list"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC011",
+    "title": "Block starting a second active focus session",
+    "description": "Verifies the UI enforces only one active session by preventing a second session from starting while one is active.",
+    "category": "Session Timer",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open goal tracking"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Fill Goal title with Goal A"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Daily"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Fill Goal title with Goal B"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Daily"
+      },
+      {
+        "type": "action",
+        "description": "Save the goal"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the session timer"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal Goal A for the session"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid work duration"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid rest duration"
+      },
+      {
+        "type": "action",
+        "description": "Start the focus session"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to start another session for goal Goal B"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the UI indicates an active session already exists and blocks the second start"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only one session remains active"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC012",
+    "title": "Render dashboard trends with no available data",
+    "description": "Verifies the dashboard handles an empty dataset by showing an appropriate empty state while keeping the page usable.",
+    "category": "Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the dashboard"
+      },
+      {
+        "type": "action",
+        "description": "Select a time range that results in no recorded activity"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state for trend data is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify goal status counts summary is still displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC013",
+    "title": "Validate required fields when creating a goal",
+    "description": "Verifies the app prevents saving a goal without required fields and shows a validation error.",
+    "category": "Goal Tracking",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open goal tracking"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new goal"
+      },
+      {
+        "type": "action",
+        "description": "Select the goal period as Monthly"
+      },
+      {
+        "type": "action",
+        "description": "Submit the goal creation form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a validation error is visible for missing required fields"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the goal is not added to the goals list"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC014",
+    "title": "Block saving a failure when linked session is invalid or unavailable",
+    "description": "User cannot save a failure when it is linked to a session that is not available in the UI and an error is shown.",
+    "category": "Failure Logging",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Failures"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new failure"
+      },
+      {
+        "type": "action",
+        "description": "Fill Linked to non-existent session into the title field"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to link the failure to a session using an invalid session reference in the session field"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the failure"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a linking or not-found error is visible and the failure is not created"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC015",
+    "title": "Prevent creating journal entry without required content",
+    "description": "User cannot save a journal entry when required content is missing and a validation error is shown.",
+    "category": "Journaling",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to Journal"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new journal entry"
+      },
+      {
+        "type": "action",
+        "description": "Select goal as the journal type"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the journal entry without filling the content field"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a content validation error is visible"
+      }
+    ],
+    "priority": "Low"
+  }
+]

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { type Failure } from '../db';
 import { api } from '../utils/api';
-import { saveToDB, deleteFromDB } from '../lib/persistence';
+import { saveToDB, deleteFromDB, getAllFromDB } from '../lib/persistence';
 
 interface FailureStore {
   failures: Failure[];
@@ -29,6 +29,16 @@ export const useFailureStore = create<FailureStore>((set, get) => ({
       }
     } catch (error) {
       console.error('Failed to load failures:', error);
+      // FALLBACK: restore from IndexedDB so data survives offline/crash
+      try {
+        const cached = (await getAllFromDB('failures')) as Failure[];
+        if (cached.length > 0) {
+          set({ failures: cached, loading: false });
+          return;
+        }
+      } catch (dbErr) {
+        console.error('[failureStore] IndexedDB fallback failed:', dbErr);
+      }
       set({ loading: false });
     }
   },

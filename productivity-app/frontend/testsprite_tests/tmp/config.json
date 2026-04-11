@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173/http://localhost:5174/",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "frontend",
+    "projectPath": "e:\\mine software\\productivity-app\\frontend",
+    "testIds": [],
+    "additionalInstruction": "Test all pages (Dashboard, Goals, Session, Journal, Failures, Trash). Verify that goals can be created and that the session timer starts correctly. Ensure that the app is connected to the backend (port 3002) via the configured proxy. Authentication is disabled in the .env file.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-fkQ3z3PaMkkah7YhUWPc5NFdps9Bbqd90REHZv_WESMzme7o_rfH3kge85Mql6HrdcGt5HyCikzUR1Hs3E9M8q8qmQNRUb-G-5SdyKbNnC70zYnLk5_RxLv5PCV81wvkdYg"
+    }
+  },
+  "serverPort": 60248
+}

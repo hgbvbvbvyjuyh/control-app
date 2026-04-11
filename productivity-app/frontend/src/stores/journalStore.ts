@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { type JournalEntry } from '../db';
 import { api } from '../utils/api';
-import { saveToDB } from '../lib/persistence';
+import { saveToDB, deleteFromDB, getAllFromDB } from '../lib/persistence';
 
 interface JournalStore {
   entries: JournalEntry[];
@@ -24,8 +24,22 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
     try {
       const entries = await api.get<JournalEntry[]>('/journals');
       set({ entries, loading: false });
+      // Sync to IndexedDB for offline resilience
+      for (const e of entries) {
+        void saveToDB('journals', e);
+      }
     } catch (error) {
       console.error('Failed to load journals:', error);
+      // FALLBACK: restore from IndexedDB so data survives offline/crash
+      try {
+        const cached = (await getAllFromDB('journals')) as JournalEntry[];
+        if (cached.length > 0) {
+          set({ entries: cached, loading: false });
+          return;
+        }
+      } catch (dbErr) {
+        console.error('[journalStore] IndexedDB fallback failed:', dbErr);
+      }
       set({ loading: false });
     }
   },
@@ -35,23 +49,40 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
   },
 
   add: async (type, date, content, goalId, category) => {
-    const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId, category });
-    set((state) => ({ entries: [...state.entries, created] }));
-    void saveToDB('journals', created);
-    return created;
+    try {
+      const created = await api.post<JournalEntry>('/journals', { type, date, content, goalId, category });
+      set((state) => ({ entries: [...state.entries, created] }));
+      void saveToDB('journals', created);
+      return created;
+    } catch (error) {
+      console.error('Failed to add journal:', error);
+      throw error;
+    }
   },
 
   update: async (id, content) => {
-    const updated = await api.put<JournalEntry>(`/journals/${id}`, { content });
-    set({
-      entries: get().entries.map(e =>
-        String(e.id) === String(id) ? updated : e
-      ),
-    });
+    try {
+      const updated = await api.put<JournalEntry>(`/journals/${id}`, { content });
+      set({
+        entries: get().entries.map(e =>
+          String(e.id) === String(id) ? updated : e
+        ),
+      });
+      void saveToDB('journals', updated);
+    } catch (error) {
+      console.error('Failed to update journal:', error);
+      throw error;
+    }
   },
 
   remove: async (id) => {
-    await api.delete(`/journals/${id}`);
-    set({ entries: get().entries.filter(e => String(e.id) !== String(id)) });
+    try {
+      await api.delete(`/journals/${id}`);
+      set({ entries: get().entries.filter(e => String(e.id) !== String(id)) });
+      void deleteFromDB('journals', id);
+    } catch (error) {
+      console.error('Failed to remove journal:', error);
+      throw error;
+    }
   },
 }));

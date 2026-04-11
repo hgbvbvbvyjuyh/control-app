@@ -14,6 +14,7 @@ import { useGoalStore } from './stores/goalStore';
 import { useSessionStore } from './stores/sessionStore';
 import { useFailureStore } from './stores/failureStore';
 import { useJournalStore } from './stores/journalStore';
+import { useFrameworkStore } from './stores/frameworkStore';
 import { getAllFromDB } from './lib/persistence';
 
 const AuthGate = ({ children }: { children: React.ReactNode }) => {
@@ -36,10 +37,11 @@ const AuthGate = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const { init } = useAuthStore();
-  const { setGoals } = useGoalStore();
-  const { setSessions } = useSessionStore();
-  const failureStore = useFailureStore();
-  const journalStore = useJournalStore();
+  const setGoals = useGoalStore((s) => s.setGoals);
+  const setSessions = useSessionStore((s) => s.setSessions);
+  const setFailures = useFailureStore((s) => s.setFailures);
+  const setJournals = useJournalStore((s) => s.setJournals);
+  const setFrameworks = useFrameworkStore((s) => s.setFrameworks);
 
   useEffect(() => {
     init();
@@ -47,24 +49,26 @@ function App() {
 
   useEffect(() => {
     const hydrateFromIndexedDB = async () => {
-      const [goals, sessions, failures, journals] = await Promise.all([
-        getAllFromDB('goals'),
-        getAllFromDB('sessions'),
-        getAllFromDB('failures'),
-        getAllFromDB('journals'),
-      ]);
-      setGoals(goals);
-      setSessions(sessions);
-      if ('setFailures' in failureStore && typeof failureStore.setFailures === 'function') {
-        failureStore.setFailures(failures);
-      }
-      if ('setJournals' in journalStore && typeof journalStore.setJournals === 'function') {
-        journalStore.setJournals(journals);
+      try {
+        const [goals, sessions, failures, journals, frameworks] = await Promise.all([
+          getAllFromDB('goals'),
+          getAllFromDB('sessions'),
+          getAllFromDB('failures'),
+          getAllFromDB('journals'),
+          getAllFromDB('frameworks'),
+        ]);
+        if (goals.length) setGoals(goals);
+        if (sessions.length) setSessions(sessions);
+        if (failures.length) setFailures(failures);
+        if (journals.length) setJournals(journals);
+        if (frameworks.length) setFrameworks(frameworks);
+      } catch (e) {
+        console.error('Failed to hydrate from IndexedDB:', e);
       }
     };
 
     void hydrateFromIndexedDB();
-  }, [setGoals, setSessions, failureStore, journalStore]);
+  }, [setGoals, setSessions, setFailures, setJournals, setFrameworks]);
 
   return (
     <HashRouter>

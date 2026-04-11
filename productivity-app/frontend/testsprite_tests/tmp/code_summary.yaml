@@ -1,0 +1,49 @@
+version: "2"
+type: frontend
+tech_stack:
+  - React
+  - TypeScript
+  - Vite
+  - Tailwind CSS
+  - Dexie (IndexedDB)
+  - Recharts
+  - Zustand
+features:
+  - name: Dashboard
+    description: Performance overview with charts and goal status
+    files:
+      - src/pages/Dashboard.tsx
+      - src/components/DashboardTrendChart.tsx
+  - name: Goal Tracking
+    description: Year/Month/Week/Day goal tree management
+    files:
+      - src/pages/Goals.tsx
+      - src/components/GoalModal.tsx
+      - src/stores/goalStore.ts
+  - name: Session Timer
+    description: Focused work/rest timer with framework fields
+    files:
+      - src/pages/Session.tsx
+      - src/stores/sessionStore.ts
+  - name: Journaling
+    description: Life journaling and goal-specific reflections
+    files:
+      - src/pages/Journal.tsx
+      - src/stores/journalStore.ts
+  - name: Failure Logging
+    description: Capture and track setbacks
+    files:
+      - src/pages/Failures.tsx
+      - src/stores/failureStore.ts
+  - name: Trash & Recovery
+    description: Soft-delete and restore interface
+    files:
+      - src/pages/Trash.tsx
+      - src/stores/trashStore.ts
+known_limitations:
+  - issue: Local data persistence relies on IndexedDB
+    location: src/lib/persistence.ts
+    impact: Data not shared across browsers without sync
+  - issue: Auth requires VITE_FIREBASE env variables
+    location: src/firebase.ts
+    impact: Auth gated routes fail without configuration

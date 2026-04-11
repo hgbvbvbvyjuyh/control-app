@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "get api health returns status ok and timestamp",
+    "description": "Verify that GET /api/health returns HTTP 200 with a JSON body containing status as 'ok' and a valid timestamp in epoch milliseconds when the API and its dependencies are operational."
+  },
+  {
+    "id": "TC002",
+    "title": "post api frameworks creates new framework with valid auth",
+    "description": "Verify that POST /api/frameworks with a valid Firebase ID token and valid JSON body creates a new framework and returns HTTP 201 with the created framework object including id, name, and schema."
+  },
+  {
+    "id": "TC003",
+    "title": "get api frameworks lists active frameworks with auth",
+    "description": "Verify that GET /api/frameworks with a valid Firebase ID token returns HTTP 200 with an array of active framework objects."
+  },
+  {
+    "id": "TC004",
+    "title": "post api goals creates new goal with valid auth and data",
+    "description": "Verify that POST /api/goals with a valid token and valid JSON body creates a new hierarchical goal and returns HTTP 201 with the created goal object including id, title, period, status, and parentId."
+  },
+  {
+    "id": "TC005",
+    "title": "get api goals lists filtered goals with auth",
+    "description": "Verify that GET /api/goals with query parameters (e.g., period=month, status=active) and valid token returns HTTP 200 with an array of filtered goals."
+  },
+  {
+    "id": "TC006",
+    "title": "post api sessions starts new focus session enforcing single active session",
+    "description": "Verify that POST /api/sessions with valid token and JSON body starts a new focus session and returns HTTP 201 with session details, and that attempting to start another session while one is active returns HTTP 409 with error 'active_session_exists'."
+  },
+  {
+    "id": "TC007",
+    "title": "post api sessions id end ends active session with outcome logging",
+    "description": "Verify that POST /api/sessions/:id/end with valid token and JSON body ends the specified active session, returning HTTP 200 with session summary including duration, achieved status, and metrics, and returns 404 if session id does not exist."
+  },
+  {
+    "id": "TC008",
+    "title": "post api journals creates journal entry with valid auth and data",
+    "description": "Verify that POST /api/journals with valid token and valid JSON body creates a journal entry and returns HTTP 201 with the created journal including id, scope, title, content, and createdAt."
+  },
+  {
+    "id": "TC009",
+    "title": "post api failures logs new failure with valid auth and data",
+    "description": "Verify that POST /api/failures with valid token and valid JSON body logs a new failure and returns HTTP 201 with the created failure object including id, title, sessionId (optional), notes, and createdAt."
+  },
+  {
+    "id": "TC010",
+    "title": "post api trash restore restores deleted item with valid auth and id",
+    "description": "Verify that POST /api/trash/restore with valid token and JSON body containing a valid deleted item id restores the item and returns HTTP 200 with restored item details, and returns 404 with error 'item_not_found' if the id does not exist."
+  }
+]

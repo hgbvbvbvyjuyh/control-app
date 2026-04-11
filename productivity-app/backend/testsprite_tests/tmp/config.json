@@ -1,0 +1,19 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5174/http://localhost:5174/",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "backend",
+    "projectPath": "e:\\mine software\\productivity-app\\backend",
+    "testIds": [],
+    "additionalInstruction": "Verify that the backend is running on port 3002. Authentication is disabled in the .env file. Test all API routes: /api/health, /api/frameworks, /api/goals, /api/sessions, /api/journals, /api/failures, /api/trash.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-fkQ3z3PaMkkah7YhUWPc5NFdps9Bbqd90REHZv_WESMzme7o_rfH3kge85Mql6HrdcGt5HyCikzUR1Hs3E9M8q8qmQNRUb-G-5SdyKbNnC70zYnLk5_RxLv5PCV81wvkdYg"
+    }
+  },
+  "serverPort": 60282,
+  "proxy": "http://4f58074c-5fb5-4043-a597-1fc397f3fac8:PBHGgc4kcl2ApIt2IPZvDuJI4fb6lTkO@tun.testsprite.com:8080"
+}
