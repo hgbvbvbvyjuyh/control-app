@@ -47,9 +47,9 @@ const Card = memo(function StatCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.1 }}
+      transition={{ duration: 0.2, delay: index * 0.05 }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       className="flex flex-col gap-1 bg-surface/30 backdrop-blur-xl border border-white/5 rounded-xl px-4 py-2.5 transition-colors duration-500 hover:bg-surface/50 hover:border-white/10 hover:shadow-[0_8px_30px_rgba(59,130,246,0.12)]"
     >
@@ -69,7 +69,7 @@ const Card = memo(function StatCard({
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 1.2, delay: 0.2 + index * 0.1, ease: EASING }}
+          transition={{ duration: 0.5, delay: 0.1 + index * 0.05, ease: EASING }}
           className="h-full rounded-full"
           style={{
             background: BAR_COLOR[title],
@@ -165,9 +165,9 @@ export const Dashboard = () => {
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.05, ease: EASING }}
+        transition={{ duration: 0.2 }}
         className="shrink-0 mb-4"
       >
         <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-accent tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
@@ -182,9 +182,9 @@ export const Dashboard = () => {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, y: -15 }}
+        initial={{ opacity: 0, y: 5 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.1, ease: EASING }}
+        transition={{ duration: 0.2, delay: 0.05 }}
         className="flex items-center justify-between bg-surface/40 backdrop-blur-2xl border border-white/5 rounded-xl px-5 py-2.5 shadow-xl shadow-black/20 shrink-0 transition-all duration-500 hover:bg-surface/60 hover:shadow-2xl"
       >
         <div className="flex items-center gap-2.5">
@@ -212,13 +212,13 @@ export const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0 mb-2">
         <Suspense fallback={<ChartFallback />}>
-          <DashboardTrendChart key={JSON.stringify(stats.chartData)} chartData={stats.chartData} />
+          <DashboardTrendChart chartData={stats.chartData} />
         </Suspense>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.25, ease: EASING }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
           className="flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl overflow-hidden min-h-0 transition-all duration-500 hover:border-white/10 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
         >
           <div className="flex items-center justify-between mb-4 shrink-0">
@@ -229,28 +229,21 @@ export const Dashboard = () => {
           <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar flex-1 min-h-0">
             {activeRoots.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-secondary/40 gap-4 py-8 px-4 text-center">
-                <motion.div 
-                  animate={{ scale: [1, 1.05, 1] }} 
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center backdrop-blur-md border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
                   <span className="text-3xl opacity-80 backdrop-blur-sm">🎯</span>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0 }} 
-                  animate={{ opacity: 1 }} 
-                  transition={{ delay: 0.3 }}
-                  className="flex flex-col gap-1">
+                </div>
+                <div className="flex flex-col gap-1">
                   <p className="text-[11px] font-black uppercase tracking-widest text-text/80">No Active Goals</p>
                   <p className="text-xs font-medium text-secondary/60">Create a goal in the Goals tab to launch your journey.</p>
-                </motion.div>
+                </div>
               </div>
             ) : (
               activeRoots.slice(0, 12).map((g, i) => (
                 <motion.div
                   key={g.id}
-                  initial={{ opacity: 0, x: 15 }}
+                  initial={{ opacity: 0, x: 5 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 + i * 0.05, ease: EASING }}
+                  transition={{ duration: 0.2, delay: i * 0.02 }}
                 >
                   <GoalRow goal={g} />
                 </motion.div>

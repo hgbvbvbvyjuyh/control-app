@@ -18,9 +18,9 @@ type Props = { chartData: TrendDatum[] };
 export const DashboardTrendChart = memo(function DashboardTrendChart({ chartData }: Props) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.2, delay: 0.1 }}
       className="lg:col-span-2 flex flex-col bg-surface/30 backdrop-blur-xl border border-white/5 rounded-2xl p-6 shadow-2xl min-h-0 transition-all duration-500 hover:border-white/10 hover:shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
     >
       <div className="flex items-center justify-between mb-4 shrink-0">
