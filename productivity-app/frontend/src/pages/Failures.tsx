@@ -9,9 +9,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useConfirmStore } from '../stores/confirmStore';
 import { useToastStore } from '../stores/toastStore';
 import { Edit2 } from 'lucide-react';
+import { db } from '../lib/persistence';
 
 export const Failures = () => {
-  const { failures, load, loading, add, update, remove } = useFailureStore();
+  const { failures, setFailures, load, loading, add, update, remove } = useFailureStore();
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
   const { confirm } = useConfirmStore();
@@ -64,6 +65,12 @@ export const Failures = () => {
     setLinkedId('');
     setNote('');
     setError('');
+  };
+
+  const handleDelete = async (failureId: string) => {
+    console.log('Deleting:', failureId);
+    await db.table('failures').delete(String(failureId));
+    setFailures(failures.filter(f => String(f.id) !== String(failureId)));
   };
 
   const startEdit = (f: typeof failures[0]) => {
@@ -200,16 +207,7 @@ export const Failures = () => {
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={() => {
-                      confirm(
-                        'Delete Failure Log',
-                        'Move this failure record to the trash?',
-                        async () => {
-                          await remove(f.id!);
-                          showToast('Failure moved to trash', 'info');
-                        }
-                      );
-                    }}
+                    onClick={() => handleDelete(String(f.id!))}
                     className="text-error/30 hover:text-error transition-all duration-300 p-2 text-lg relative z-10"
                   >✕</button>
                 </div>
