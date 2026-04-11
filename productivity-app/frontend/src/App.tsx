@@ -16,6 +16,7 @@ import { useFailureStore } from './stores/failureStore';
 import { useJournalStore } from './stores/journalStore';
 import { useFrameworkStore } from './stores/frameworkStore';
 import { getAllFromDB } from './lib/persistence';
+import type { Goal, Session as DBSession, Failure, JournalEntry, Framework } from './db';
 
 const AuthGate = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuthStore();
@@ -57,11 +58,11 @@ function App() {
           getAllFromDB('journals'),
           getAllFromDB('frameworks'),
         ]);
-        if (goals.length) setGoals(goals);
-        if (sessions.length) setSessions(sessions);
-        if (failures.length) setFailures(failures);
-        if (journals.length) setJournals(journals);
-        if (frameworks.length) setFrameworks(frameworks);
+        if (goals.length) setGoals(goals as Goal[]);
+        if (sessions.length) setSessions(sessions as DBSession[]);
+        if (failures.length) setFailures(failures as Failure[]);
+        if (journals.length) setJournals(journals as JournalEntry[]);
+        if (frameworks.length) setFrameworks(frameworks as Framework[]);
       } catch (e) {
         console.error('Failed to hydrate from IndexedDB:', e);
       }

@@ -170,12 +170,12 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       localStorage.removeItem(SESSION_LOCK_KEY);
       
       // Still load history for the UI
-      const sessions = await getAllFromDB('sessions');
+      const sessions = await getAllFromDB('sessions') as Session[];
       set({ sessions });
     } catch (err) {
       logClientError('sessionStore.restoreSession', err);
       // Fallback: If API fails, try local only but don't trust it for "starting" new ones.
-      const sessions = await getAllFromDB('sessions');
+      const sessions = await getAllFromDB('sessions') as Session[];
       const active = sessions.find(s => s.status === 'active') || null;
       set({ sessions, activeSession: active });
     }
