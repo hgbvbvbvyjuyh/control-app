@@ -57,8 +57,10 @@ export const Session = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
   // Ref-mirror of alarmSound so the setInterval closure never has a stale value
   const alarmSoundRef = useRef<string>('none');
-  // Ref guard — prevents the alarm firing more than once per session
-  const alarmFiredRef = useRef(false);
+  // Ref guard — prevents the alarm firing more than once per session.
+  // Tracks the session ID so that restoreSession re-setting the same session
+  // object does NOT reset the guard mid-session.
+  const alarmFiredForSessionRef = useRef<string | null>(null);
   // Ref to hold the stop function for the continuously looping alarm
   const stopAlarmRef = useRef<(() => void) | null>(null);
   const playSoundRef = useRef<() => void>(() => undefined);
@@ -207,35 +209,77 @@ export const Session = () => {
     };
   };
 
-  playSoundRef.current = playSound;
-
   useEffect(() => {
-    alarmFiredRef.current = false;
-    setAlarmTriggered(false);
-    if (stopAlarmRef.current) stopAlarmRef.current();
+    // Only reset alarm guard when the SESSION ID changes (new session),
+    // NOT on every activeSession object change (e.g. restoreSession re-set).
+    const currentSessionId = activeSession?.id ?? null;
+    const guardedId = alarmFiredForSessionRef.current;
+    const isNewSession = currentSessionId !== guardedId;
 
-    if (activeSession && activeSession.status === 'active') {
-      const startMs = activeSession.startTime;
-      const workTimeMin = activeSession.workTime;
-      timerRef.current = setInterval(() => {
-        const newElapsed = Math.floor((Date.now() - startMs) / 1000);
-        setElapsed(newElapsed);
-
-        if (workTimeMin && workTimeMin > 0) {
-          const totalSeconds = workTimeMin * 60;
-          if (newElapsed >= totalSeconds && !alarmFiredRef.current) {
-            alarmFiredRef.current = true;
-            setAlarmTriggered(true);
-            playSoundRef.current();
-          }
-        }
-      }, 1000);
+    if (!activeSession || activeSession.status !== 'active') {
+      // No active session — clear timer and alarm
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+      if (isNewSession) {
+        // Moving away from a session — reset guard
+        alarmFiredForSessionRef.current = null;
+        setAlarmTriggered(false);
+        if (stopAlarmRef.current) stopAlarmRef.current();
+      }
+      return;
     }
+
+    if (isNewSession) {
+      // Genuinely new session — reset alarm guard and stop any prior alarm
+      alarmFiredForSessionRef.current = currentSessionId;
+      setAlarmTriggered(false);
+      if (stopAlarmRef.current) stopAlarmRef.current();
+    }
+
+    // Keep playSoundRef current inside this closure
+    playSoundRef.current = playSound;
+
+    const startMs = activeSession.startTime;
+    const workTimeMin = activeSession.workTime;
+
+    // Clear any existing interval before creating a new one
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    // Immediately calculate elapsed to catch post-refresh case where time already passed
+    const immediateElapsed = Math.floor((Date.now() - startMs) / 1000);
+    setElapsed(immediateElapsed);
+    if (workTimeMin && workTimeMin > 0) {
+      const totalSeconds = workTimeMin * 60;
+      if (immediateElapsed >= totalSeconds && alarmFiredForSessionRef.current === currentSessionId) {
+        // Time already exceeded — trigger alarm immediately without waiting for next tick
+        setAlarmTriggered(true);
+        playSoundRef.current();
+        // Mark as fired so the interval doesn't re-trigger it
+        alarmFiredForSessionRef.current = `fired:${currentSessionId}`;
+      }
+    }
+
+    timerRef.current = setInterval(() => {
+      const newElapsed = Math.floor((Date.now() - startMs) / 1000);
+      setElapsed(newElapsed);
+
+      if (workTimeMin && workTimeMin > 0) {
+        const totalSeconds = workTimeMin * 60;
+        const alreadyFired = alarmFiredForSessionRef.current === `fired:${currentSessionId}`;
+        if (newElapsed >= totalSeconds && !alreadyFired) {
+          alarmFiredForSessionRef.current = `fired:${currentSessionId}`;
+          setAlarmTriggered(true);
+          playSoundRef.current();
+        }
+      }
+    }, 1000);
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (stopAlarmRef.current) stopAlarmRef.current();
+      // Do NOT stop the alarm here — let the user dismiss it manually
     };
-  }, [activeSession]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id, activeSession?.status, activeSession?.startTime, activeSession?.workTime]);
 
   const handleStart = async () => {
     const gid = goalId.trim();

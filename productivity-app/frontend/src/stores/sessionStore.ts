@@ -28,7 +28,11 @@ interface SessionStore {
 export const useSessionStore = create<SessionStore>((set, get) => ({
   activeSession: null,
   sessions: [],
-  setSessions: (sessions) => set({ sessions }),
+  // setSessions is called by App.tsx on hydration — also restore activeSession from the list
+  setSessions: (sessions) => {
+    const activeSession = sessions.find(s => s.status === 'active') ?? null;
+    set({ sessions, activeSession });
+  },
   loading: false,
 
   load: async () => {
@@ -73,12 +77,20 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
   },
 
   start: async (goalId: string, frameworkData?: Record<string, string>, workTime?: number, restTime?: number) => {
+    // Guard: check local state first — avoids unnecessary round-trip
+    const localActive = get().activeSession;
+    if (localActive?.status === 'active') {
+      console.warn('[sessionStore] start blocked — active session already in state:', localActive.id);
+      return null;
+    }
+
     try {
-      // Check for active session before starting
+      // Also verify with server to catch cross-tab or server-side stale sessions
       const active = await api.get<Session | null>('/sessions/active');
       if (active) {
         set({ activeSession: active });
-        throw new Error('Another session is already active. Redirecting...');
+        void saveToDB('sessions', active);
+        return null;
       }
 
       const payload: Record<string, unknown> = { goalId };
@@ -87,8 +99,10 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       if (restTime) payload.restTime = restTime;
       
       const created = await api.post<Session>('/sessions', payload);
-      set((state) => ({ sessions: [...state.sessions, created] }));
-      set({ activeSession: created });
+      set((state) => ({
+        sessions: [...state.sessions.filter(s => s.id !== created.id), created],
+        activeSession: created,
+      }));
       localStorage.setItem(SESSION_LOCK_KEY, JSON.stringify(created));
       void saveToDB('sessions', created);
       return created;
@@ -102,6 +116,10 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     const { activeSession } = get();
     if (!activeSession?.id) return;
 
+    // Optimistically clear active session so UI never gets stuck
+    set({ activeSession: null });
+    localStorage.removeItem(SESSION_LOCK_KEY);
+
     try {
       const updated = await api.post<Session>(`/sessions/${activeSession.id}/end`, {
         didAchieveGoal,
@@ -110,16 +128,22 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
       });
       // Replace the existing session entry instead of prepending a duplicate
       set((state) => ({
-        activeSession: null,
         sessions: state.sessions.map(s =>
           String(s.id) === String(updated.id) ? updated : s
         ),
       }));
       void saveToDB('sessions', updated);
-      localStorage.removeItem(SESSION_LOCK_KEY);
       void useGoalStore.getState().load();
     } catch (error) {
       console.error('Failed to end session:', error);
+      // Pessimistically mark the local session as completed so it doesn't get stuck as 'active'
+      const fallback: Session = { ...activeSession, status: 'completed', didAchieveGoal, endTime: Date.now() };
+      set((state) => ({
+        sessions: state.sessions.map(s =>
+          String(s.id) === String(activeSession.id) ? fallback : s
+        ),
+      }));
+      void saveToDB('sessions', fallback);
     }
   },
 
@@ -127,22 +151,32 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
     const { activeSession } = get();
     if (!activeSession?.id) return;
 
+    // Optimistically clear active session so UI never gets stuck
+    set({ activeSession: null });
+    localStorage.removeItem(SESSION_LOCK_KEY);
+
     try {
       const updated = await api.post<Session>(`/sessions/${activeSession.id}/skip`, {
         skipReason: reason
       });
       // Replace the existing session entry instead of prepending a duplicate
       set((state) => ({
-        activeSession: null,
         sessions: state.sessions.map(s =>
           String(s.id) === String(updated.id) ? updated : s
         ),
       }));
       void saveToDB('sessions', updated);
-      localStorage.removeItem(SESSION_LOCK_KEY);
       void useGoalStore.getState().load();
     } catch (error) {
       console.error('Failed to skip session:', error);
+      // Pessimistically mark locally as skipped so it doesn't remain stuck
+      const fallback: Session = { ...activeSession, status: 'skipped', skipReason: reason, endTime: Date.now() };
+      set((state) => ({
+        sessions: state.sessions.map(s =>
+          String(s.id) === String(activeSession.id) ? fallback : s
+        ),
+      }));
+      void saveToDB('sessions', fallback);
     }
   },
 
@@ -153,30 +187,46 @@ export const useSessionStore = create<SessionStore>((set, get) => ({
 
   restoreSession: async () => {
     try {
-      // 1. First, check with the backend for a truly active session.
-      // This ensures we are in sync with the source of truth (the server).
+      // 1. Check with the backend for a truly active session (source of truth).
       const activeFromServer = await api.get<Session | null>('/sessions/active');
       
       if (activeFromServer) {
-        set({ activeSession: activeFromServer });
+        // Update the session in our local list too (might have changed)
+        set((state) => ({
+          activeSession: activeFromServer,
+          sessions: state.sessions.some(s => String(s.id) === String(activeFromServer.id))
+            ? state.sessions.map(s => String(s.id) === String(activeFromServer.id) ? activeFromServer : s)
+            : [...state.sessions, activeFromServer],
+        }));
         void saveToDB('sessions', activeFromServer);
         localStorage.setItem(SESSION_LOCK_KEY, JSON.stringify(activeFromServer));
         return;
       }
 
-      // 2. If the server says there's no active session, we MUST clear our local active state.
-      // This prevents the 409 "Another session is already active" error when trying to start a new one.
-      set({ activeSession: null });
-      localStorage.removeItem(SESSION_LOCK_KEY);
-      
-      // Still load history for the UI
+      // 2. Server says no active session — clear local state.
+      // Also auto-heal any locally-stuck 'active' sessions from IndexedDB.
       const sessions = await getAllFromDB('sessions') as Session[];
-      set({ sessions });
+      const stuckSessions = sessions.filter(s => s.status === 'active');
+      if (stuckSessions.length > 0) {
+        console.warn('[sessionStore] Found', stuckSessions.length, 'stuck active session(s) — marking as failed');
+        const healed = sessions.map(s =>
+          s.status === 'active'
+            ? { ...s, status: 'failed' as const, endTime: Date.now() }
+            : s
+        );
+        for (const s of healed.filter(s => s.status === 'failed')) {
+          void saveToDB('sessions', s);
+        }
+        set({ activeSession: null, sessions: healed });
+      } else {
+        set({ activeSession: null, sessions });
+      }
+      localStorage.removeItem(SESSION_LOCK_KEY);
     } catch (err) {
       logClientError('sessionStore.restoreSession', err);
-      // Fallback: If API fails, try local only but don't trust it for "starting" new ones.
+      // Fallback: If API fails, restore from IndexedDB and trust it.
       const sessions = await getAllFromDB('sessions') as Session[];
-      const active = sessions.find(s => s.status === 'active') || null;
+      const active = sessions.find(s => s.status === 'active') ?? null;
       set({ sessions, activeSession: active });
     }
   },
