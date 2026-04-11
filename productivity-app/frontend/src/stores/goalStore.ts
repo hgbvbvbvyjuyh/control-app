@@ -59,8 +59,15 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
         // Preserve optimistic goals that are still pending
         const optimisticGoals = state.goals.filter((g) => String(g.id).startsWith('local-'));
         
-        // Filter out goals that are currently being deleted
-        const filteredServerGoals = serverGoals.filter(g => !state.deletingIds.has(String(g.id)));
+        // Find realIds of optimistic goals that have already resolved their API call
+        const optimisticRealIds = new Set(
+          optimisticGoals.map(g => String((g as any).realId)).filter(id => id !== 'undefined' && id !== 'null')
+        );
+        
+        // Filter out goals that are currently being deleted or are already represented by an optimistic goal
+        const filteredServerGoals = serverGoals.filter(
+          g => !state.deletingIds.has(String(g.id)) && !optimisticRealIds.has(String(g.id))
+        );
 
         return {
           goals: [...optimisticGoals, ...filteredServerGoals],
@@ -145,10 +152,19 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
 
       // A bit later, swap to the real ID to finalize (if it's still local)
       setTimeout(() => {
-        set((state) => ({
-          goals: state.goals.map((g) => (g.id === localId ? created : g)),
-          selectedGoalId: state.selectedGoalId === localId ? String(created.id) : state.selectedGoalId,
-        }));
+        set((state) => {
+          const isAlreadyInList = state.goals.some(g => String(g.id) === String(created.id));
+          if (isAlreadyInList) {
+            return {
+              goals: state.goals.filter(g => g.id !== localId),
+              selectedGoalId: state.selectedGoalId === localId ? String(created.id) : state.selectedGoalId,
+            };
+          }
+          return {
+            goals: state.goals.map((g) => (g.id === localId ? created : g)),
+            selectedGoalId: state.selectedGoalId === localId ? String(created.id) : state.selectedGoalId,
+          };
+        });
       }, 1000);
 
       // Cleanup IndexedDB
