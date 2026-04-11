@@ -6,16 +6,14 @@ import { useSessionStore } from '../stores/sessionStore';
 import type { Failure } from '../db';
 import { logClientError } from '../utils/logClientError';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useConfirmStore } from '../stores/confirmStore';
 import { useToastStore } from '../stores/toastStore';
 import { Edit2 } from 'lucide-react';
 import { db } from '../lib/persistence';
 
 export const Failures = () => {
-  const { failures, setFailures, load, loading, add, update, remove } = useFailureStore();
+  const { failures, setFailures, load, loading, add, update } = useFailureStore();
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
-  const { confirm } = useConfirmStore();
   const { showToast } = useToastStore();
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
