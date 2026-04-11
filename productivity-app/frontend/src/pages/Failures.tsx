@@ -8,9 +8,10 @@ import { logClientError } from '../utils/logClientError';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToastStore } from '../stores/toastStore';
 import { Edit2 } from 'lucide-react';
+import { db } from '../lib/persistence';
 
 export const Failures = () => {
-  const { failures, load, loading, add, update, remove } = useFailureStore();
+  const { failures, setFailures, load, loading, add, update } = useFailureStore();
   const { goals, load: loadGoals } = useGoalStore();
   const { sessions, load: loadSessions } = useSessionStore();
   const { showToast } = useToastStore();
@@ -67,10 +68,10 @@ export const Failures = () => {
   const handleDelete = async (failureId: string) => {
     console.log('Deleting:', failureId);
     try {
-      await remove(failureId);
+      await db.table('failures').delete(String(failureId));
+      setFailures(failures.filter(f => String(f.id) !== String(failureId)));
     } catch (err) {
       logClientError('Failures.delete', err);
-      showToast('Failed to delete failure log', 'error');
     }
   };
 
