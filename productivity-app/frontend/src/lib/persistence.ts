@@ -38,8 +38,12 @@ export const saveToDB = async (table: string, data: unknown): Promise<void> => {
   try {
     if (!data || typeof data !== 'object') return;
     await db.table(table).put(data)
+    // Debug: confirm the record reached IndexedDB.
+    // Remove this log once persistence is verified stable.
+    const id = (data as Record<string, unknown>).id;
+    console.debug(`[IDB save] ${table}`, id ?? '(no id)', data);
   } catch (e) {
-    console.error("[persistence] DB save failed:", table, e)
+    console.error("[persistence] DB save failed:", table, data, e)
   }
 }
 

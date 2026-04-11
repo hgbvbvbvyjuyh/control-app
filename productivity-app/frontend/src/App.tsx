@@ -48,6 +48,9 @@ function App() {
     init();
   }, [init]);
 
+  // Hydrate Zustand from IndexedDB on every mount.
+  // Runs ONCE — dependency array is empty so it never re-runs and never races with itself.
+  // Uses unconditional setters so the UI always reflects IDB state on refresh.
   useEffect(() => {
     const hydrateFromIndexedDB = async () => {
       try {
@@ -58,18 +61,27 @@ function App() {
           getAllFromDB('journals'),
           getAllFromDB('frameworks'),
         ]);
-        if (goals.length) setGoals(goals as Goal[]);
-        if (sessions.length) setSessions(sessions as DBSession[]);
-        if (failures.length) setFailures(failures as Failure[]);
-        if (journals.length) setJournals(journals as JournalEntry[]);
-        if (frameworks.length) setFrameworks(frameworks as Framework[]);
+
+        // Debug: if these log empty arrays, the SAVE path is broken (check saveToDB calls).
+        // If these log data but the UI is still empty, there is an OVERWRITE bug in a load() call.
+        console.log('[IDB hydrate] goals:', goals.length, '| sessions:', sessions.length,
+          '| failures:', failures.length, '| journals:', journals.length,
+          '| frameworks:', frameworks.length);
+
+        // Always set — even empty arrays are valid state (new user / after wipe).
+        setGoals(goals as Goal[]);
+        setSessions(sessions as DBSession[]);
+        setFailures(failures as Failure[]);
+        setJournals(journals as JournalEntry[]);
+        setFrameworks(frameworks as Framework[]);
       } catch (e) {
-        console.error('Failed to hydrate from IndexedDB:', e);
+        console.error('[IDB hydrate] Failed to hydrate from IndexedDB:', e);
       }
     };
 
     void hydrateFromIndexedDB();
-  }, [setGoals, setSessions, setFailures, setJournals, setFrameworks]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <HashRouter>
