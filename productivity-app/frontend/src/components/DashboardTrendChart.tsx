@@ -74,7 +74,9 @@ export const DashboardTrendChart = memo(function DashboardTrendChart({ chartData
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#colorValue)"
-              animationDuration={1500}
+              isAnimationActive={true}
+              animationDuration={800}
+              animationEasing="ease-out"
               connectNulls
               baseLine={0}
             />
