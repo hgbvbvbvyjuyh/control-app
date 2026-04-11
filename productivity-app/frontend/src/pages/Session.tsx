@@ -84,6 +84,21 @@ export const Session = () => {
     void restoreSession();
   }, [loadGoals, loadFrameworks, restoreSession]);
 
+  // Bug #2: restore framework inputs when an active session is found on load
+  useEffect(() => {
+    if (activeSession?.status === 'active' && activeSession.frameworkData) {
+      try {
+        const parsed = JSON.parse(activeSession.frameworkData as string) as Record<string, string>;
+        const entries = Object.entries(parsed);
+        if (entries.length > 0) {
+          setFrameworkInputs(entries.map(([key, value]) => ({ key, value })));
+        }
+      } catch {
+        // frameworkData not parseable — leave defaults in place
+      }
+    }
+  }, [activeSession]);
+
   // Create (or resume) the AudioContext on user gesture — required by browser autoplay policy
   const initAudioCtx = () => {
     if (!audioCtxRef.current) {
